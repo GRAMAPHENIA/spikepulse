@@ -124,7 +124,9 @@ Este proyecto consiste en la reestructuración completa de "Spikepulse", un jueg
 3. WHEN se adapta a diferentes pantallas THEN el sistema SHALL mantener aspect ratio y legibilidad en todos los tamaños
 4. WHEN se optimiza performance THEN el sistema SHALL mantener 60fps en dispositivos de gama media
 5. WHEN se carga el juego THEN el sistema SHALL tener tiempos de carga rápidos y feedback visual de progreso
+
 ### Req
+
 uirement 11
 
 **User Story:** Como jugador, quiero que el juego refleje completamente la identidad de Spikepulse, para que tenga su propia personalidad visual y temática distintiva.

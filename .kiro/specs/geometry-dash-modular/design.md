@@ -18,6 +18,7 @@ Spikepulse será reestructurado como una aplicación web moderna con arquitectur
 ### High-Level Architecture
 
 ```
+
 Spikepulse Application
 ├── Core Engine (Game Loop, State Management)
 ├── Modules
