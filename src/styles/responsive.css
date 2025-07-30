@@ -1,0 +1,669 @@
+/**
+ * Estilos responsive para Spikepulse
+ * Maneja la adaptación a diferentes tamaños de pantalla y dispositivos
+ */
+
+/* Variables responsive */
+:root {
+    /* Breakpoints */
+    --sp-breakpoint-mobile: 768px;
+    --sp-breakpoint-tablet: 1024px;
+    --sp-breakpoint-desktop: 1200px;
+    
+    /* Espaciado responsive */
+    --sp-space-mobile-xs: 0.125rem;
+    --sp-space-mobile-sm: 0.25rem;
+    --sp-space-mobile-md: 0.5rem;
+    --sp-space-mobile-lg: 0.75rem;
+    --sp-space-mobile-xl: 1rem;
+    
+    /* Tipografía responsive */
+    --sp-text-mobile-xs: 0.75rem;
+    --sp-text-mobile-sm: 0.875rem;
+    --sp-text-mobile-md: 1rem;
+    --sp-text-mobile-lg: 1.125rem;
+    --sp-text-mobile-xl: 1.25rem;
+    
+    /* Tamaños de toque mínimos */
+    --sp-touch-target-min: 44px;
+    --sp-touch-target-comfortable: 48px;
+}
+
+/* Estilos base para dispositivos móviles */
+.sp-mobile {
+    /* Optimizaciones para móvil */
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.sp-mobile * {
+    /* Mejorar rendimiento en móvil */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* Canvas responsive */
+.spikepulse-canvas {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .spikepulse-canvas {
+        width: calc(100vw - 2rem);
+        max-width: calc(100vw - 2rem);
+        height: auto;
+        margin: var(--sp-space-md) auto;
+    }
+}
+
+/* HUD responsive */
+.spikepulse-hud {
+    transition: all var(--sp-transition-normal);
+}
+
+.spikepulse-hud--mobile {
+    position: fixed;
+    top: var(--sp-space-sm);
+    left: var(--sp-space-sm);
+    right: var(--sp-space-sm);
+    z-index: 100;
+    background: rgba(15, 15, 15, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: var(--sp-radius-md);
+    padding: var(--sp-space-sm);
+}
+
+.spikepulse-hud--mobile .spikepulse-hud__container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-space-xs);
+}
+
+.spikepulse-hud--mobile .spikepulse-hud__stat {
+    flex: 1;
+    min-width: 60px;
+    text-align: center;
+}
+
+.spikepulse-hud--mobile .spikepulse-hud__label {
+    font-size: var(--sp-text-mobile-xs);
+    margin-bottom: 2px;
+}
+
+.spikepulse-hud--mobile .spikepulse-hud__value {
+    font-size: var(--sp-text-mobile-sm);
+}
+
+.spikepulse-hud--mobile .spikepulse-hud__separator {
+    width: 1px;
+    height: 20px;
+    background: var(--sp-accent);
+    opacity: 0.3;
+}
+
+/* HUD en orientación landscape */
+.spikepulse-hud--landscape {
+    top: var(--sp-space-xs);
+    left: var(--sp-space-xs);
+    right: var(--sp-space-xs);
+    padding: var(--sp-space-xs);
+}
+
+.spikepulse-hud--landscape .spikepulse-hud__label {
+    font-size: 0.625rem;
+}
+
+.spikepulse-hud--landscape .spikepulse-hud__value {
+    font-size: 0.75rem;
+}
+
+/* Pantallas responsive */
+.spikepulse-screen-overlay--mobile {
+    padding: var(--sp-space-md);
+}
+
+.spikepulse-screen-overlay--mobile .spikepulse-screen-content {
+    max-width: 100%;
+    padding: var(--sp-space-lg);
+    margin: 0;
+}
+
+.spikepulse-screen-overlay--mobile .spikepulse-screen-title {
+    font-size: var(--sp-text-mobile-xl);
+    margin-bottom: var(--sp-space-md);
+}
+
+.spikepulse-screen-overlay--mobile .spikepulse-screen-description {
+    font-size: var(--sp-text-mobile-md);
+    margin-bottom: var(--sp-space-lg);
+}
+
+.spikepulse-screen-overlay--mobile .spikepulse-screen-button {
+    width: 100%;
+    min-height: var(--sp-touch-target-comfortable);
+    font-size: var(--sp-text-mobile-md);
+    margin-bottom: var(--sp-space-md);
+}
+
+/* Pantallas en orientación landscape */
+.spikepulse-screen-overlay--landscape {
+    padding: var(--sp-space-sm);
+}
+
+.spikepulse-screen-overlay--landscape .spikepulse-screen-content {
+    padding: var(--sp-space-md);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.spikepulse-screen-overlay--landscape .spikepulse-screen-title {
+    font-size: var(--sp-text-mobile-lg);
+    margin-bottom: var(--sp-space-sm);
+}
+
+/* Controles móviles */
+.spikepulse-mobile-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    padding: var(--sp-space-md);
+    background: linear-gradient(
+        to top,
+        rgba(15, 15, 15, 0.9) 0%,
+        rgba(15, 15, 15, 0.7) 50%,
+        transparent 100%
+    );
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--sp-space-md);
+}
+
+.spikepulse-control-group {
+    display: flex;
+    gap: var(--sp-space-sm);
+    align-items: center;
+}
+
+.spikepulse-control-group--movement {
+    flex: 0 0 auto;
+}
+
+.spikepulse-control-group--actions {
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: var(--sp-space-xs);
+}
+
+.spikepulse-control-btn {
+    min-width: var(--sp-touch-target-comfortable);
+    min-height: var(--sp-touch-target-comfortable);
+    border: 2px solid var(--sp-accent);
+    background: rgba(159, 122, 234, 0.1);
+    color: var(--sp-accent);
+    border-radius: var(--sp-radius-md);
+    font-family: var(--sp-font-secondary);
+    font-weight: 600;
+    font-size: var(--sp-text-mobile-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--sp-transition-fast);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    cursor: pointer;
+}
+
+.spikepulse-control-btn:active,
+.spikepulse-control-btn--active {
+    background: var(--sp-accent);
+    color: var(--sp-bg-primary);
+    transform: scale(0.95);
+    box-shadow: 0 0 20px rgba(159, 122, 234, 0.5);
+}
+
+.spikepulse-control-btn--movement {
+    width: var(--sp-touch-target-comfortable);
+    height: var(--sp-touch-target-comfortable);
+    border-radius: 50%;
+    font-size: var(--sp-text-mobile-lg);
+}
+
+.spikepulse-control-btn--jump {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: var(--sp-primary);
+    color: var(--sp-primary);
+    min-width: 80px;
+    height: var(--sp-touch-target-comfortable);
+}
+
+.spikepulse-control-btn--jump:active,
+.spikepulse-control-btn--jump.spikepulse-control-btn--active {
+    background: var(--sp-primary);
+    color: var(--sp-bg-primary);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.spikepulse-control-btn--dash {
+    background: rgba(255, 107, 107, 0.1);
+    border-color: var(--sp-secondary);
+    color: var(--sp-secondary);
+    min-width: 70px;
+    height: 36px;
+}
+
+.spikepulse-control-btn--dash:active,
+.spikepulse-control-btn--dash.spikepulse-control-btn--active {
+    background: var(--sp-secondary);
+    color: var(--sp-bg-primary);
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+}
+
+.spikepulse-control-btn--gravity {
+    background: rgba(159, 122, 234, 0.1);
+    border-color: var(--sp-accent);
+    color: var(--sp-accent);
+    min-width: 70px;
+    height: 36px;
+}
+
+.spikepulse-control-btn--gravity:active,
+.spikepulse-control-btn--gravity.spikepulse-control-btn--active {
+    background: var(--sp-accent);
+    color: var(--sp-bg-primary);
+    box-shadow: 0 0 20px rgba(159, 122, 234, 0.5);
+}
+
+/* Controles móviles en landscape */
+.spikepulse-mobile-controls--landscape {
+    padding: var(--sp-space-sm) var(--sp-space-md);
+    background: linear-gradient(
+        to top,
+        rgba(15, 15, 15, 0.8) 0%,
+        rgba(15, 15, 15, 0.5) 50%,
+        transparent 100%
+    );
+}
+
+.spikepulse-mobile-controls--landscape .spikepulse-control-btn {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: var(--sp-text-mobile-xs);
+}
+
+.spikepulse-mobile-controls--landscape .spikepulse-control-btn--jump {
+    min-width: 60px;
+    height: 40px;
+}
+
+.spikepulse-mobile-controls--landscape .spikepulse-control-btn--dash,
+.spikepulse-mobile-controls--landscape .spikepulse-control-btn--gravity {
+    min-width: 50px;
+    height: 32px;
+}
+
+/* Información de controles responsive */
+.spikepulse-controls-info {
+    margin-top: var(--sp-space-lg);
+}
+
+@media (max-width: 768px) {
+    .spikepulse-controls-info {
+        margin-top: var(--sp-space-md);
+    }
+    
+    .spikepulse-controls-info__title {
+        font-size: var(--sp-text-mobile-md);
+        margin-bottom: var(--sp-space-sm);
+    }
+    
+    .spikepulse-controls-info__list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--sp-space-xs);
+    }
+    
+    .spikepulse-controls-info__item {
+        font-size: var(--sp-text-mobile-sm);
+        padding: var(--sp-space-xs);
+        background: rgba(159, 122, 234, 0.1);
+        border-radius: var(--sp-radius-sm);
+        text-align: center;
+    }
+    
+    .spikepulse-controls-info__icon {
+        display: block;
+        margin-bottom: 2px;
+        font-size: var(--sp-text-mobile-md);
+    }
+}
+
+/* Estadísticas de Game Over responsive */
+.game-over-stats {
+    margin: var(--sp-space-lg) 0;
+}
+
+.game-over-stats__title {
+    font-size: var(--sp-text-mobile-lg);
+    color: var(--sp-primary);
+    text-align: center;
+    margin-bottom: var(--sp-space-md);
+    font-family: var(--sp-font-primary);
+}
+
+.game-over-stats__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--sp-space-sm);
+}
+
+@media (max-width: 768px) {
+    .game-over-stats__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--sp-space-xs);
+    }
+}
+
+.game-over-stats__item {
+    background: rgba(159, 122, 234, 0.1);
+    border: 1px solid rgba(159, 122, 234, 0.3);
+    border-radius: var(--sp-radius-md);
+    padding: var(--sp-space-sm);
+    text-align: center;
+    transition: all var(--sp-transition-normal);
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.game-over-stats__item--visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.game-over-stats__item--highlight {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.game-over-stats__label {
+    font-size: var(--sp-text-mobile-xs);
+    color: var(--sp-text-secondary);
+    margin-bottom: 4px;
+    font-family: var(--sp-font-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.game-over-stats__value {
+    font-size: var(--sp-text-mobile-md);
+    color: var(--sp-text-primary);
+    font-family: var(--sp-font-primary);
+    font-weight: 700;
+}
+
+.game-over-stats__item--highlight .game-over-stats__value {
+    color: var(--sp-primary);
+}
+
+/* Nuevo récord */
+.game-over-new-record {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-space-sm);
+    background: linear-gradient(135deg, var(--sp-primary), var(--sp-secondary));
+    color: var(--sp-bg-primary);
+    padding: var(--sp-space-md);
+    border-radius: var(--sp-radius-lg);
+    margin: var(--sp-space-md) 0;
+    font-family: var(--sp-font-primary);
+    font-weight: 700;
+    font-size: var(--sp-text-mobile-md);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all var(--sp-transition-normal);
+}
+
+.game-over-new-record--visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.game-over-new-record__icon {
+    font-size: var(--sp-text-mobile-lg);
+    animation: sp-pulse var(--sp-pulse-duration) infinite;
+}
+
+/* Botones de pausa responsive */
+.pause-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-space-md);
+    margin: var(--sp-space-lg) 0;
+}
+
+@media (max-width: 768px) {
+    .pause-buttons {
+        gap: var(--sp-space-sm);
+        margin: var(--sp-space-md) 0;
+    }
+}
+
+.pause-instructions {
+    margin-top: var(--sp-space-lg);
+    text-align: center;
+}
+
+.pause-instructions__text {
+    font-size: var(--sp-text-mobile-sm);
+    color: var(--sp-text-secondary);
+    font-family: var(--sp-font-secondary);
+}
+
+@media (max-width: 768px) {
+    .pause-instructions {
+        margin-top: var(--sp-space-md);
+    }
+    
+    .pause-instructions__text {
+        font-size: var(--sp-text-mobile-xs);
+    }
+}
+
+.pause-instructions kbd {
+    background: rgba(159, 122, 234, 0.2);
+    border: 1px solid var(--sp-accent);
+    border-radius: var(--sp-radius-sm);
+    padding: 2px 6px;
+    font-family: var(--sp-font-primary);
+    font-size: 0.8em;
+    color: var(--sp-accent);
+}
+
+/* Animaciones responsive */
+@media (prefers-reduced-motion: reduce) {
+    .spikepulse-control-btn,
+    .game-over-stats__item,
+    .game-over-new-record {
+        transition: none;
+        animation: none;
+    }
+    
+    .spikepulse-control-btn:active,
+    .spikepulse-control-btn--active {
+        transform: none;
+    }
+}
+
+/* Mejoras de accesibilidad en móvil */
+@media (max-width: 768px) {
+    /* Aumentar tamaños de fuente para mejor legibilidad */
+    .spikepulse-screen-title--main {
+        font-size: 2rem;
+    }
+    
+    .spikepulse-screen-description {
+        line-height: 1.6;
+    }
+    
+    /* Mejorar contraste en elementos interactivos */
+    .spikepulse-screen-button:focus,
+    .spikepulse-control-btn:focus {
+        outline: 3px solid var(--sp-primary);
+        outline-offset: 2px;
+    }
+}
+
+/* Orientación landscape específica */
+@media (max-width: 768px) and (orientation: landscape) {
+    .spikepulse-main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+    
+    .spikepulse-canvas {
+        max-height: 70vh;
+        width: auto;
+    }
+    
+    .spikepulse-screen-overlay--landscape .spikepulse-screen-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 80vh;
+    }
+}
+
+/* Soporte para notch en dispositivos iOS */
+@supports (padding: max(0px)) {
+    .spikepulse-mobile-controls {
+        padding-bottom: max(var(--sp-space-md), env(safe-area-inset-bottom));
+        padding-left: max(var(--sp-space-md), env(safe-area-inset-left));
+        padding-right: max(var(--sp-space-md), env(safe-area-inset-right));
+    }
+    
+    .spikepulse-hud--mobile {
+        top: max(var(--sp-space-sm), env(safe-area-inset-top));
+        left: max(var(--sp-space-sm), env(safe-area-inset-left));
+        right: max(var(--sp-space-sm), env(safe-area-inset-right));
+    }
+}
+
+/* Estados de carga y transiciones */
+.spikepulse-screen-button--loading {
+    position: relative;
+    color: transparent;
+}
+
+.spikepulse-screen-button--loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: sp-spin 1s linear infinite;
+}
+
+@keyframes sp-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Efectos visuales para HUD */
+.spikepulse-hud__value--milestone {
+    animation: sp-milestone-flash 1s ease-out;
+}
+
+.spikepulse-hud__value--changed {
+    animation: sp-value-change 0.5s ease-out;
+}
+
+@keyframes sp-milestone-flash {
+    0%, 100% {
+        transform: scale(1);
+        color: inherit;
+    }
+    50% {
+        transform: scale(1.2);
+        color: var(--sp-primary);
+        text-shadow: 0 0 10px var(--sp-primary);
+    }
+}
+
+@keyframes sp-value-change {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Estados de velocidad en HUD */
+.spikepulse-hud__value--velocity-low {
+    color: var(--sp-text-secondary);
+}
+
+.spikepulse-hud__value--velocity-medium {
+    color: var(--sp-primary);
+}
+
+.spikepulse-hud__value--velocity-high {
+    color: var(--sp-secondary);
+    text-shadow: 0 0 5px var(--sp-secondary);
+}
+
+/* Estados de saltos en HUD */
+.spikepulse-hud__value--jumps-empty {
+    color: var(--sp-danger);
+    animation: sp-pulse 1s infinite;
+}
+
+.spikepulse-hud__value--jumps-low {
+    color: var(--sp-warning);
+}
+
+.spikepulse-hud__value--jumps-full {
+    color: var(--sp-success);
+}
+
+/* Estados de dash en HUD */
+.spikepulse-hud__value--dash-available {
+    color: var(--sp-success);
+}
+
+.spikepulse-hud__value--dash-cooldown {
+    color: var(--sp-warning);
+    animation: sp-pulse 0.5s infinite;
+}
+
+/* Estados de gravedad en HUD */
+.spikepulse-hud__value--gravity-normal {
+    color: var(--sp-primary);
+}
+
+.spikepulse-hud__value--gravity-inverted {
+    color: var(--sp-accent);
+    transform: rotate(180deg);
+}

@@ -17,6 +17,7 @@
 @import url('./effects/particle-system.css');
 @import url('./utilities/effects.css');
 @import url('./layout/responsive.css');
+@import url('./responsive.css');
 
 /* ===== RESET Y BASE ===== */
 * {
