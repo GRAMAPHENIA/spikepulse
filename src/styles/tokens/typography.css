@@ -1,0 +1,269 @@
+/**
+ * Spikepulse - Tokens de tipografía
+ * Sistema tipográfico futurista para gaming
+ */
+
+:root {
+    /* ===== FAMILIAS DE FUENTES ===== */
+    --sp-font-primary: 'Orbitron', monospace;      /* Títulos y elementos importantes */
+    --sp-font-secondary: 'Rajdhani', sans-serif;   /* Texto general y UI */
+    --sp-font-mono: 'Fira Code', monospace;        /* Código y datos técnicos */
+    
+    /* ===== TAMAÑOS DE FUENTE ===== */
+    --sp-text-xs: 0.75rem;      /* 12px */
+    --sp-text-sm: 0.875rem;     /* 14px */
+    --sp-text-base: 1rem;       /* 16px */
+    --sp-text-lg: 1.125rem;     /* 18px */
+    --sp-text-xl: 1.25rem;      /* 20px */
+    --sp-text-2xl: 1.5rem;      /* 24px */
+    --sp-text-3xl: 1.875rem;    /* 30px */
+    --sp-text-4xl: 2.25rem;     /* 36px */
+    --sp-text-5xl: 3rem;        /* 48px */
+    --sp-text-6xl: 3.75rem;     /* 60px */
+    --sp-text-7xl: 4.5rem;      /* 72px */
+    --sp-text-8xl: 6rem;        /* 96px */
+    --sp-text-9xl: 8rem;        /* 128px */
+    
+    /* ===== PESOS DE FUENTE ===== */
+    --sp-font-thin: 100;
+    --sp-font-light: 300;
+    --sp-font-normal: 400;
+    --sp-font-medium: 500;
+    --sp-font-semibold: 600;
+    --sp-font-bold: 700;
+    --sp-font-extrabold: 800;
+    --sp-font-black: 900;
+    
+    /* ===== ALTURAS DE LÍNEA ===== */
+    --sp-leading-none: 1;
+    --sp-leading-tight: 1.25;
+    --sp-leading-snug: 1.375;
+    --sp-leading-normal: 1.5;
+    --sp-leading-relaxed: 1.625;
+    --sp-leading-loose: 2;
+    
+    /* ===== ESPACIADO DE LETRAS ===== */
+    --sp-tracking-tighter: -0.05em;
+    --sp-tracking-tight: -0.025em;
+    --sp-tracking-normal: 0em;
+    --sp-tracking-wide: 0.025em;
+    --sp-tracking-wider: 0.05em;
+    --sp-tracking-widest: 0.1em;
+    
+    /* ===== EFECTOS DE TEXTO ===== */
+    --sp-text-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --sp-text-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.5);
+    --sp-text-shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.5);
+    
+    /* Efectos de glow para texto */
+    --sp-text-glow-primary: 0 0 10px var(--sp-primary), 0 0 20px var(--sp-primary), 0 0 30px var(--sp-primary);
+    --sp-text-glow-secondary: 0 0 10px var(--sp-secondary), 0 0 20px var(--sp-secondary), 0 0 30px var(--sp-secondary);
+    --sp-text-glow-accent: 0 0 10px var(--sp-accent), 0 0 20px var(--sp-accent), 0 0 30px var(--sp-accent);
+    
+    /* ===== DURACIONES DE ANIMACIÓN DE TEXTO ===== */
+    --sp-text-glow-duration: 3s;
+    --sp-text-pulse-duration: 2s;
+}
+
+/* ===== CLASES UTILITARIAS DE TIPOGRAFÍA ===== */
+
+/* Familias de fuentes */
+.sp-font-primary {
+    font-family: var(--sp-font-primary);
+}
+
+.sp-font-secondary {
+    font-family: var(--sp-font-secondary);
+}
+
+.sp-font-mono {
+    font-family: var(--sp-font-mono);
+}
+
+/* Tamaños de texto */
+.sp-text-xs { font-size: var(--sp-text-xs); }
+.sp-text-sm { font-size: var(--sp-text-sm); }
+.sp-text-base { font-size: var(--sp-text-base); }
+.sp-text-lg { font-size: var(--sp-text-lg); }
+.sp-text-xl { font-size: var(--sp-text-xl); }
+.sp-text-2xl { font-size: var(--sp-text-2xl); }
+.sp-text-3xl { font-size: var(--sp-text-3xl); }
+.sp-text-4xl { font-size: var(--sp-text-4xl); }
+.sp-text-5xl { font-size: var(--sp-text-5xl); }
+.sp-text-6xl { font-size: var(--sp-text-6xl); }
+.sp-text-7xl { font-size: var(--sp-text-7xl); }
+.sp-text-8xl { font-size: var(--sp-text-8xl); }
+.sp-text-9xl { font-size: var(--sp-text-9xl); }
+
+/* Pesos de fuente */
+.sp-font-thin { font-weight: var(--sp-font-thin); }
+.sp-font-light { font-weight: var(--sp-font-light); }
+.sp-font-normal { font-weight: var(--sp-font-normal); }
+.sp-font-medium { font-weight: var(--sp-font-medium); }
+.sp-font-semibold { font-weight: var(--sp-font-semibold); }
+.sp-font-bold { font-weight: var(--sp-font-bold); }
+.sp-font-extrabold { font-weight: var(--sp-font-extrabold); }
+.sp-font-black { font-weight: var(--sp-font-black); }
+
+/* Alturas de línea */
+.sp-leading-none { line-height: var(--sp-leading-none); }
+.sp-leading-tight { line-height: var(--sp-leading-tight); }
+.sp-leading-snug { line-height: var(--sp-leading-snug); }
+.sp-leading-normal { line-height: var(--sp-leading-normal); }
+.sp-leading-relaxed { line-height: var(--sp-leading-relaxed); }
+.sp-leading-loose { line-height: var(--sp-leading-loose); }
+
+/* Espaciado de letras */
+.sp-tracking-tighter { letter-spacing: var(--sp-tracking-tighter); }
+.sp-tracking-tight { letter-spacing: var(--sp-tracking-tight); }
+.sp-tracking-normal { letter-spacing: var(--sp-tracking-normal); }
+.sp-tracking-wide { letter-spacing: var(--sp-tracking-wide); }
+.sp-tracking-wider { letter-spacing: var(--sp-tracking-wider); }
+.sp-tracking-widest { letter-spacing: var(--sp-tracking-widest); }
+
+/* ===== ESTILOS ESPECÍFICOS DE SPIKEPULSE ===== */
+
+/* Título principal del juego */
+.sp-title-main {
+    font-family: var(--sp-font-primary);
+    font-size: var(--sp-text-7xl);
+    font-weight: var(--sp-font-black);
+    letter-spacing: var(--sp-tracking-wider);
+    text-transform: uppercase;
+    text-shadow: var(--sp-text-glow-primary);
+    color: var(--sp-primary);
+    line-height: var(--sp-leading-none);
+}
+
+/* Subtítulo */
+.sp-subtitle {
+    font-family: var(--sp-font-secondary);
+    font-size: var(--sp-text-2xl);
+    font-weight: var(--sp-font-semibold);
+    letter-spacing: var(--sp-tracking-wide);
+    color: var(--sp-text-secondary);
+    text-shadow: var(--sp-text-shadow-md);
+}
+
+/* Texto de descripción */
+.sp-description {
+    font-family: var(--sp-font-secondary);
+    font-size: var(--sp-text-lg);
+    font-weight: var(--sp-font-normal);
+    line-height: var(--sp-leading-relaxed);
+    color: var(--sp-text-tertiary);
+}
+
+/* Texto de botones */
+.sp-button-text {
+    font-family: var(--sp-font-primary);
+    font-weight: var(--sp-font-bold);
+    letter-spacing: var(--sp-tracking-wide);
+    text-transform: uppercase;
+}
+
+/* Texto del HUD */
+.sp-hud-label {
+    font-family: var(--sp-font-secondary);
+    font-size: var(--sp-text-sm);
+    font-weight: var(--sp-font-bold);
+    letter-spacing: var(--sp-tracking-wider);
+    text-transform: uppercase;
+}
+
+.sp-hud-value {
+    font-family: var(--sp-font-mono);
+    font-size: var(--sp-text-xl);
+    font-weight: var(--sp-font-bold);
+    letter-spacing: var(--sp-tracking-tight);
+}
+
+/* Texto de game over */
+.sp-game-over {
+    font-family: var(--sp-font-primary);
+    font-size: var(--sp-text-6xl);
+    font-weight: var(--sp-font-black);
+    letter-spacing: var(--sp-tracking-wide);
+    text-transform: uppercase;
+    text-shadow: var(--sp-text-glow-secondary);
+    color: var(--sp-secondary);
+}
+
+/* Texto de puntuación */
+.sp-score-text {
+    font-family: var(--sp-font-mono);
+    font-size: var(--sp-text-3xl);
+    font-weight: var(--sp-font-bold);
+    color: var(--sp-text-secondary);
+    text-shadow: var(--sp-text-shadow-md);
+}
+
+/* ===== EFECTOS DE TEXTO ANIMADOS ===== */
+.sp-text-glow-primary {
+    text-shadow: var(--sp-text-glow-primary);
+}
+
+.sp-text-glow-secondary {
+    text-shadow: var(--sp-text-glow-secondary);
+}
+
+.sp-text-glow-accent {
+    text-shadow: var(--sp-text-glow-accent);
+}
+
+.sp-text-pulse-glow {
+    animation: sp-text-glow var(--sp-text-glow-duration) ease-in-out infinite;
+}
+
+/* ===== RESPONSIVE TYPOGRAPHY ===== */
+@media (max-width: 768px) {
+    :root {
+        --sp-text-7xl: 3rem;        /* 48px en móvil */
+        --sp-text-6xl: 2.5rem;      /* 40px en móvil */
+        --sp-text-5xl: 2rem;        /* 32px en móvil */
+        --sp-text-4xl: 1.75rem;     /* 28px en móvil */
+        --sp-text-3xl: 1.5rem;      /* 24px en móvil */
+    }
+    
+    .sp-title-main {
+        font-size: var(--sp-text-5xl);
+    }
+    
+    .sp-subtitle {
+        font-size: var(--sp-text-xl);
+    }
+    
+    .sp-game-over {
+        font-size: var(--sp-text-4xl);
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --sp-text-7xl: 2.5rem;      /* 40px en móvil pequeño */
+        --sp-text-6xl: 2rem;        /* 32px en móvil pequeño */
+        --sp-text-5xl: 1.75rem;     /* 28px en móvil pequeño */
+    }
+    
+    .sp-title-main {
+        font-size: var(--sp-text-4xl);
+        letter-spacing: var(--sp-tracking-normal);
+    }
+}
+
+/* ===== ACCESIBILIDAD ===== */
+@media (prefers-reduced-motion: reduce) {
+    .sp-text-pulse-glow {
+        animation: none;
+        text-shadow: var(--sp-text-glow-primary);
+    }
+}
+
+/* Mejorar legibilidad en pantallas de alta densidad */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .sp-title-main,
+    .sp-game-over {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}

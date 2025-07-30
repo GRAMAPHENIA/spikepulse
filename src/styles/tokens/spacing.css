@@ -1,0 +1,224 @@
+/**
+ * Spikepulse - Tokens de espaciado
+ * Sistema de espaciado consistente
+ */
+
+:root {
+    /* ===== ESPACIADO BASE ===== */
+    --sp-space-0: 0;
+    --sp-space-px: 1px;
+    --sp-space-0-5: 0.125rem;    /* 2px */
+    --sp-space-1: 0.25rem;       /* 4px */
+    --sp-space-1-5: 0.375rem;    /* 6px */
+    --sp-space-2: 0.5rem;        /* 8px */
+    --sp-space-2-5: 0.625rem;    /* 10px */
+    --sp-space-3: 0.75rem;       /* 12px */
+    --sp-space-3-5: 0.875rem;    /* 14px */
+    --sp-space-4: 1rem;          /* 16px */
+    --sp-space-5: 1.25rem;       /* 20px */
+    --sp-space-6: 1.5rem;        /* 24px */
+    --sp-space-7: 1.75rem;       /* 28px */
+    --sp-space-8: 2rem;          /* 32px */
+    --sp-space-9: 2.25rem;       /* 36px */
+    --sp-space-10: 2.5rem;       /* 40px */
+    --sp-space-11: 2.75rem;      /* 44px */
+    --sp-space-12: 3rem;         /* 48px */
+    --sp-space-14: 3.5rem;       /* 56px */
+    --sp-space-16: 4rem;         /* 64px */
+    --sp-space-20: 5rem;         /* 80px */
+    --sp-space-24: 6rem;         /* 96px */
+    --sp-space-28: 7rem;         /* 112px */
+    --sp-space-32: 8rem;         /* 128px */
+    --sp-space-36: 9rem;         /* 144px */
+    --sp-space-40: 10rem;        /* 160px */
+    --sp-space-44: 11rem;        /* 176px */
+    --sp-space-48: 12rem;        /* 192px */
+    --sp-space-52: 13rem;        /* 208px */
+    --sp-space-56: 14rem;        /* 224px */
+    --sp-space-60: 15rem;        /* 240px */
+    --sp-space-64: 16rem;        /* 256px */
+    --sp-space-72: 18rem;        /* 288px */
+    --sp-space-80: 20rem;        /* 320px */
+    --sp-space-96: 24rem;        /* 384px */
+    
+    /* ===== ESPACIADO SEMÁNTICO ===== */
+    --sp-space-xs: var(--sp-space-1);      /* 4px */
+    --sp-space-sm: var(--sp-space-2);      /* 8px */
+    --sp-space-md: var(--sp-space-4);      /* 16px */
+    --sp-space-lg: var(--sp-space-6);      /* 24px */
+    --sp-space-xl: var(--sp-space-8);      /* 32px */
+    --sp-space-2xl: var(--sp-space-12);    /* 48px */
+    --sp-space-3xl: var(--sp-space-16);    /* 64px */
+    --sp-space-4xl: var(--sp-space-24);    /* 96px */
+    --sp-space-5xl: var(--sp-space-32);    /* 128px */
+    
+    /* ===== ESPACIADO ESPECÍFICO DE COMPONENTES ===== */
+    
+    /* Botones */
+    --sp-btn-padding-x: var(--sp-space-lg);
+    --sp-btn-padding-y: var(--sp-space-md);
+    --sp-btn-padding-sm-x: var(--sp-space-md);
+    --sp-btn-padding-sm-y: var(--sp-space-sm);
+    --sp-btn-padding-lg-x: var(--sp-space-xl);
+    --sp-btn-padding-lg-y: var(--sp-space-lg);
+    
+    /* Cards y paneles */
+    --sp-card-padding: var(--sp-space-lg);
+    --sp-card-padding-sm: var(--sp-space-md);
+    --sp-card-padding-lg: var(--sp-space-2xl);
+    --sp-card-gap: var(--sp-space-md);
+    
+    /* HUD */
+    --sp-hud-padding: var(--sp-space-md);
+    --sp-hud-gap: var(--sp-space-lg);
+    --sp-hud-item-gap: var(--sp-space-sm);
+    
+    /* Controles móviles */
+    --sp-mobile-control-padding: var(--sp-space-sm);
+    --sp-mobile-control-gap: var(--sp-space-sm);
+    --sp-mobile-control-margin: var(--sp-space-lg);
+    
+    /* Modales y overlays */
+    --sp-modal-padding: var(--sp-space-2xl);
+    --sp-modal-margin: var(--sp-space-md);
+    --sp-overlay-padding: var(--sp-space-xl);
+    
+    /* ===== BORDER RADIUS ===== */
+    --sp-radius-none: 0;
+    --sp-radius-sm: 0.125rem;     /* 2px */
+    --sp-radius-base: 0.25rem;    /* 4px */
+    --sp-radius-md: 0.375rem;     /* 6px */
+    --sp-radius-lg: 0.5rem;       /* 8px */
+    --sp-radius-xl: 0.75rem;      /* 12px */
+    --sp-radius-2xl: 1rem;        /* 16px */
+    --sp-radius-3xl: 1.5rem;      /* 24px */
+    --sp-radius-full: 9999px;
+    
+    /* ===== ANCHOS Y ALTURAS ESPECÍFICAS ===== */
+    
+    /* Canvas del juego */
+    --sp-canvas-width: 800px;
+    --sp-canvas-height: 400px;
+    --sp-canvas-border-width: 2px;
+    
+    /* Controles móviles */
+    --sp-mobile-btn-size: 60px;
+    --sp-mobile-btn-size-sm: 48px;
+    --sp-mobile-btn-size-lg: 72px;
+    
+    /* HUD */
+    --sp-hud-height: 80px;
+    --sp-hud-item-width: 120px;
+    --sp-hud-separator-width: 1px;
+    --sp-hud-separator-height: 48px;
+    
+    /* ===== Z-INDEX LAYERS ===== */
+    --sp-z-background: -1;
+    --sp-z-base: 0;
+    --sp-z-canvas: 10;
+    --sp-z-hud: 20;
+    --sp-z-controls: 25;
+    --sp-z-modal: 30;
+    --sp-z-overlay: 40;
+    --sp-z-toast: 50;
+    --sp-z-tooltip: 60;
+    --sp-z-dropdown: 70;
+    --sp-z-max: 9999;
+}
+
+/* ===== CLASES UTILITARIAS DE ESPACIADO ===== */
+
+/* Margin */
+.sp-m-0 { margin: var(--sp-space-0); }
+.sp-m-1 { margin: var(--sp-space-1); }
+.sp-m-2 { margin: var(--sp-space-2); }
+.sp-m-3 { margin: var(--sp-space-3); }
+.sp-m-4 { margin: var(--sp-space-4); }
+.sp-m-5 { margin: var(--sp-space-5); }
+.sp-m-6 { margin: var(--sp-space-6); }
+.sp-m-8 { margin: var(--sp-space-8); }
+.sp-m-10 { margin: var(--sp-space-10); }
+.sp-m-12 { margin: var(--sp-space-12); }
+.sp-m-16 { margin: var(--sp-space-16); }
+.sp-m-20 { margin: var(--sp-space-20); }
+.sp-m-24 { margin: var(--sp-space-24); }
+
+/* Margin semántico */
+.sp-m-xs { margin: var(--sp-space-xs); }
+.sp-m-sm { margin: var(--sp-space-sm); }
+.sp-m-md { margin: var(--sp-space-md); }
+.sp-m-lg { margin: var(--sp-space-lg); }
+.sp-m-xl { margin: var(--sp-space-xl); }
+.sp-m-2xl { margin: var(--sp-space-2xl); }
+
+/* Padding */
+.sp-p-0 { padding: var(--sp-space-0); }
+.sp-p-1 { padding: var(--sp-space-1); }
+.sp-p-2 { padding: var(--sp-space-2); }
+.sp-p-3 { padding: var(--sp-space-3); }
+.sp-p-4 { padding: var(--sp-space-4); }
+.sp-p-5 { padding: var(--sp-space-5); }
+.sp-p-6 { padding: var(--sp-space-6); }
+.sp-p-8 { padding: var(--sp-space-8); }
+.sp-p-10 { padding: var(--sp-space-10); }
+.sp-p-12 { padding: var(--sp-space-12); }
+.sp-p-16 { padding: var(--sp-space-16); }
+.sp-p-20 { padding: var(--sp-space-20); }
+.sp-p-24 { padding: var(--sp-space-24); }
+
+/* Padding semántico */
+.sp-p-xs { padding: var(--sp-space-xs); }
+.sp-p-sm { padding: var(--sp-space-sm); }
+.sp-p-md { padding: var(--sp-space-md); }
+.sp-p-lg { padding: var(--sp-space-lg); }
+.sp-p-xl { padding: var(--sp-space-xl); }
+.sp-p-2xl { padding: var(--sp-space-2xl); }
+
+/* Gap para flexbox y grid */
+.sp-gap-0 { gap: var(--sp-space-0); }
+.sp-gap-1 { gap: var(--sp-space-1); }
+.sp-gap-2 { gap: var(--sp-space-2); }
+.sp-gap-3 { gap: var(--sp-space-3); }
+.sp-gap-4 { gap: var(--sp-space-4); }
+.sp-gap-5 { gap: var(--sp-space-5); }
+.sp-gap-6 { gap: var(--sp-space-6); }
+.sp-gap-8 { gap: var(--sp-space-8); }
+
+/* Gap semántico */
+.sp-gap-xs { gap: var(--sp-space-xs); }
+.sp-gap-sm { gap: var(--sp-space-sm); }
+.sp-gap-md { gap: var(--sp-space-md); }
+.sp-gap-lg { gap: var(--sp-space-lg); }
+.sp-gap-xl { gap: var(--sp-space-xl); }
+
+/* Border radius */
+.sp-rounded-none { border-radius: var(--sp-radius-none); }
+.sp-rounded-sm { border-radius: var(--sp-radius-sm); }
+.sp-rounded { border-radius: var(--sp-radius-base); }
+.sp-rounded-md { border-radius: var(--sp-radius-md); }
+.sp-rounded-lg { border-radius: var(--sp-radius-lg); }
+.sp-rounded-xl { border-radius: var(--sp-radius-xl); }
+.sp-rounded-2xl { border-radius: var(--sp-radius-2xl); }
+.sp-rounded-3xl { border-radius: var(--sp-radius-3xl); }
+.sp-rounded-full { border-radius: var(--sp-radius-full); }
+
+/* ===== RESPONSIVE SPACING ===== */
+@media (max-width: 768px) {
+    :root {
+        /* Reducir espaciado en móvil */
+        --sp-card-padding: var(--sp-space-md);
+        --sp-modal-padding: var(--sp-space-lg);
+        --sp-hud-gap: var(--sp-space-md);
+        --sp-mobile-control-margin: var(--sp-space-md);
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        /* Espaciado más compacto en móviles pequeños */
+        --sp-card-padding: var(--sp-space-sm);
+        --sp-modal-padding: var(--sp-space-md);
+        --sp-hud-gap: var(--sp-space-sm);
+        --sp-mobile-control-margin: var(--sp-space-sm);
+    }
+}

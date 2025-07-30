@@ -1,0 +1,281 @@
+/**
+ * Spikepulse - Sistema de partículas CSS
+ * Efectos de partículas para mejorar la experiencia visual
+ */
+
+/* ===== CONTENEDOR DE PARTÍCULAS ===== */
+.spikepulse-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* ===== PARTÍCULAS BASE ===== */
+.spikepulse-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* ===== PARTÍCULAS DE ENERGÍA ===== */
+.spikepulse-particle--energy {
+    width: 3px;
+    height: 3px;
+    background: var(--sp-primary);
+    box-shadow: 0 0 6px var(--sp-primary);
+    animation: sp-particle-energy 3s ease-out infinite;
+}
+
+@keyframes sp-particle-energy {
+    0% {
+        opacity: 0;
+        transform: translateY(100vh) scale(0);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(90vh) scale(1);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(-10vh) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20vh) scale(0);
+    }
+}
+
+/* ===== PARTÍCULAS DE CHISPAS ===== */
+.spikepulse-particle--spark {
+    width: 2px;
+    height: 8px;
+    background: linear-gradient(to top, var(--sp-secondary), var(--sp-warning));
+    border-radius: 1px;
+    animation: sp-particle-spark 1.5s ease-out infinite;
+}
+
+@keyframes sp-particle-spark {
+    0% {
+        opacity: 1;
+        transform: translateY(0) rotate(0deg) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-30px) rotate(180deg) scale(0.8);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) rotate(360deg) scale(0);
+    }
+}
+
+/* ===== PARTÍCULAS DE GRAVEDAD ===== */
+.spikepulse-particle--gravity {
+    width: 4px;
+    height: 4px;
+    background: var(--sp-accent);
+    box-shadow: 0 0 8px var(--sp-accent);
+    animation: sp-particle-gravity 4s ease-in-out infinite;
+}
+
+@keyframes sp-particle-gravity {
+    0%, 100% {
+        opacity: 0;
+        transform: translateY(0) scale(0);
+    }
+    25% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-40px) scale(1.2);
+    }
+    75% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+}
+
+/* ===== PARTÍCULAS DE DASH ===== */
+.spikepulse-particle--dash {
+    width: 6px;
+    height: 2px;
+    background: var(--sp-secondary);
+    border-radius: 1px;
+    box-shadow: 0 0 4px var(--sp-secondary);
+    animation: sp-particle-dash 0.5s ease-out forwards;
+}
+
+@keyframes sp-particle-dash {
+    0% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-100px) scale(0.3);
+    }
+}
+
+/* ===== GENERADOR DE PARTÍCULAS ===== */
+.spikepulse-particle-generator {
+    position: relative;
+}
+
+.spikepulse-particle-generator--active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: var(--sp-primary);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: sp-particle-burst 0.3s ease-out;
+}
+
+@keyframes sp-particle-burst {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0);
+        box-shadow: 0 0 0 var(--sp-primary);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+        box-shadow: 0 0 20px var(--sp-primary);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2);
+        box-shadow: 0 0 40px transparent;
+    }
+}
+
+/* ===== EFECTOS DE COLISIÓN ===== */
+.spikepulse-collision-effect {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        var(--sp-secondary) 0%,
+        var(--sp-danger) 30%,
+        transparent 70%
+    );
+    animation: sp-collision-burst 0.4s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes sp-collision-burst {
+    0% {
+        opacity: 1;
+        transform: scale(0);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2);
+    }
+}
+
+/* ===== EFECTOS DE SALTO ===== */
+.spikepulse-jump-effect {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 20px;
+    height: 4px;
+    background: var(--sp-accent);
+    border-radius: 2px;
+    transform: translateX(-50%);
+    animation: sp-jump-ripple 0.3s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes sp-jump-ripple {
+    0% {
+        opacity: 1;
+        transform: translateX(-50%) scaleX(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) scaleX(3);
+    }
+}
+
+/* ===== DELAYS PARA VARIACIÓN ===== */
+.spikepulse-particle:nth-child(1) { animation-delay: 0s; }
+.spikepulse-particle:nth-child(2) { animation-delay: 0.2s; }
+.spikepulse-particle:nth-child(3) { animation-delay: 0.4s; }
+.spikepulse-particle:nth-child(4) { animation-delay: 0.6s; }
+.spikepulse-particle:nth-child(5) { animation-delay: 0.8s; }
+.spikepulse-particle:nth-child(6) { animation-delay: 1s; }
+.spikepulse-particle:nth-child(7) { animation-delay: 1.2s; }
+.spikepulse-particle:nth-child(8) { animation-delay: 1.4s; }
+.spikepulse-particle:nth-child(9) { animation-delay: 1.6s; }
+.spikepulse-particle:nth-child(10) { animation-delay: 1.8s; }
+
+/* ===== POSICIONAMIENTO ALEATORIO ===== */
+.spikepulse-particle:nth-child(odd) {
+    left: calc(10% + (var(--random, 0) * 80%));
+}
+
+.spikepulse-particle:nth-child(even) {
+    left: calc(20% + (var(--random, 0) * 60%));
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .spikepulse-particle--energy {
+        width: 2px;
+        height: 2px;
+    }
+    
+    .spikepulse-particle--spark {
+        width: 1px;
+        height: 6px;
+    }
+    
+    .spikepulse-collision-effect {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .spikepulse-jump-effect {
+        width: 15px;
+        height: 3px;
+    }
+}
+
+/* ===== ACCESIBILIDAD ===== */
+@media (prefers-reduced-motion: reduce) {
+    .spikepulse-particle,
+    .spikepulse-particle-generator--active::before,
+    .spikepulse-collision-effect,
+    .spikepulse-jump-effect {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* ===== PERFORMANCE ===== */
+.spikepulse-particle,
+.spikepulse-collision-effect,
+.spikepulse-jump-effect {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}

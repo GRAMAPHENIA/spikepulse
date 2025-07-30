@@ -1,0 +1,697 @@
+/**
+ * Spikepulse - Tokens de animaciones
+ * Sistema de animaciones temáticas y transiciones
+ */
+
+:root {
+    /* ===== DURACIONES ===== */
+    --sp-duration-instant: 0ms;
+    --sp-duration-fast: 150ms;
+    --sp-duration-normal: 300ms;
+    --sp-duration-slow: 500ms;
+    --sp-duration-slower: 750ms;
+    --sp-duration-slowest: 1000ms;
+
+    /* ===== TIMING FUNCTIONS ===== */
+    --sp-ease-linear: linear;
+    --sp-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --sp-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --sp-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --sp-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --sp-ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    /* ===== TRANSICIONES ESPECÍFICAS ===== */
+    --sp-transition-fast: var(--sp-duration-fast) var(--sp-ease-out);
+    --sp-transition-normal: var(--sp-duration-normal) var(--sp-ease-out);
+    --sp-transition-slow: var(--sp-duration-slow) var(--sp-ease-out);
+    --sp-transition-bounce: var(--sp-duration-normal) var(--sp-ease-bounce);
+    --sp-transition-elastic: var(--sp-duration-slow) var(--sp-ease-elastic);
+
+    /* ===== DURACIONES ESPECÍFICAS DE SPIKEPULSE ===== */
+    --sp-pulse-duration: 2s;
+    --sp-bounce-duration: 300ms;
+    --sp-fog-duration: 12s;
+    --sp-text-glow-duration: 3s;
+    --sp-dash-duration: 200ms;
+    --sp-gravity-change-duration: 300ms;
+    --sp-screen-transition-duration: 500ms;
+}
+
+/* ===== KEYFRAMES PRINCIPALES ===== */
+
+/* Animación de pulso con glow */
+@keyframes sp-pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px currentColor;
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 40px currentColor, 0 0 60px currentColor;
+        transform: scale(1.02);
+    }
+}
+
+/* Animación de pulso simple */
+@keyframes sp-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+/* Animación de rebote */
+@keyframes sp-bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    25% {
+        transform: translateY(-10px);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    75% {
+        transform: translateY(-2px);
+    }
+}
+
+/* Animación de movimiento de bruma */
+@keyframes sp-fog-move {
+    0% {
+        transform: translateX(-100px) translateY(-20px) scale(1);
+        opacity: 0.1;
+    }
+
+    50% {
+        transform: translateX(100px) translateY(20px) scale(1.2);
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: translateX(-100px) translateY(-20px) scale(1);
+        opacity: 0.1;
+    }
+}
+
+/* Animación de glow de texto */
+@keyframes sp-text-glow {
+
+    0%,
+    100% {
+        text-shadow:
+            0 0 10px currentColor,
+            0 0 20px currentColor;
+    }
+
+    50% {
+        text-shadow:
+            0 0 20px currentColor,
+            0 0 30px currentColor,
+            0 0 40px currentColor;
+    }
+}
+
+/* Animación de rotación */
+@keyframes sp-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animaciones de entrada */
+@keyframes sp-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes sp-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sp-fade-in-down {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sp-fade-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes sp-fade-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes sp-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Animaciones de salida */
+@keyframes sp-fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes sp-fade-out-up {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes sp-fade-out-down {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+@keyframes sp-scale-out {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+/* Animaciones específicas del juego */
+@keyframes sp-dash-trail {
+    0% {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scaleX(0.3);
+    }
+}
+
+@keyframes sp-gravity-flip {
+    0% {
+        transform: rotateX(0deg);
+    }
+
+    50% {
+        transform: rotateX(90deg);
+    }
+
+    100% {
+        transform: rotateX(180deg);
+    }
+}
+
+@keyframes sp-obstacle-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px var(--sp-danger);
+    }
+
+    50% {
+        box-shadow: 0 0 20px var(--sp-danger), 0 0 30px var(--sp-danger);
+    }
+}
+
+/* Animaciones específicas de Spikepulse */
+@keyframes sp-spike-emerge {
+    0% {
+        transform: scaleY(0) translateY(100%);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scaleY(0.7) translateY(30%);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scaleY(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes sp-spike-danger-pulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 10px var(--sp-danger),
+            inset 0 0 10px rgba(229, 62, 62, 0.3);
+        filter: brightness(1);
+    }
+
+    50% {
+        box-shadow:
+            0 0 30px var(--sp-danger),
+            0 0 50px rgba(229, 62, 62, 0.5),
+            inset 0 0 20px rgba(229, 62, 62, 0.6);
+        filter: brightness(1.3);
+    }
+}
+
+@keyframes sp-energy-surge {
+    0% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 20px var(--sp-primary);
+    }
+
+    50% {
+        background-position: 100% 50%;
+        box-shadow:
+            0 0 40px var(--sp-primary),
+            0 0 60px rgba(255, 215, 0, 0.4);
+    }
+
+    100% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 20px var(--sp-primary);
+    }
+}
+
+@keyframes sp-gravity-wave {
+    0% {
+        transform: scaleY(1) rotateX(0deg);
+        filter: hue-rotate(0deg);
+    }
+
+    25% {
+        transform: scaleY(0.8) rotateX(45deg);
+        filter: hue-rotate(90deg);
+    }
+
+    50% {
+        transform: scaleY(0.6) rotateX(90deg);
+        filter: hue-rotate(180deg);
+    }
+
+    75% {
+        transform: scaleY(0.8) rotateX(135deg);
+        filter: hue-rotate(270deg);
+    }
+
+    100% {
+        transform: scaleY(1) rotateX(180deg);
+        filter: hue-rotate(360deg);
+    }
+}
+
+@keyframes sp-digital-glitch {
+
+    0%,
+    100% {
+        transform: translateX(0);
+        filter: hue-rotate(0deg);
+    }
+
+    10% {
+        transform: translateX(-2px);
+        filter: hue-rotate(90deg);
+    }
+
+    20% {
+        transform: translateX(2px);
+        filter: hue-rotate(180deg);
+    }
+
+    30% {
+        transform: translateX(-1px);
+        filter: hue-rotate(270deg);
+    }
+
+    40% {
+        transform: translateX(1px);
+        filter: hue-rotate(360deg);
+    }
+
+    50% {
+        transform: translateX(0);
+        filter: hue-rotate(0deg);
+    }
+}
+
+@keyframes sp-power-charge {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+        box-shadow: 0 0 10px var(--sp-accent);
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+        box-shadow:
+            0 0 30px var(--sp-accent),
+            0 0 50px rgba(159, 122, 234, 0.4),
+            inset 0 0 20px rgba(159, 122, 234, 0.2);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+        box-shadow: 0 0 10px var(--sp-accent);
+    }
+}
+
+@keyframes sp-cyberpunk-scan {
+    0% {
+        background-position: 0% 0%;
+        opacity: 0.3;
+    }
+
+    50% {
+        background-position: 100% 100%;
+        opacity: 0.8;
+    }
+
+    100% {
+        background-position: 0% 0%;
+        opacity: 0.3;
+    }
+}
+
+/* ===== CLASES DE ANIMACIÓN ===== */
+
+/* Animaciones de pulso */
+.sp-animate-pulse-glow {
+    animation: sp-pulse-glow var(--sp-pulse-duration) ease-in-out infinite;
+}
+
+.sp-animate-pulse {
+    animation: sp-pulse 1s ease-in-out infinite;
+}
+
+/* Animaciones de rebote */
+.sp-animate-bounce {
+    animation: sp-bounce var(--sp-bounce-duration) ease-in-out;
+}
+
+/* Animaciones de rotación */
+.sp-animate-spin {
+    animation: sp-spin 1s linear infinite;
+}
+
+.sp-animate-spin-slow {
+    animation: sp-spin 3s linear infinite;
+}
+
+/* Animaciones de entrada */
+.sp-animate-fade-in {
+    animation: sp-fade-in var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-fade-in-up {
+    animation: sp-fade-in-up var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-fade-in-down {
+    animation: sp-fade-in-down var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-fade-in-left {
+    animation: sp-fade-in-left var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-fade-in-right {
+    animation: sp-fade-in-right var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-scale-in {
+    animation: sp-scale-in var(--sp-transition-normal) ease-out;
+}
+
+/* Animaciones de salida */
+.sp-animate-fade-out {
+    animation: sp-fade-out var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-fade-out-up {
+    animation: sp-fade-out-up var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-fade-out-down {
+    animation: sp-fade-out-down var(--sp-transition-normal) ease-out;
+}
+
+.sp-animate-scale-out {
+    animation: sp-scale-out var(--sp-transition-normal) ease-out;
+}
+
+/* Animaciones específicas del juego */
+.sp-animate-dash-trail {
+    animation: sp-dash-trail var(--sp-dash-duration) ease-out;
+}
+
+.sp-animate-gravity-flip {
+    animation: sp-gravity-flip var(--sp-gravity-change-duration) ease-in-out;
+}
+
+.sp-animate-obstacle-pulse {
+    animation: sp-obstacle-pulse 2s ease-in-out infinite;
+}
+
+/* Animaciones específicas de Spikepulse */
+.sp-animate-spike-emerge {
+    animation: sp-spike-emerge 0.5s ease-out;
+}
+
+.sp-animate-spike-danger {
+    animation: sp-spike-danger-pulse 1.5s ease-in-out infinite;
+}
+
+.sp-animate-energy-surge {
+    animation: sp-energy-surge 2s ease-in-out infinite;
+    background: linear-gradient(45deg, var(--sp-primary), var(--sp-warning), var(--sp-primary));
+    background-size: 200% 200%;
+}
+
+.sp-animate-gravity-wave {
+    animation: sp-gravity-wave var(--sp-gravity-change-duration) ease-in-out;
+}
+
+.sp-animate-digital-glitch {
+    animation: sp-digital-glitch 0.3s ease-in-out;
+}
+
+.sp-animate-power-charge {
+    animation: sp-power-charge 1.5s ease-in-out infinite;
+}
+
+.sp-animate-cyberpunk-scan {
+    animation: sp-cyberpunk-scan 3s linear infinite;
+    background: linear-gradient(45deg,
+            transparent 30%,
+            rgba(159, 122, 234, 0.1) 50%,
+            transparent 70%);
+    background-size: 200% 200%;
+}
+
+/* Animaciones de texto */
+.sp-animate-text-glow {
+    animation: sp-text-glow var(--sp-text-glow-duration) ease-in-out infinite;
+}
+
+/* ===== TRANSICIONES UTILITARIAS ===== */
+.sp-transition-none {
+    transition: none;
+}
+
+.sp-transition-all {
+    transition: all var(--sp-transition-normal);
+}
+
+.sp-transition-colors {
+    transition: color var(--sp-transition-normal),
+        background-color var(--sp-transition-normal),
+        border-color var(--sp-transition-normal);
+}
+
+.sp-transition-opacity {
+    transition: opacity var(--sp-transition-normal);
+}
+
+.sp-transition-transform {
+    transition: transform var(--sp-transition-normal);
+}
+
+.sp-transition-fast {
+    transition-duration: var(--sp-duration-fast);
+}
+
+.sp-transition-slow {
+    transition-duration: var(--sp-duration-slow);
+}
+
+/* ===== ESTADOS DE HOVER Y FOCUS ===== */
+.sp-hover-scale:hover {
+    transform: scale(1.05);
+    transition: transform var(--sp-transition-fast);
+}
+
+.sp-hover-glow:hover {
+    box-shadow: 0 0 30px currentColor;
+    transition: box-shadow var(--sp-transition-fast);
+}
+
+.sp-hover-lift:hover {
+    transform: translateY(-2px);
+    transition: transform var(--sp-transition-fast);
+}
+
+/* ===== DELAYS ===== */
+.sp-delay-75 {
+    animation-delay: 75ms;
+}
+
+.sp-delay-100 {
+    animation-delay: 100ms;
+}
+
+.sp-delay-150 {
+    animation-delay: 150ms;
+}
+
+.sp-delay-200 {
+    animation-delay: 200ms;
+}
+
+.sp-delay-300 {
+    animation-delay: 300ms;
+}
+
+.sp-delay-500 {
+    animation-delay: 500ms;
+}
+
+.sp-delay-700 {
+    animation-delay: 700ms;
+}
+
+.sp-delay-1000 {
+    animation-delay: 1000ms;
+}
+
+/* ===== ACCESIBILIDAD ===== */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* Mantener animaciones esenciales pero reducidas */
+    .sp-animate-pulse-glow {
+        animation: none;
+        box-shadow: 0 0 20px currentColor;
+    }
+
+    .sp-animate-text-glow {
+        animation: none;
+        text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+    }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.sp-will-change-transform {
+    will-change: transform;
+}
+
+.sp-will-change-opacity {
+    will-change: opacity;
+}
+
+.sp-will-change-auto {
+    will-change: auto;
+}
+
+/* Forzar aceleración por hardware */
+.sp-gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}

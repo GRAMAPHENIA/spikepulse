@@ -1,0 +1,152 @@
+/**
+ * Spikepulse - Tokens de colores
+ * Paleta de colores temática con variables CSS
+ */
+
+:root {
+    /* ===== COLORES PRINCIPALES SPIKEPULSE ===== */
+    --sp-primary: #FFD700;          /* Dorado energético */
+    --sp-secondary: #FF6B6B;        /* Rojo eléctrico (peligro/spikes) */
+    --sp-accent: #9F7AEA;           /* Púrpura eléctrico (gravedad) */
+    --sp-success: #38A169;          /* Verde éxito */
+    --sp-warning: #F6AD55;          /* Naranja advertencia */
+    --sp-danger: #E53E3E;           /* Rojo peligro */
+    
+    /* ===== FONDOS CYBERPUNK ===== */
+    --sp-bg-primary: #0F0F0F;       /* Negro profundo */
+    --sp-bg-secondary: #1A1A2E;     /* Azul oscuro */
+    --sp-bg-tertiary: #16213E;      /* Azul medio oscuro */
+    --sp-bg-quaternary: #2D3748;    /* Gris azulado */
+    
+    /* ===== TEXTOS ===== */
+    --sp-text-primary: #FFFFFF;     /* Blanco principal */
+    --sp-text-secondary: #E2E8F0;   /* Gris claro */
+    --sp-text-tertiary: #A0AEC0;    /* Gris medio */
+    --sp-text-muted: #718096;       /* Gris apagado */
+    
+    /* ===== GRISES ===== */
+    --sp-gray-100: #F7FAFC;
+    --sp-gray-200: #EDF2F7;
+    --sp-gray-300: #E2E8F0;
+    --sp-gray-400: #CBD5E0;
+    --sp-gray-500: #A0AEC0;
+    --sp-gray-600: #718096;
+    --sp-gray-700: #4A5568;
+    --sp-gray-800: #2D3748;
+    --sp-gray-900: #1A202C;
+    
+    /* ===== EFECTOS DE GLOW ===== */
+    --sp-glow-primary: 0 0 20px var(--sp-primary);
+    --sp-glow-secondary: 0 0 20px var(--sp-secondary);
+    --sp-glow-accent: 0 0 20px var(--sp-accent);
+    --sp-glow-danger: 0 0 20px var(--sp-danger);
+    --sp-glow-success: 0 0 20px var(--sp-success);
+    
+    /* Glow intenso para efectos especiales */
+    --sp-glow-intense-primary: 0 0 40px var(--sp-primary);
+    --sp-glow-intense-secondary: 0 0 40px var(--sp-secondary);
+    --sp-glow-intense-accent: 0 0 40px var(--sp-accent);
+    
+    /* ===== COLORES ESPECÍFICOS DEL JUEGO ===== */
+    --sp-player-color: var(--sp-primary);
+    --sp-player-glow: var(--sp-glow-primary);
+    --sp-player-dash: var(--sp-secondary);
+    --sp-player-gravity: var(--sp-accent);
+    
+    --sp-obstacle-color: var(--sp-danger);
+    --sp-obstacle-glow: var(--sp-glow-danger);
+    
+    --sp-ground-color: var(--sp-gray-800);
+    --sp-ground-accent: var(--sp-gray-700);
+    
+    /* ===== EFECTOS ATMOSFÉRICOS ===== */
+    --sp-fog-color: rgba(100, 100, 120, 0.15);
+    --sp-atmosphere-color: rgba(0, 0, 0, 0.3);
+    --sp-industrial-accent: var(--sp-gray-700);
+    
+    /* ===== TRANSPARENCIAS ===== */
+    --sp-overlay-light: rgba(0, 0, 0, 0.3);
+    --sp-overlay-medium: rgba(0, 0, 0, 0.6);
+    --sp-overlay-heavy: rgba(0, 0, 0, 0.9);
+    
+    --sp-glass-bg: rgba(0, 0, 0, 0.8);
+    --sp-glass-border: rgba(255, 255, 255, 0.1);
+    --sp-glass-highlight: rgba(255, 255, 255, 0.1);
+    
+    /* ===== ESTADOS INTERACTIVOS ===== */
+    --sp-hover-overlay: rgba(255, 255, 255, 0.1);
+    --sp-active-overlay: rgba(255, 255, 255, 0.2);
+    --sp-focus-color: var(--sp-primary);
+    --sp-disabled-overlay: rgba(0, 0, 0, 0.5);
+    
+    /* ===== GRADIENTES ===== */
+    --sp-gradient-primary: linear-gradient(135deg, var(--sp-primary), var(--sp-warning));
+    --sp-gradient-secondary: linear-gradient(135deg, var(--sp-secondary), var(--sp-danger));
+    --sp-gradient-accent: linear-gradient(135deg, var(--sp-accent), #B794F6);
+    --sp-gradient-dark: linear-gradient(135deg, var(--sp-bg-secondary), var(--sp-bg-primary));
+    
+    /* Gradiente de fondo principal */
+    --sp-gradient-bg: linear-gradient(
+        135deg,
+        var(--sp-bg-secondary) 0%,
+        var(--sp-bg-primary) 30%,
+        var(--sp-bg-tertiary) 70%,
+        var(--sp-bg-primary) 100%
+    );
+    
+    /* ===== SOMBRAS ===== */
+    --sp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --sp-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --sp-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    --sp-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.04);
+    
+    /* Sombras con glow */
+    --sp-shadow-glow-primary: var(--sp-shadow-lg), var(--sp-glow-primary);
+    --sp-shadow-glow-secondary: var(--sp-shadow-lg), var(--sp-glow-secondary);
+    --sp-shadow-glow-accent: var(--sp-shadow-lg), var(--sp-glow-accent);
+}
+
+/* ===== MODO ALTO CONTRASTE ===== */
+@media (prefers-contrast: high) {
+    :root {
+        --sp-primary: #FFFF00;
+        --sp-secondary: #FF0000;
+        --sp-accent: #FF00FF;
+        --sp-success: #00FF00;
+        --sp-warning: #FFA500;
+        --sp-danger: #FF0000;
+        
+        --sp-bg-primary: #000000;
+        --sp-bg-secondary: #000000;
+        --sp-bg-tertiary: #000000;
+        
+        --sp-text-primary: #FFFFFF;
+        --sp-text-secondary: #FFFFFF;
+        --sp-text-tertiary: #FFFFFF;
+        
+        /* Desactivar efectos de glow en alto contraste */
+        --sp-glow-primary: none;
+        --sp-glow-secondary: none;
+        --sp-glow-accent: none;
+        --sp-glow-danger: none;
+        --sp-glow-success: none;
+    }
+}
+
+/* ===== TEMA CLARO (OPCIONAL) ===== */
+@media (prefers-color-scheme: light) {
+    .spikepulse-theme-light {
+        --sp-bg-primary: #FFFFFF;
+        --sp-bg-secondary: #F7FAFC;
+        --sp-bg-tertiary: #EDF2F7;
+        
+        --sp-text-primary: #1A202C;
+        --sp-text-secondary: #2D3748;
+        --sp-text-tertiary: #4A5568;
+        
+        /* Ajustar glow para tema claro */
+        --sp-glow-primary: 0 0 20px rgba(255, 215, 0, 0.5);
+        --sp-glow-secondary: 0 0 20px rgba(255, 107, 107, 0.5);
+        --sp-glow-accent: 0 0 20px rgba(159, 122, 234, 0.5);
+    }
+}

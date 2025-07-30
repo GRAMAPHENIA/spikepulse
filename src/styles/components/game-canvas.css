@@ -1,0 +1,87 @@
+/**
+ * Spikepulse - Estilos del canvas del juego
+ */
+
+.spikepulse-game-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    position: relative;
+    z-index: var(--sp-z-canvas);
+}
+
+.spikepulse-canvas {
+    display: block;
+    margin: 0 auto;
+    border: var(--sp-canvas-border-width) solid var(--sp-accent);
+    border-radius: var(--sp-radius-xl);
+    box-shadow: var(--sp-shadow-glow-accent);
+    background: var(--sp-bg-primary);
+    filter: contrast(1.1) brightness(0.9);
+    transition: all var(--sp-transition-normal);
+}
+
+.spikepulse-canvas--playing {
+    animation: sp-pulse-glow var(--sp-pulse-duration) infinite;
+    box-shadow: 
+        var(--sp-shadow-glow-primary),
+        inset 0 0 100px rgba(0, 0, 0, 0.3);
+}
+
+.spikepulse-canvas--paused {
+    filter: contrast(0.8) brightness(0.6) grayscale(0.3);
+    box-shadow: var(--sp-shadow-glow-accent);
+}
+
+.spikepulse-canvas--game-over {
+    filter: contrast(1.2) brightness(0.7) hue-rotate(10deg);
+    box-shadow: var(--sp-shadow-glow-secondary);
+    animation: sp-pulse-glow var(--sp-pulse-duration) infinite;
+}
+
+/* Canvas no soportado */
+.spikepulse-canvas-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--sp-canvas-width);
+    height: var(--sp-canvas-height);
+    background: var(--sp-bg-secondary);
+    border: var(--sp-canvas-border-width) solid var(--sp-danger);
+    border-radius: var(--sp-radius-xl);
+    color: var(--sp-text-primary);
+    font-family: var(--sp-font-secondary);
+    font-size: var(--sp-text-lg);
+    text-align: center;
+    padding: var(--sp-space-lg);
+}
+
+/* Responsive canvas */
+@media (max-width: 768px) {
+    .spikepulse-canvas {
+        max-width: calc(100vw - var(--sp-space-lg));
+        height: auto;
+        aspect-ratio: 2 / 1;
+    }
+    
+    .spikepulse-canvas-fallback {
+        max-width: calc(100vw - var(--sp-space-lg));
+        height: auto;
+        aspect-ratio: 2 / 1;
+        font-size: var(--sp-text-base);
+    }
+}
+
+@media (max-width: 480px) {
+    .spikepulse-canvas {
+        max-width: calc(100vw - var(--sp-space-md));
+        border-width: 1px;
+    }
+    
+    .spikepulse-canvas-fallback {
+        max-width: calc(100vw - var(--sp-space-md));
+        font-size: var(--sp-text-sm);
+        padding: var(--sp-space-md);
+    }
+}

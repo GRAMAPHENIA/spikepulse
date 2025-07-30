@@ -1,0 +1,304 @@
+/**
+ * Spikepulse - Estilos principales
+ * Arquitectura CSS con metodología BEM y variables CSS
+ */
+
+/* ===== IMPORTACIONES ===== */
+@import url('./tokens/colors.css');
+@import url('./tokens/typography.css');
+@import url('./tokens/spacing.css');
+@import url('./tokens/animations.css');
+@import url('./components/game-canvas.css');
+@import url('./components/ui-screens.css');
+@import url('./components/hud.css');
+@import url('./components/controls.css');
+@import url('./components/spikepulse-identity.css');
+@import url('./effects/particle-system.css');
+@import url('./utilities/effects.css');
+@import url('./layout/responsive.css');
+
+/* ===== RESET Y BASE ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--sp-font-secondary);
+    background: var(--sp-bg-primary);
+    color: var(--sp-text-primary);
+    overflow: hidden;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== UTILIDADES GLOBALES ===== */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.clickable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.no-scroll {
+    overflow: hidden;
+}
+
+/* ===== EFECTOS DE BRUMA ===== */
+.spikepulse-fog {
+    position: absolute;
+    width: 120%;
+    height: 120%;
+    background: radial-gradient(
+        ellipse at center, 
+        transparent 30%, 
+        rgba(0, 0, 0, 0.2) 60%, 
+        rgba(0, 0, 0, 0.5) 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+    top: -10%;
+    left: -10%;
+}
+
+.spikepulse-fog__particle {
+    position: absolute;
+    background: radial-gradient(
+        circle, 
+        var(--sp-fog-color) 0%, 
+        rgba(80, 80, 100, 0.05) 50%, 
+        transparent 100%
+    );
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(2px);
+    animation: sp-fog-move var(--sp-fog-duration) ease-in-out infinite;
+}
+
+.spikepulse-fog__particle--delayed {
+    animation-delay: -4s;
+}
+
+.spikepulse-fog__particle--slow {
+    animation-delay: -8s;
+}
+
+/* ===== GLASSMORPHISM ===== */
+.spikepulse-glass {
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4), 
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ===== BOTONES BASE ===== */
+.spikepulse-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-space-md) var(--sp-space-lg);
+    border: none;
+    border-radius: var(--sp-space-sm);
+    font-family: var(--sp-font-primary);
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all var(--sp-transition-normal);
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.spikepulse-btn:focus {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+.spikepulse-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Variantes de botones */
+.spikepulse-btn--primary {
+    background: linear-gradient(135deg, var(--sp-primary), var(--sp-warning));
+    color: var(--sp-bg-primary);
+    box-shadow: var(--sp-glow-primary);
+    animation: sp-pulse-glow var(--sp-pulse-duration) infinite;
+}
+
+.spikepulse-btn--primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px var(--sp-primary);
+}
+
+.spikepulse-btn--secondary {
+    background: linear-gradient(135deg, var(--sp-secondary), var(--sp-danger));
+    color: white;
+    box-shadow: var(--sp-glow-secondary);
+}
+
+.spikepulse-btn--secondary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px var(--sp-secondary);
+}
+
+.spikepulse-btn--ghost {
+    background: transparent;
+    color: var(--sp-text-primary);
+    border: 2px solid var(--sp-accent);
+    box-shadow: var(--sp-glow-accent);
+}
+
+.spikepulse-btn--ghost:hover {
+    background: var(--sp-accent);
+    color: var(--sp-bg-primary);
+}
+
+/* ===== TEXTO CON EFECTOS ===== */
+.spikepulse-text-glow {
+    text-shadow: 
+        0 0 10px currentColor, 
+        0 0 20px currentColor, 
+        0 0 30px currentColor;
+}
+
+.spikepulse-text-pulse {
+    animation: sp-text-glow var(--sp-text-glow-duration) ease-in-out infinite;
+}
+
+/* ===== ANIMACIONES DE ESTADO ===== */
+.spikepulse-bounce {
+    animation: sp-bounce var(--sp-bounce-duration) ease-in-out;
+}
+
+.spikepulse-pulse {
+    animation: sp-pulse 1s infinite;
+}
+
+.spikepulse-fade-in {
+    animation: sp-fade-in var(--sp-transition-normal) ease-out;
+}
+
+.spikepulse-fade-out {
+    animation: sp-fade-out var(--sp-transition-normal) ease-out;
+}
+
+/* ===== ESTADOS DE VISIBILIDAD ===== */
+.spikepulse-hidden {
+    display: none !important;
+}
+
+.spikepulse-invisible {
+    visibility: hidden;
+    opacity: 0;
+}
+
+.spikepulse-visible {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity var(--sp-transition-normal);
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+.spikepulse-app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: linear-gradient(
+        135deg,
+        var(--sp-bg-secondary) 0%,
+        var(--sp-bg-primary) 30%,
+        var(--sp-bg-tertiary) 70%,
+        var(--sp-bg-primary) 100%
+    );
+}
+
+.spikepulse-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+/* ===== ACCESIBILIDAD ===== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-contrast: high) {
+    :root {
+        --sp-primary: #FFFF00;
+        --sp-secondary: #FF0000;
+        --sp-accent: #FF00FF;
+        --sp-bg-primary: #000000;
+        --sp-text-primary: #FFFFFF;
+    }
+}
+
+/* ===== FOCUS MANAGEMENT ===== */
+.spikepulse-focus-trap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+}
+
+/* Indicador de focus personalizado */
+*:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+    border-radius: var(--sp-space-xs);
+}
+
+/* ===== LOADING STATES ===== */
+.spikepulse-loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--sp-accent);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: sp-spin 1s linear infinite;
+}
+
+.spikepulse-loading--large {
+    width: 40px;
+    height: 40px;
+    border-width: 4px;
+}

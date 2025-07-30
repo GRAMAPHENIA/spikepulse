@@ -1,0 +1,337 @@
+/**
+ * Spikepulse - Identidad visual y efectos temáticos
+ * Elementos visuales específicos del branding Spikepulse
+ */
+
+/* ===== ELEMENTOS DE SPIKE ===== */
+.spikepulse-spike {
+    position: relative;
+    background: linear-gradient(
+        to top,
+        var(--sp-danger) 0%,
+        var(--sp-secondary) 50%,
+        #FF8A8A 100%
+    );
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    filter: drop-shadow(0 0 10px var(--sp-danger));
+}
+
+.spikepulse-spike--animated {
+    animation: sp-spike-danger-pulse 2s ease-in-out infinite;
+}
+
+.spikepulse-spike--emerging {
+    animation: sp-spike-emerge 0.5s ease-out forwards;
+}
+
+.spikepulse-spike::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to top,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 30%,
+        rgba(255, 255, 255, 0.1) 70%,
+        transparent 100%
+    );
+    clip-path: inherit;
+}
+
+/* ===== EFECTOS DE ENERGÍA ===== */
+.spikepulse-energy-field {
+    position: relative;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 215, 0, 0.2) 0%,
+        rgba(255, 215, 0, 0.1) 30%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    animation: sp-energy-surge 2s ease-in-out infinite;
+}
+
+.spikepulse-energy-field::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: conic-gradient(
+        from 0deg,
+        var(--sp-primary),
+        var(--sp-warning),
+        var(--sp-primary)
+    );
+    border-radius: inherit;
+    z-index: -1;
+    animation: sp-spin 3s linear infinite;
+}
+
+/* ===== EFECTOS DE GRAVEDAD ===== */
+.spikepulse-gravity-indicator {
+    position: relative;
+    display: inline-block;
+    font-size: var(--sp-text-2xl);
+    color: var(--sp-accent);
+    text-shadow: var(--sp-text-glow-accent);
+}
+
+.spikepulse-gravity-indicator--flipping {
+    animation: sp-gravity-wave var(--sp-gravity-change-duration) ease-in-out;
+}
+
+.spikepulse-gravity-indicator::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(
+        circle,
+        rgba(159, 122, 234, 0.3) 0%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    z-index: -1;
+    animation: sp-power-charge 1.5s ease-in-out infinite;
+}
+
+/* ===== EFECTOS CYBERPUNK ===== */
+.spikepulse-cyberpunk-border {
+    position: relative;
+    border: 2px solid var(--sp-accent);
+    background: var(--sp-glass-bg);
+    backdrop-filter: blur(10px);
+}
+
+.spikepulse-cyberpunk-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(159, 122, 234, 0.1) 50%,
+        transparent 70%
+    );
+    background-size: 200% 200%;
+    animation: sp-cyberpunk-scan 3s linear infinite;
+    pointer-events: none;
+}
+
+.spikepulse-cyberpunk-border::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(
+        90deg,
+        var(--sp-primary),
+        var(--sp-accent),
+        var(--sp-secondary),
+        var(--sp-accent),
+        var(--sp-primary)
+    );
+    background-size: 300% 100%;
+    animation: sp-energy-surge 4s ease-in-out infinite;
+    z-index: -1;
+    border-radius: inherit;
+}
+
+/* ===== EFECTOS DE DASH ===== */
+.spikepulse-dash-trail {
+    position: absolute;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--sp-secondary) 50%,
+        transparent 100%
+    );
+    filter: blur(2px);
+    animation: sp-dash-trail var(--sp-dash-duration) ease-out forwards;
+    pointer-events: none;
+}
+
+.spikepulse-dash-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.spikepulse-dash-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 107, 107, 0.6) 50%,
+        transparent 100%
+    );
+    animation: sp-dash-trail var(--sp-dash-duration) ease-out;
+}
+
+/* ===== EFECTOS DE GLITCH DIGITAL ===== */
+.spikepulse-glitch {
+    position: relative;
+    display: inline-block;
+}
+
+.spikepulse-glitch--active {
+    animation: sp-digital-glitch 0.3s ease-in-out;
+}
+
+.spikepulse-glitch::before,
+.spikepulse-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+}
+
+.spikepulse-glitch--active::before {
+    color: var(--sp-secondary);
+    animation: sp-digital-glitch 0.3s ease-in-out;
+    clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+    transform: translateX(-2px);
+    opacity: 0.8;
+}
+
+.spikepulse-glitch--active::after {
+    color: var(--sp-accent);
+    animation: sp-digital-glitch 0.3s ease-in-out reverse;
+    clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+    transform: translateX(2px);
+    opacity: 0.8;
+}
+
+/* ===== PARTÍCULAS DE ENERGÍA ===== */
+.spikepulse-energy-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--sp-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--sp-primary);
+    animation: sp-energy-particle 2s ease-out infinite;
+}
+
+@keyframes sp-energy-particle {
+    0% {
+        transform: scale(0) translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1) translateY(-20px);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0) translateY(-40px);
+        opacity: 0;
+    }
+}
+
+.spikepulse-energy-particle:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.spikepulse-energy-particle:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.spikepulse-energy-particle:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+.spikepulse-energy-particle:nth-child(5) {
+    animation-delay: 0.8s;
+}
+
+/* ===== EFECTOS DE PULSACIÓN TEMÁTICA ===== */
+.spikepulse-themed-pulse {
+    animation: sp-themed-pulse 2s ease-in-out infinite;
+}
+
+@keyframes sp-themed-pulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px var(--sp-primary),
+            inset 0 0 20px rgba(255, 215, 0, 0.1);
+        transform: scale(1);
+    }
+    25% {
+        box-shadow: 
+            0 0 30px var(--sp-secondary),
+            inset 0 0 30px rgba(255, 107, 107, 0.2);
+        transform: scale(1.02);
+    }
+    50% {
+        box-shadow: 
+            0 0 40px var(--sp-accent),
+            inset 0 0 40px rgba(159, 122, 234, 0.3);
+        transform: scale(1.05);
+    }
+    75% {
+        box-shadow: 
+            0 0 30px var(--sp-secondary),
+            inset 0 0 30px rgba(255, 107, 107, 0.2);
+        transform: scale(1.02);
+    }
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+    .spikepulse-spike {
+        filter: drop-shadow(0 0 5px var(--sp-danger));
+    }
+    
+    .spikepulse-energy-field::before {
+        animation-duration: 4s;
+    }
+    
+    .spikepulse-cyberpunk-border::after {
+        animation-duration: 6s;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spikepulse-spike--animated,
+    .spikepulse-energy-field,
+    .spikepulse-gravity-indicator::before,
+    .spikepulse-cyberpunk-border::before,
+    .spikepulse-cyberpunk-border::after,
+    .spikepulse-energy-particle,
+    .spikepulse-themed-pulse {
+        animation: none;
+    }
+    
+    .spikepulse-spike--animated {
+        box-shadow: 0 0 15px var(--sp-danger);
+    }
+    
+    .spikepulse-energy-field {
+        background: radial-gradient(
+            circle at center,
+            rgba(255, 215, 0, 0.3) 0%,
+            rgba(255, 215, 0, 0.1) 50%,
+            transparent 100%
+        );
+    }
+}

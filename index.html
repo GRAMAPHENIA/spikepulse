@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spikepulse - Domina la Gravedad</title>
+    <meta name="description" content="Spikepulse: Un emocionante juego de plataformas donde controlas un cubo a través de obstáculos peligrosos usando mecánicas avanzadas como salto doble, dash y gravedad invertida.">
+    <meta name="keywords" content="juego, plataformas, español, spikepulse, geometry dash, salto, gravedad">
+    <meta name="author" content="Spikepulse Team">
+    
+    <!-- Preconnect para fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Fuentes Spikepulse -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="src/styles/main.css">
+
+</head>
+
+<body class="spikepulse-app">
+    <!-- Efectos de bruma de fondo -->
+    <div class="spikepulse-fog"></div>
+    <div class="spikepulse-fog__particle" style="width: 300px; height: 200px; top: 10%; left: 20%;"></div>
+    <div class="spikepulse-fog__particle spikepulse-fog__particle--delayed" style="width: 250px; height: 150px; top: 60%; right: 15%;"></div>
+    <div class="spikepulse-fog__particle spikepulse-fog__particle--slow" style="width: 400px; height: 300px; top: 30%; left: 60%;"></div>
+    <!-- Pantalla de inicio -->
+    <div id="startScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--menu" role="dialog" aria-labelledby="main-title">
+        <div class="spikepulse-screen-content spikepulse-screen-content--menu">
+            <h1 id="main-title" class="spikepulse-screen-title spikepulse-screen-title--main">SPIKEPULSE</h1>
+            <p class="spikepulse-screen-description">¡Domina la gravedad y evita los obstáculos!</p>
+            <button id="startBtn" class="spikepulse-screen-button spikepulse-screen-button--primary" aria-describedby="game-description">
+                COMENZAR AVENTURA
+            </button>
+            <div class="spikepulse-controls-info">
+                <h2 class="spikepulse-controls-info__title">Controles</h2>
+                <ul class="spikepulse-controls-info__list">
+                    <li class="spikepulse-controls-info__item">
+                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--jump">🖱️</span>
+                        Click / Espacio: Saltar
+                    </li>
+                    <li class="spikepulse-controls-info__item">
+                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--move">← →</span>
+                        A D: Mover
+                    </li>
+                    <li class="spikepulse-controls-info__item">
+                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--dash">⚡</span>
+                        Shift: Dash
+                    </li>
+                    <li class="spikepulse-controls-info__item">
+                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--gravity">🔄</span>
+                        Ctrl: Cambiar gravedad
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Game Over -->
+    <div id="gameOverScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--game-over spikepulse-hidden" role="dialog" aria-labelledby="game-over-title">
+        <div class="spikepulse-screen-content spikepulse-screen-content--game-over">
+            <h2 id="game-over-title" class="spikepulse-screen-title spikepulse-screen-title--game-over">¡PERDISTE!</h2>
+            <p id="finalScore" class="spikepulse-screen-score">Distancia: 0m</p>
+            <button id="restartBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
+                REINTENTAR MISIÓN
+            </button>
+        </div>
+    </div>
+
+    <!-- HUD del juego -->
+    <div id="gameHUD" class="spikepulse-hud spikepulse-hidden" role="complementary" aria-label="Estadísticas del juego">
+        <div class="spikepulse-hud__container">
+            <div class="spikepulse-hud__stat">
+                <div class="spikepulse-hud__label spikepulse-hud__label--distance">DISTANCIA</div>
+                <div id="distanceCounter" class="spikepulse-hud__value spikepulse-hud__value--distance" aria-live="polite">0m</div>
+            </div>
+            <div class="spikepulse-hud__separator"></div>
+            <div class="spikepulse-hud__stat">
+                <div class="spikepulse-hud__label spikepulse-hud__label--jumps">SALTOS</div>
+                <div id="jumpsCounter" class="spikepulse-hud__value spikepulse-hud__value--jumps">2</div>
+            </div>
+            <div class="spikepulse-hud__separator"></div>
+            <div class="spikepulse-hud__stat">
+                <div class="spikepulse-hud__label spikepulse-hud__label--dash">DASH</div>
+                <div id="dashStatus" class="spikepulse-hud__value spikepulse-hud__value--dash spikepulse-hud__value--dash-available">✓</div>
+            </div>
+            <div class="spikepulse-hud__separator"></div>
+            <div class="spikepulse-hud__stat">
+                <div class="spikepulse-hud__label spikepulse-hud__label--gravity">GRAVEDAD</div>
+                <div id="gravityStatus" class="spikepulse-hud__value spikepulse-hud__value--gravity">↓</div>
+            </div>
+            <div class="spikepulse-hud__separator"></div>
+            <div class="spikepulse-hud__stat">
+                <div class="spikepulse-hud__label spikepulse-hud__label--velocity">VELOCIDAD</div>
+                <div id="velocityStatus" class="spikepulse-hud__value spikepulse-hud__value--velocity spikepulse-hud__value--velocity-low">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón de pausa -->
+    <div id="pauseContainer" class="spikepulse-pause-container spikepulse-hidden">
+        <button id="pauseBtn" class="spikepulse-pause-btn" aria-label="Pausar juego">
+            PAUSA
+        </button>
+    </div>
+
+    <!-- Canvas del juego -->
+    <main class="spikepulse-main" role="main">
+        <section class="spikepulse-game-container" aria-label="Área de juego">
+            <canvas id="gameCanvas" 
+                    class="spikepulse-canvas spikepulse-hidden" 
+                    width="800" 
+                    height="400"
+                    aria-label="Canvas del juego Spikepulse"
+                    role="img">
+                Tu navegador no soporta canvas. Por favor actualiza tu navegador.
+            </canvas>
+        </section>
+    </main>
+
+    <!-- Controles móviles -->
+    <nav id="mobileControls" class="spikepulse-mobile-controls spikepulse-hidden" role="navigation" aria-label="Controles del juego">
+        <!-- Controles de movimiento -->
+        <div class="spikepulse-control-group spikepulse-control-group--movement">
+            <button id="leftBtn" class="spikepulse-control-btn spikepulse-control-btn--movement" aria-label="Mover izquierda">
+                <span class="spikepulse-control-btn__icon">←</span>
+            </button>
+            <button id="rightBtn" class="spikepulse-control-btn spikepulse-control-btn--movement" aria-label="Mover derecha">
+                <span class="spikepulse-control-btn__icon">→</span>
+            </button>
+        </div>
+
+        <!-- Controles de acción -->
+        <div class="spikepulse-control-group spikepulse-control-group--actions">
+            <button id="jumpBtn" class="spikepulse-control-btn spikepulse-control-btn--jump" aria-label="Saltar">
+                <span class="spikepulse-control-btn__text">SALTO</span>
+            </button>
+            <button id="dashBtn" class="spikepulse-control-btn spikepulse-control-btn--dash" aria-label="Hacer dash">
+                <span class="spikepulse-control-btn__text">DASH</span>
+            </button>
+            <button id="gravityBtn" class="spikepulse-control-btn spikepulse-control-btn--gravity" aria-label="Cambiar gravedad">
+                <span class="spikepulse-control-btn__text">GRAV</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Scripts modulares -->
+    <script type="module" src="src/main.js"></script>
+</body>
+
+</html>

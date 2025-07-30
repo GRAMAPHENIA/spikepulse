@@ -1,0 +1,281 @@
+/**
+ * Spikepulse - Estilos de controles móviles
+ */
+
+.spikepulse-mobile-controls {
+    position: fixed;
+    bottom: var(--sp-mobile-control-margin);
+    left: var(--sp-mobile-control-margin);
+    right: var(--sp-mobile-control-margin);
+    z-index: var(--sp-z-controls);
+    display: none;
+}
+
+.spikepulse-mobile-controls--visible {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--sp-mobile-control-gap);
+}
+
+.spikepulse-mobile-controls--hidden {
+    display: none;
+}
+
+/* ===== GRUPOS DE CONTROLES ===== */
+.spikepulse-control-group {
+    display: flex;
+    gap: var(--sp-mobile-control-gap);
+    padding: var(--sp-mobile-control-padding);
+    background: var(--sp-glass-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--sp-glass-border);
+    border-radius: var(--sp-radius-xl);
+    box-shadow: 
+        var(--sp-shadow-lg),
+        inset 0 1px 0 var(--sp-glass-highlight);
+}
+
+.spikepulse-control-group--movement {
+    /* Grupo de controles de movimiento (izquierda/derecha) */
+}
+
+.spikepulse-control-group--actions {
+    /* Grupo de controles de acción (salto/dash/gravedad) */
+}
+
+/* ===== BOTONES DE CONTROL ===== */
+.spikepulse-control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--sp-mobile-btn-size);
+    height: var(--sp-mobile-btn-size);
+    border: none;
+    border-radius: var(--sp-radius-lg);
+    font-family: var(--sp-font-primary);
+    font-size: var(--sp-text-sm);
+    font-weight: var(--sp-font-bold);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--sp-transition-fast);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+}
+
+.spikepulse-control-btn:focus {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+.spikepulse-control-btn:active {
+    transform: scale(0.95);
+}
+
+/* ===== VARIANTES DE BOTONES ===== */
+.spikepulse-control-btn--movement {
+    background: linear-gradient(135deg, var(--sp-gray-700), var(--sp-gray-600));
+    color: var(--sp-text-primary);
+    box-shadow: var(--sp-shadow-md);
+}
+
+.spikepulse-control-btn--movement:hover,
+.spikepulse-control-btn--movement:active {
+    background: linear-gradient(135deg, var(--sp-gray-600), var(--sp-gray-500));
+    box-shadow: var(--sp-shadow-lg);
+}
+
+.spikepulse-control-btn--jump {
+    background: linear-gradient(135deg, var(--sp-accent), #B794F6);
+    color: white;
+    box-shadow: var(--sp-shadow-glow-accent);
+}
+
+.spikepulse-control-btn--jump:hover,
+.spikepulse-control-btn--jump:active {
+    box-shadow: var(--sp-glow-intense-accent);
+}
+
+.spikepulse-control-btn--dash {
+    background: linear-gradient(135deg, var(--sp-secondary), var(--sp-danger));
+    color: white;
+    box-shadow: var(--sp-shadow-glow-secondary);
+}
+
+.spikepulse-control-btn--dash:hover,
+.spikepulse-control-btn--dash:active {
+    box-shadow: var(--sp-glow-intense-secondary);
+}
+
+.spikepulse-control-btn--dash:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.spikepulse-control-btn--gravity {
+    background: linear-gradient(135deg, var(--sp-accent), #B794F6);
+    color: white;
+    box-shadow: var(--sp-shadow-glow-accent);
+}
+
+.spikepulse-control-btn--gravity:hover,
+.spikepulse-control-btn--gravity:active {
+    box-shadow: var(--sp-glow-intense-accent);
+}
+
+/* ===== ICONOS DE BOTONES ===== */
+.spikepulse-control-btn__icon {
+    font-size: var(--sp-text-lg);
+    line-height: 1;
+}
+
+.spikepulse-control-btn__text {
+    font-size: var(--sp-text-xs);
+    line-height: 1;
+    margin-top: 2px;
+}
+
+/* ===== ESTADOS ESPECIALES ===== */
+.spikepulse-control-btn--pressed {
+    transform: scale(0.9);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.spikepulse-control-btn--cooldown {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.spikepulse-control-btn--cooldown::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.5) var(--cooldown-progress, 0%),
+        transparent var(--cooldown-progress, 0%)
+    );
+    pointer-events: none;
+}
+
+/* ===== FEEDBACK VISUAL ===== */
+.spikepulse-control-btn--feedback {
+    animation: sp-pulse 0.2s ease-out;
+}
+
+.spikepulse-control-btn--success {
+    box-shadow: 0 0 20px var(--sp-success);
+}
+
+.spikepulse-control-btn--error {
+    box-shadow: 0 0 20px var(--sp-danger);
+    animation: sp-bounce 0.3s ease-out;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .spikepulse-mobile-controls {
+        display: flex;
+    }
+}
+
+@media (max-width: 480px) {
+    .spikepulse-mobile-controls {
+        bottom: var(--sp-space-md);
+        left: var(--sp-space-md);
+        right: var(--sp-space-md);
+    }
+    
+    .spikepulse-control-group {
+        padding: var(--sp-space-xs);
+        gap: var(--sp-space-xs);
+    }
+    
+    .spikepulse-control-btn {
+        width: var(--sp-mobile-btn-size-sm);
+        height: var(--sp-mobile-btn-size-sm);
+        font-size: 10px;
+    }
+    
+    .spikepulse-control-btn__icon {
+        font-size: var(--sp-text-base);
+    }
+    
+    .spikepulse-control-btn__text {
+        font-size: 8px;
+    }
+}
+
+/* ===== ORIENTACIÓN LANDSCAPE EN MÓVIL ===== */
+@media (max-width: 768px) and (orientation: landscape) {
+    .spikepulse-mobile-controls {
+        bottom: var(--sp-space-sm);
+        left: var(--sp-space-sm);
+        right: var(--sp-space-sm);
+    }
+    
+    .spikepulse-control-group {
+        padding: var(--sp-space-xs);
+    }
+    
+    .spikepulse-control-btn {
+        width: var(--sp-mobile-btn-size-sm);
+        height: var(--sp-mobile-btn-size-sm);
+    }
+}
+
+/* ===== ANIMACIONES DE ENTRADA ===== */
+.spikepulse-mobile-controls.sp-entering {
+    animation: sp-fade-in-up var(--sp-transition-slow) ease-out;
+}
+
+.spikepulse-mobile-controls.sp-exiting {
+    animation: sp-fade-out-down var(--sp-transition-slow) ease-out;
+}
+
+/* ===== ACCESIBILIDAD ===== */
+@media (prefers-reduced-motion: reduce) {
+    .spikepulse-control-btn--feedback {
+        animation: none;
+        transform: scale(0.98);
+    }
+    
+    .spikepulse-control-btn--error {
+        animation: none;
+        border: 2px solid var(--sp-danger);
+    }
+}
+
+/* ===== SOPORTE PARA TOUCH ===== */
+@supports (touch-action: manipulation) {
+    .spikepulse-control-btn {
+        touch-action: manipulation;
+    }
+}
+
+/* Prevenir zoom en iOS */
+@supports (-webkit-touch-callout: none) {
+    .spikepulse-control-btn {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+    }
+}
+
+/* ===== ESTADOS DE HOVER SOLO EN DESKTOP ===== */
+@media (hover: hover) and (pointer: fine) {
+    .spikepulse-control-btn:hover {
+        transform: scale(1.05);
+    }
+    
+    .spikepulse-control-btn:hover:active {
+        transform: scale(0.95);
+    }
+}

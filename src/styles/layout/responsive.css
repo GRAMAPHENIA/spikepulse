@@ -1,0 +1,392 @@
+/**
+ * Spikepulse - Layout responsive
+ */
+
+/* ===== BREAKPOINTS ===== */
+:root {
+    --sp-breakpoint-sm: 480px;
+    --sp-breakpoint-md: 768px;
+    --sp-breakpoint-lg: 1024px;
+    --sp-breakpoint-xl: 1280px;
+    --sp-breakpoint-2xl: 1536px;
+}
+
+/* ===== LAYOUT BASE ===== */
+.spikepulse-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--sp-space-md);
+}
+
+.spikepulse-grid {
+    display: grid;
+    gap: var(--sp-space-md);
+}
+
+.spikepulse-flex {
+    display: flex;
+    gap: var(--sp-space-md);
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+
+/* Mostrar/ocultar por breakpoint */
+.sp-hidden-sm {
+    display: none;
+}
+
+.sp-hidden-md {
+    display: block;
+}
+
+.sp-hidden-lg {
+    display: block;
+}
+
+@media (min-width: 480px) {
+    .sp-hidden-sm {
+        display: block;
+    }
+    
+    .sp-show-sm {
+        display: block;
+    }
+}
+
+@media (min-width: 768px) {
+    .sp-hidden-md {
+        display: none;
+    }
+    
+    .sp-show-md {
+        display: block;
+    }
+    
+    .sp-hidden-mobile {
+        display: block;
+    }
+}
+
+@media (min-width: 1024px) {
+    .sp-hidden-lg {
+        display: none;
+    }
+    
+    .sp-show-lg {
+        display: block;
+    }
+}
+
+/* ===== MOBILE FIRST RESPONSIVE ===== */
+
+/* Mobile (hasta 479px) */
+@media (max-width: 479px) {
+    :root {
+        --sp-space-container: var(--sp-space-sm);
+    }
+    
+    .spikepulse-container {
+        padding: 0 var(--sp-space-container);
+    }
+    
+    .spikepulse-grid {
+        gap: var(--sp-space-sm);
+    }
+    
+    .spikepulse-flex {
+        gap: var(--sp-space-sm);
+        flex-direction: column;
+    }
+    
+    /* Texto más pequeño en móviles muy pequeños */
+    .sp-text-responsive {
+        font-size: var(--sp-text-sm);
+    }
+    
+    /* Botones de ancho completo en móvil */
+    .sp-btn-responsive {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+/* Small (480px - 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+    :root {
+        --sp-space-container: var(--sp-space-md);
+    }
+    
+    .spikepulse-container {
+        padding: 0 var(--sp-space-container);
+    }
+    
+    .sp-text-responsive {
+        font-size: var(--sp-text-base);
+    }
+    
+    .sp-btn-responsive {
+        width: auto;
+        min-width: 200px;
+    }
+}
+
+/* Medium (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    :root {
+        --sp-space-container: var(--sp-space-lg);
+    }
+    
+    .spikepulse-container {
+        padding: 0 var(--sp-space-container);
+    }
+    
+    .spikepulse-flex {
+        flex-direction: row;
+    }
+    
+    .sp-text-responsive {
+        font-size: var(--sp-text-lg);
+    }
+}
+
+/* Large (1024px+) */
+@media (min-width: 1024px) {
+    :root {
+        --sp-space-container: var(--sp-space-xl);
+    }
+    
+    .spikepulse-container {
+        padding: 0 var(--sp-space-container);
+    }
+    
+    .spikepulse-grid {
+        gap: var(--sp-space-lg);
+    }
+    
+    .spikepulse-flex {
+        gap: var(--sp-space-lg);
+    }
+}
+
+/* ===== ORIENTACIÓN ===== */
+@media (orientation: portrait) {
+    .sp-portrait-only {
+        display: block;
+    }
+    
+    .sp-landscape-only {
+        display: none;
+    }
+    
+    /* Ajustes para portrait en móvil */
+    .spikepulse-game-container {
+        padding: var(--sp-space-md) 0;
+    }
+}
+
+@media (orientation: landscape) {
+    .sp-portrait-only {
+        display: none;
+    }
+    
+    .sp-landscape-only {
+        display: block;
+    }
+    
+    /* Ajustes para landscape en móvil */
+    @media (max-width: 768px) {
+        .spikepulse-game-container {
+            padding: var(--sp-space-sm) 0;
+        }
+        
+        /* HUD más compacto en landscape móvil */
+        .spikepulse-hud {
+            top: var(--sp-space-sm);
+        }
+        
+        .spikepulse-hud__container {
+            padding: var(--sp-space-xs) var(--sp-space-md);
+        }
+        
+        /* Controles más pequeños en landscape */
+        .spikepulse-mobile-controls {
+            bottom: var(--sp-space-xs);
+            left: var(--sp-space-xs);
+            right: var(--sp-space-xs);
+        }
+    }
+}
+
+/* ===== DENSIDAD DE PÍXELES ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Ajustes para pantallas de alta densidad */
+    .spikepulse-canvas {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+    
+    /* Texto más nítido */
+    .spikepulse-text-crisp {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* ===== PREFERENCIAS DEL USUARIO ===== */
+
+/* Movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+    .sp-motion-safe {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .sp-motion-reduce {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Contraste alto */
+@media (prefers-contrast: high) {
+    .sp-contrast-auto {
+        border: 2px solid currentColor;
+        background: var(--sp-bg-primary);
+        color: var(--sp-text-primary);
+    }
+}
+
+/* Esquema de color */
+@media (prefers-color-scheme: light) {
+    .sp-theme-auto {
+        /* Ajustes automáticos para tema claro si se implementa */
+    }
+}
+
+/* ===== GRID RESPONSIVE ===== */
+.sp-grid-responsive {
+    display: grid;
+    gap: var(--sp-space-md);
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 480px) {
+    .sp-grid-responsive {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .sp-grid-responsive {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .sp-grid-responsive {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--sp-space-lg);
+    }
+}
+
+/* ===== FLEX RESPONSIVE ===== */
+.sp-flex-responsive {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-space-md);
+}
+
+@media (min-width: 768px) {
+    .sp-flex-responsive {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+/* ===== ASPECTOS ESPECÍFICOS DEL JUEGO ===== */
+
+/* Canvas responsive */
+.spikepulse-canvas-responsive {
+    width: 100%;
+    max-width: var(--sp-canvas-width);
+    height: auto;
+    aspect-ratio: 2 / 1;
+}
+
+@media (max-width: 768px) {
+    .spikepulse-canvas-responsive {
+        max-width: calc(100vw - var(--sp-space-lg));
+    }
+}
+
+@media (max-width: 480px) {
+    .spikepulse-canvas-responsive {
+        max-width: calc(100vw - var(--sp-space-md));
+    }
+}
+
+/* HUD responsive */
+.spikepulse-hud-responsive {
+    position: fixed;
+    top: var(--sp-space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+@media (max-width: 768px) {
+    .spikepulse-hud-responsive {
+        top: var(--sp-space-md);
+        left: var(--sp-space-md);
+        right: var(--sp-space-md);
+        transform: none;
+    }
+}
+
+/* Controles responsive */
+.spikepulse-controls-responsive {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .spikepulse-controls-responsive {
+        display: flex;
+    }
+}
+
+/* ===== UTILIDADES DE ESPACIADO RESPONSIVE ===== */
+@media (max-width: 479px) {
+    .sp-p-responsive { padding: var(--sp-space-sm); }
+    .sp-m-responsive { margin: var(--sp-space-sm); }
+    .sp-gap-responsive { gap: var(--sp-space-sm); }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+    .sp-p-responsive { padding: var(--sp-space-md); }
+    .sp-m-responsive { margin: var(--sp-space-md); }
+    .sp-gap-responsive { gap: var(--sp-space-md); }
+}
+
+@media (min-width: 768px) {
+    .sp-p-responsive { padding: var(--sp-space-lg); }
+    .sp-m-responsive { margin: var(--sp-space-lg); }
+    .sp-gap-responsive { gap: var(--sp-space-lg); }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .spikepulse-no-print {
+        display: none !important;
+    }
+    
+    .spikepulse-print-only {
+        display: block !important;
+    }
+    
+    * {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+}
