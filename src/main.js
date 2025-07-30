@@ -55,6 +55,7 @@ class SpikepulseApp {
             this.initializeUI();
             
             // Iniciar el motor del juego
+            console.log('[Spikepulse] Iniciando GameEngine...');
             this.gameEngine.start();
             
             // Emitir evento de inicialización completa
@@ -637,7 +638,7 @@ class SpikepulseApp {
                 // También intentar cambiar el estado del motor si está disponible
                 if (this.gameEngine) {
                     console.log('[Spikepulse] GameEngine disponible, cambiando a estado playing');
-                    this.gameEngine.changeState('playing');
+                    this.gameEngine.stateManager.changeState('playing');
                 } else {
                     console.error('[Spikepulse] GameEngine no disponible');
                 }
@@ -657,7 +658,7 @@ class SpikepulseApp {
                 
                 // También intentar cambiar el estado del motor si está disponible
                 if (this.gameEngine) {
-                    this.gameEngine.changeState('playing');
+                    this.gameEngine.stateManager.changeState('playing');
                 }
             });
         }
@@ -680,11 +681,11 @@ class SpikepulseApp {
                 
                 // También intentar cambiar el estado del motor si está disponible
                 if (this.gameEngine) {
-                    const currentState = this.gameEngine.getCurrentState();
+                    const currentState = this.gameEngine.stateManager.getCurrentState();
                     if (currentState === 'playing') {
-                        this.gameEngine.changeState('paused');
+                        this.gameEngine.stateManager.changeState('paused');
                     } else if (currentState === 'paused') {
-                        this.gameEngine.changeState('playing');
+                        this.gameEngine.stateManager.changeState('playing');
                     }
                 }
             });

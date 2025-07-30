@@ -13,6 +13,7 @@
 @import url('./components/hud.css');
 @import url('./components/controls.css');
 @import url('./components/spikepulse-identity.css');
+@import url('./components/performance-display.css');
 @import url('./effects/particle-system.css');
 @import url('./utilities/effects.css');
 @import url('./layout/responsive.css');

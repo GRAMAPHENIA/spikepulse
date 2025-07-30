@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Renderer Optimizations - Spikepulse</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0F0F0F;
+            color: #FFFFFF;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        
+        .test-canvas {
+            border: 2px solid #FFD700;
+            border-radius: 4px;
+            display: block;
+            margin: 10px auto;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .metric {
+            background: #1A1A2E;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #9F7AEA;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .btn {
+            background: #FFD700;
+            color: #0F0F0F;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            background: #FFA500;
+        }
+        
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .log {
+            background: #000;
+            color: #0F0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 Test de Optimizaciones del Renderer - Spikepulse</h1>
+        
+        <div class="test-section">
+            <h2>📊 Métricas de Rendimiento</h2>
+            <canvas id="testCanvas" class="test-canvas" width="800" height="400"></canvas>
+            
+            <div class="controls">
+                <button class="btn" id="startTest">Iniciar Test</button>
+                <button class="btn" id="stopTest" disabled>Detener Test</button>
+                <button class="btn" id="addObjects">Agregar Objetos (100)</button>
+                <button class="btn" id="clearObjects">Limpiar Objetos</button>
+                <button class="btn" id="toggleOptimizations">Toggle Optimizaciones</button>
+            </div>
+            
+            <div class="metrics" id="metricsContainer">
+                <div class="metric">
+                    <div class="metric-label">FPS</div>
+                    <div class="metric-value" id="fpsValue">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Tiempo de Render (ms)</div>
+                    <div class="metric-value" id="renderTimeValue">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Objetos Renderizados</div>
+                    <div class="metric-value" id="objectsRenderedValue">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Objetos Culled</div>
+                    <div class="metric-value" id="objectsCulledValue">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Capas Renderizadas</div>
+                    <div class="metric-value" id="layersRenderedValue">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Pool Hits</div>
+                    <div class="metric-value" id="poolHitsValue">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Pool Misses</div>
+                    <div class="metric-value" id="poolMissesValue">0</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Regiones Dirty</div>
+                    <div class="metric-value" id="dirtyRegionsValue">0</div>
+                </div>
+            </div>
+            
+            <div class="log" id="logContainer"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { Renderer } from './src/modules/renderer/Renderer.js';
+        import { EventBus } from './src/core/EventBus.js';
+        import { GAME_CONFIG } from './src/config/GameConfig.js';
+
+        class RendererTest {
+            constructor() {
+                this.canvas = document.getElementById('testCanvas');
+                this.eventBus = new EventBus();
+                this.renderer = null;
+                this.isRunning = false;
+                this.testObjects = [];
+                this.frameCount = 0;
+                this.lastTime = 0;
+                this.fpsHistory = [];
+                
+                this.setupEventListeners();
+                this.initRenderer();
+                this.log('✅ Test de Renderer inicializado');
+            }
+
+            setupEventListeners() {
+                document.getElementById('startTest').addEventListener('click', () => this.startTest());
+                document.getElementById('stopTest').addEventListener('click', () => this.stopTest());
+                document.getElementById('addObjects').addEventListener('click', () => this.addTestObjects(100));
+                document.getElementById('clearObjects').addEventListener('click', () => this.clearTestObjects());
+                document.getElementById('toggleOptimizations').addEventListener('click', () => this.toggleOptimizations());
+            }
+
+            initRenderer() {
+                try {
+                    this.renderer = new Renderer(GAME_CONFIG, this.eventBus);
+                    this.renderer.init(this.canvas, this.eventBus, GAME_CONFIG);
+                    
+                    // Configurar debug para mostrar métricas
+                    this.renderer.config.debug = { showMetrics: true };
+                    
+                    this.log('✅ Renderer inicializado correctamente');
+                    this.log(`📊 Optimizaciones: ${JSON.stringify(this.renderer.optimizations)}`);
+                    
+                } catch (error) {
+                    this.log(`❌ Error inicializando renderer: ${error.message}`);
+                    console.error(error);
+                }
+            }
+
+            startTest() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.frameCount = 0;
+                this.lastTime = performance.now();
+                this.fpsHistory = [];
+                
+                document.getElementById('startTest').disabled = true;
+                document.getElementById('stopTest').disabled = false;
+                
+                this.log('🚀 Test iniciado');
+                this.gameLoop();
+            }
+
+            stopTest() {
+                this.isRunning = false;
+                
+                document.getElementById('startTest').disabled = false;
+                document.getElementById('stopTest').disabled = true;
+                
+                this.log('⏹️ Test detenido');
+            }
+
+            gameLoop() {
+                if (!this.isRunning) return;
+                
+                const currentTime = performance.now();
+                const deltaTime = currentTime - this.lastTime;
+                
+                // Actualizar objetos de test
+                this.updateTestObjects(deltaTime);
+                
+                // Actualizar renderer
+                if (this.renderer) {
+                    this.renderer.update(deltaTime);
+                    this.renderer.render();
+                    
+                    // Actualizar métricas
+                    this.updateMetrics();
+                }
+                
+                // Calcular FPS
+                this.frameCount++;
+                if (deltaTime > 0) {
+                    const fps = 1000 / deltaTime;
+                    this.fpsHistory.push(fps);
+                    if (this.fpsHistory.length > 60) {
+                        this.fpsHistory.shift();
+                    }
+                }
+                
+                this.lastTime = currentTime;
+                requestAnimationFrame(() => this.gameLoop());
+            }
+
+            updateTestObjects(deltaTime) {
+                this.testObjects.forEach(obj => {
+                    // Mover objetos
+                    obj.x += obj.vx * deltaTime * 0.01;
+                    obj.y += obj.vy * deltaTime * 0.01;
+                    
+                    // Rebotar en los bordes
+                    if (obj.x <= 0 || obj.x >= 800 - obj.width) {
+                        obj.vx *= -1;
+                    }
+                    if (obj.y <= 0 || obj.y >= 400 - obj.height) {
+                        obj.vy *= -1;
+                    }
+                    
+                    // Rotar
+                    obj.rotation += obj.rotationSpeed * deltaTime * 0.001;
+                    
+                    // Marcar como dirty para dirty rectangles
+                    obj.isDirty = true;
+                });
+            }
+
+            addTestObjects(count) {
+                const colors = ['#FFD700', '#FF6B6B', '#9F7AEA', '#38A169', '#F6AD55'];
+                const types = ['rectangle', 'circle'];
+                const layers = ['background', 'entities', 'effects'];
+                
+                for (let i = 0; i < count; i++) {
+                    const obj = {
+                        id: `test_${Date.now()}_${i}`,
+                        type: types[Math.floor(Math.random() * types.length)],
+                        x: Math.random() * 700,
+                        y: Math.random() * 300,
+                        width: 20 + Math.random() * 30,
+                        height: 20 + Math.random() * 30,
+                        fillStyle: colors[Math.floor(Math.random() * colors.length)],
+                        strokeStyle: '#FFFFFF',
+                        lineWidth: 1,
+                        rotation: 0,
+                        scale: 0.5 + Math.random() * 1,
+                        alpha: 0.7 + Math.random() * 0.3,
+                        visible: true,
+                        zIndex: Math.floor(Math.random() * 10),
+                        vx: (Math.random() - 0.5) * 100,
+                        vy: (Math.random() - 0.5) * 100,
+                        rotationSpeed: (Math.random() - 0.5) * 2,
+                        isDirty: false
+                    };
+                    
+                    const layerName = layers[Math.floor(Math.random() * layers.length)];
+                    
+                    this.testObjects.push(obj);
+                    
+                    // Agregar al renderer
+                    this.eventBus.emit('renderer:add-object', {
+                        layerName: layerName,
+                        object: obj
+                    });
+                }
+                
+                this.log(`➕ Agregados ${count} objetos de test (Total: ${this.testObjects.length})`);
+            }
+
+            clearTestObjects() {
+                // Limpiar todas las capas
+                ['background', 'entities', 'effects'].forEach(layerName => {
+                    this.eventBus.emit('renderer:clear-layer', { layerName });
+                });
+                
+                this.testObjects = [];
+                this.log('🗑️ Objetos de test limpiados');
+            }
+
+            toggleOptimizations() {
+                if (!this.renderer) return;
+                
+                const opts = this.renderer.optimizations;
+                opts.enableObjectPooling = !opts.enableObjectPooling;
+                opts.enableDirtyRectangles = !opts.enableDirtyRectangles;
+                opts.cullingEnabled = !opts.cullingEnabled;
+                
+                this.log(`🔧 Optimizaciones cambiadas: ${JSON.stringify(opts)}`);
+            }
+
+            updateMetrics() {
+                if (!this.renderer) return;
+                
+                const metrics = this.renderer.getMetrics();
+                const avgFps = this.fpsHistory.length > 0 
+                    ? this.fpsHistory.reduce((a, b) => a + b, 0) / this.fpsHistory.length 
+                    : 0;
+                
+                document.getElementById('fpsValue').textContent = avgFps.toFixed(1);
+                document.getElementById('renderTimeValue').textContent = metrics.renderTime.toFixed(2);
+                document.getElementById('objectsRenderedValue').textContent = metrics.objectsRendered;
+                document.getElementById('objectsCulledValue').textContent = metrics.objectsCulled;
+                document.getElementById('layersRenderedValue').textContent = metrics.layersRendered;
+                document.getElementById('poolHitsValue').textContent = metrics.poolHits;
+                document.getElementById('poolMissesValue').textContent = metrics.poolMisses;
+                document.getElementById('dirtyRegionsValue').textContent = this.renderer.dirtyRegions.length;
+            }
+
+            log(message) {
+                const logContainer = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}\n`;
+                
+                logContainer.textContent += logEntry;
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                console.log(message);
+            }
+        }
+
+        // Inicializar test cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            window.rendererTest = new RendererTest();
+        });
+    </script>
+</body>
+</html>

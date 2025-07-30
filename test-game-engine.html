@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - GameEngine Spikepulse</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0F0F0F;
+            color: #FFFFFF;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .test-canvas {
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            box-shadow: 0 0 20px #FFD700;
+            display: block;
+            margin: 20px auto;
+            background: #1A1A2E;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 6px;
+            color: #000;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .status h3 {
+            margin: 0 0 10px 0;
+            color: #FFD700;
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry.error {
+            color: #FF6B6B;
+        }
+        
+        .log-entry.success {
+            color: #51CF66;
+        }
+        
+        .log-entry.warning {
+            color: #FFD43B;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 Test del GameEngine Spikepulse</h1>
+        
+        <canvas id="gameCanvas" class="test-canvas" width="800" height="400"></canvas>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="startEngine()">Iniciar Motor</button>
+            <button class="control-btn" onclick="changeToPlaying()">Estado Playing</button>
+            <button class="control-btn" onclick="pauseEngine()">Pausar</button>
+            <button class="control-btn" onclick="resumeEngine()">Reanudar</button>
+            <button class="control-btn" onclick="stopEngine()">Detener</button>
+            <button class="control-btn" onclick="showStats()">Mostrar Stats</button>
+        </div>
+        
+        <div class="status">
+            <h3>📊 Estado del Motor</h3>
+            <div id="engineStatus">
+                <p><strong>Estado:</strong> <span id="currentState">No iniciado</span></p>
+                <p><strong>Módulos cargados:</strong> <span id="moduleCount">0</span></p>
+                <p><strong>FPS:</strong> <span id="currentFPS">0</span></p>
+                <p><strong>Frame:</strong> <span id="frameCount">0</span></p>
+            </div>
+        </div>
+        
+        <div class="status">
+            <h3>📝 Log de Eventos</h3>
+            <div id="eventLog" class="log">
+                <!-- Los logs aparecerán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GameEngine } from './src/core/GameEngine.js';
+        import { getFullConfig } from './src/config/GameConfig.js';
+
+        // Variables globales para testing
+        window.testGameEngine = null;
+        window.testConfig = null;
+
+        // Función para agregar logs
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('eventLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Mantener solo los últimos 50 logs
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+
+        // Función para actualizar estado
+        function updateStatus() {
+            if (!window.testGameEngine) return;
+            
+            try {
+                const stats = window.testGameEngine.getStats();
+                
+                document.getElementById('currentState').textContent = 
+                    window.testGameEngine.stateManager.getCurrentState() || 'Desconocido';
+                document.getElementById('moduleCount').textContent = stats.moduleCount || 0;
+                document.getElementById('currentFPS').textContent = 
+                    Math.round(stats.currentFPS || 0);
+                document.getElementById('frameCount').textContent = stats.frameCount || 0;
+                
+            } catch (error) {
+                addLog(`Error actualizando estado: ${error.message}`, 'error');
+            }
+        }
+
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                addLog('Inicializando test del GameEngine...', 'info');
+                
+                // Obtener configuración
+                window.testConfig = getFullConfig();
+                addLog('Configuración cargada', 'success');
+                
+                // Crear instancia del GameEngine
+                window.testGameEngine = new GameEngine(window.testConfig);
+                addLog('GameEngine creado', 'success');
+                
+                // Configurar listeners de eventos
+                window.testGameEngine.eventBus.on('engine:started', () => {
+                    addLog('Motor iniciado', 'success');
+                    updateStatus();
+                });
+                
+                window.testGameEngine.eventBus.on('engine:stopped', () => {
+                    addLog('Motor detenido', 'warning');
+                    updateStatus();
+                });
+                
+                window.testGameEngine.eventBus.on('engine:modules-loaded', () => {
+                    addLog('Módulos cargados exitosamente', 'success');
+                    updateStatus();
+                });
+                
+                window.testGameEngine.eventBus.on('engine:error', (data) => {
+                    addLog(`Error del motor: ${data.error.message}`, 'error');
+                });
+                
+                window.testGameEngine.eventBus.on('state:change', (data) => {
+                    addLog(`Cambio de estado: ${data.from} -> ${data.to}`, 'info');
+                    updateStatus();
+                });
+                
+                window.testGameEngine.eventBus.on('engine:module-initialized', (data) => {
+                    addLog(`Módulo inicializado: ${data.name}`, 'success');
+                    updateStatus();
+                });
+                
+                // Actualizar estado cada segundo
+                setInterval(updateStatus, 1000);
+                
+                addLog('Test inicializado correctamente', 'success');
+                
+            } catch (error) {
+                addLog(`Error fatal: ${error.message}`, 'error');
+                console.error('Error en test:', error);
+            }
+        });
+
+        // Funciones globales para los botones
+        window.startEngine = function() {
+            if (window.testGameEngine) {
+                try {
+                    window.testGameEngine.start();
+                    addLog('Comando: Iniciar motor', 'info');
+                } catch (error) {
+                    addLog(`Error iniciando motor: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        window.changeToPlaying = function() {
+            if (window.testGameEngine) {
+                try {
+                    window.testGameEngine.stateManager.changeState('playing');
+                    addLog('Comando: Cambiar a estado playing', 'info');
+                } catch (error) {
+                    addLog(`Error cambiando estado: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        window.pauseEngine = function() {
+            if (window.testGameEngine) {
+                try {
+                    window.testGameEngine.pause();
+                    addLog('Comando: Pausar motor', 'info');
+                } catch (error) {
+                    addLog(`Error pausando motor: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        window.resumeEngine = function() {
+            if (window.testGameEngine) {
+                try {
+                    window.testGameEngine.resume();
+                    addLog('Comando: Reanudar motor', 'info');
+                } catch (error) {
+                    addLog(`Error reanudando motor: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        window.stopEngine = function() {
+            if (window.testGameEngine) {
+                try {
+                    window.testGameEngine.stop();
+                    addLog('Comando: Detener motor', 'info');
+                } catch (error) {
+                    addLog(`Error deteniendo motor: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        window.showStats = function() {
+            if (window.testGameEngine) {
+                try {
+                    const stats = window.testGameEngine.getStats();
+                    addLog(`Stats: ${JSON.stringify(stats, null, 2)}`, 'info');
+                    console.log('GameEngine Stats:', stats);
+                } catch (error) {
+                    addLog(`Error obteniendo stats: ${error.message}`, 'error');
+                }
+            }
+        };
+    </script>
+</body>
+</html>

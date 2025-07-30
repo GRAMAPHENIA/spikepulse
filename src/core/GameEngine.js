@@ -5,6 +5,11 @@
 
 import { EventBus } from './EventBus.js';
 import { StateManager } from './StateManager.js';
+import { PerformanceMonitor } from '../utils/PerformanceMonitor.js';
+import { MemoryManager } from '../utils/MemoryManager.js';
+import { PerformanceOptimizer } from '../utils/PerformanceOptimizer.js';
+import { RenderOptimizer } from '../utils/RenderOptimizer.js';
+import { PerformanceDisplay } from '../modules/debug/PerformanceDisplay.js';
 
 export class GameEngine {
     /**
@@ -36,6 +41,13 @@ export class GameEngine {
         this.context = null;
         this.loadingTransitioned = false;
 
+        // Sistemas de optimización y monitoreo
+        this.performanceMonitor = null;
+        this.memoryManager = null;
+        this.performanceOptimizer = null;
+        this.renderOptimizer = null;
+        this.performanceDisplay = null;
+
         this.init();
     }
 
@@ -47,6 +59,8 @@ export class GameEngine {
         this.setupCanvas();
         this.setupEventListeners();
         this.setupStates();
+        this.setupPerformanceSystems();
+        this.loadModules();
         this.eventBus.setDebugMode(this.config.debug?.eventBus || false);
 
         console.log('[GameEngine] Motor inicializado');
@@ -118,6 +132,190 @@ export class GameEngine {
         // Establecer estado inicial
         // this.stateManager.changeState('loading');
         console.log('[GameEngine] Estados configurados, listo para usar');
+    }
+
+    /**
+     * Configurar sistemas de rendimiento y optimización
+     * @private
+     */
+    setupPerformanceSystems() {
+        try {
+            // Inicializar PerformanceMonitor
+            this.performanceMonitor = new PerformanceMonitor(this.config, this.eventBus);
+            console.log('[GameEngine] PerformanceMonitor inicializado');
+
+            // Inicializar MemoryManager
+            this.memoryManager = new MemoryManager(this.config, this.eventBus);
+            console.log('[GameEngine] MemoryManager inicializado');
+
+            // Inicializar PerformanceOptimizer
+            this.performanceOptimizer = new PerformanceOptimizer(this.config, this.eventBus);
+            console.log('[GameEngine] PerformanceOptimizer inicializado');
+
+            // Inicializar RenderOptimizer
+            this.renderOptimizer = new RenderOptimizer(this.config, this.eventBus);
+            console.log('[GameEngine] RenderOptimizer inicializado');
+
+            // Inicializar PerformanceDisplay si está habilitado en debug
+            if (this.config.debug?.showPerformanceDisplay) {
+                this.performanceDisplay = new PerformanceDisplay(this.config, this.eventBus);
+                console.log('[GameEngine] PerformanceDisplay inicializado');
+            }
+
+            // Configurar eventos específicos del motor para el monitoreo
+            this.setupPerformanceEvents();
+
+            console.log('[GameEngine] Sistemas de rendimiento configurados');
+        } catch (error) {
+            console.error('[GameEngine] Error configurando sistemas de rendimiento:', error);
+            // Continuar sin sistemas de rendimiento si hay error
+            this.performanceMonitor = null;
+            this.memoryManager = null;
+            this.performanceOptimizer = null;
+            this.renderOptimizer = null;
+        }
+    }
+
+    /**
+     * Configurar eventos específicos para el monitoreo de rendimiento
+     * @private
+     */
+    setupPerformanceEvents() {
+        // Eventos del motor para el PerformanceMonitor
+        this.eventBus.on('engine:performance-update', (data) => {
+            if (this.performanceMonitor) {
+                this.eventBus.emit('performance:update', data);
+            }
+        });
+
+        // Eventos de alerta de rendimiento
+        this.eventBus.on('performance:alert', (data) => {
+            console.warn(`[GameEngine] Alerta de rendimiento: ${data.message}`);
+            
+            // Tomar acciones automáticas según el tipo de alerta
+            switch (data.type) {
+                case 'low-fps':
+                    this.handleLowFPSAlert(data);
+                    break;
+                case 'high-memory':
+                    this.handleHighMemoryAlert(data);
+                    break;
+                case 'high-frame-time':
+                    this.handleHighFrameTimeAlert(data);
+                    break;
+            }
+        });
+
+        // Eventos de optimización
+        this.eventBus.on('optimizer:optimization-completed', (data) => {
+            console.log(`[GameEngine] Optimización completada: ${data.optimizations.length} estrategias aplicadas`);
+        });
+
+        // Eventos de memoria
+        this.eventBus.on('memory:gc-detected', (data) => {
+            console.log(`[GameEngine] Garbage Collection detectado: ${data.memoryFreed} bytes liberados`);
+        });
+    }
+
+    /**
+     * Manejar alerta de FPS bajo
+     * @param {Object} data - Datos de la alerta
+     * @private
+     */
+    handleLowFPSAlert(data) {
+        // Reducir calidad de renderizado automáticamente
+        this.eventBus.emit('renderer:reduce-quality', { 
+            reason: 'low-fps',
+            targetFPS: data.data.target 
+        });
+
+        // Notificar a módulos sobre rendimiento bajo
+        this.modules.forEach((moduleWrapper, name) => {
+            if (typeof moduleWrapper.instance.onPerformanceAlert === 'function') {
+                moduleWrapper.instance.onPerformanceAlert('low-fps', data);
+            }
+        });
+    }
+
+    /**
+     * Manejar alerta de memoria alta
+     * @param {Object} data - Datos de la alerta
+     * @private
+     */
+    handleHighMemoryAlert(data) {
+        // Forzar limpieza de memoria
+        if (this.memoryManager) {
+            this.memoryManager.performCleanup();
+        }
+
+        // Reducir cache de recursos
+        this.eventBus.emit('renderer:clear-cache', { keepEssential: true });
+        
+        // Notificar a módulos
+        this.modules.forEach((moduleWrapper, name) => {
+            if (typeof moduleWrapper.instance.onPerformanceAlert === 'function') {
+                moduleWrapper.instance.onPerformanceAlert('high-memory', data);
+            }
+        });
+    }
+
+    /**
+     * Manejar alerta de tiempo de frame alto
+     * @param {Object} data - Datos de la alerta
+     * @private
+     */
+    handleHighFrameTimeAlert(data) {
+        // Simplificar renderizado
+        this.eventBus.emit('renderer:simplify-rendering', { 
+            level: 1,
+            reason: 'high-frame-time' 
+        });
+
+        // Reducir efectos visuales
+        this.eventBus.emit('renderer:reduce-effects', { factor: 0.7 });
+    }
+
+    /**
+     * Cargar todos los módulos del juego
+     * @private
+     */
+    async loadModules() {
+        console.log('[GameEngine] Cargando módulos del juego...');
+        
+        try {
+            // Importar módulos dinámicamente
+            const [
+                { Renderer },
+                { Player },
+                { World },
+                { InputManager }
+            ] = await Promise.all([
+                import('../modules/renderer/Renderer.js'),
+                import('../modules/player/Player.js'),
+                import('../modules/world/World.js'),
+                import('../modules/input/InputManager.js')
+            ]);
+
+            // Crear instancias de los módulos con configuración
+            const renderer = new Renderer(this.config, this.eventBus);
+            const player = new Player(this.config, this.eventBus);
+            const world = new World(this.config, this.eventBus);
+            const inputManager = new InputManager(this.config, this.eventBus);
+
+            // Registrar módulos en orden de prioridad
+            this.registerModule({ name: 'renderer', instance: renderer, priority: 100 });
+            this.registerModule({ name: 'world', instance: world, priority: 80 });
+            this.registerModule({ name: 'player', instance: player, priority: 70 });
+            this.registerModule({ name: 'input', instance: inputManager, priority: 90 });
+
+            console.log('[GameEngine] Módulos cargados exitosamente');
+            this.eventBus.emit('engine:modules-loaded');
+
+        } catch (error) {
+            console.error('[GameEngine] Error cargando módulos:', error);
+            this.eventBus.emit('engine:error', { error, context: 'loadModules' });
+            throw error;
+        }
     }
 
     /**
@@ -201,6 +399,40 @@ export class GameEngine {
      * @private
      */
     initializeModule(name, moduleWrapper) {
+        if (moduleWrapper.isInitialized) {
+            console.warn(`[GameEngine] Módulo ${name} ya está inicializado`);
+            return;
+        }
+
+        try {
+            console.log(`[GameEngine] Inicializando módulo: ${name}`);
+            
+            if (typeof moduleWrapper.instance.init === 'function') {
+                // Pasar canvas y contexto al renderer específicamente
+                if (name === 'renderer') {
+                    moduleWrapper.instance.init(this.canvas, this.eventBus, this.config);
+                } else {
+                    moduleWrapper.instance.init(this.eventBus, this.config);
+                }
+            }
+            
+            moduleWrapper.isInitialized = true;
+            console.log(`[GameEngine] Módulo ${name} inicializado correctamente`);
+            
+            this.eventBus.emit('engine:module-initialized', { name, instance: moduleWrapper.instance });
+            
+        } catch (error) {
+            console.error(`[GameEngine] Error inicializando módulo ${name}:`, error);
+            this.eventBus.emit('engine:module-error', {
+                name,
+                error,
+                context: 'initialization'
+            });
+        }
+    }
+     * @private
+     */
+    initializeModule(name, moduleWrapper) {
         try {
             if (typeof moduleWrapper.instance.init === 'function') {
                 moduleWrapper.instance.init(this.context, this.eventBus, this.config);
@@ -256,16 +488,13 @@ export class GameEngine {
         this.isRunning = true;
         this.lastTime = performance.now();
 
-        // Inicializar todos los módulos
-        this.modules.forEach((instance, name) => {
-            if (typeof instance.init === 'function') {
-                try {
-                    instance.init();
-                } catch (error) {
-                    console.error(`[GameEngine] Error inicializando módulo ${name}:`, error);
-                }
+        // Inicializar todos los módulos en orden de prioridad
+        for (const moduleName of this.moduleLoadOrder) {
+            const moduleWrapper = this.modules.get(moduleName);
+            if (moduleWrapper && !moduleWrapper.isInitialized) {
+                this.initializeModule(moduleName, moduleWrapper);
             }
-        });
+        }
 
         // Iniciar el loop principal
         this.gameLoop();
@@ -284,16 +513,23 @@ export class GameEngine {
 
         this.isRunning = false;
 
-        // Limpiar todos los módulos
-        this.modules.forEach((instance, name) => {
-            if (typeof instance.destroy === 'function') {
+        // Limpiar todos los módulos en orden inverso
+        for (let i = this.moduleLoadOrder.length - 1; i >= 0; i--) {
+            const moduleName = this.moduleLoadOrder[i];
+            const moduleWrapper = this.modules.get(moduleName);
+            
+            if (moduleWrapper && moduleWrapper.isInitialized) {
                 try {
-                    instance.destroy();
+                    if (typeof moduleWrapper.instance.destroy === 'function') {
+                        moduleWrapper.instance.destroy();
+                    }
+                    moduleWrapper.isInitialized = false;
+                    console.log(`[GameEngine] Módulo ${moduleName} limpiado`);
                 } catch (error) {
-                    console.error(`[GameEngine] Error limpiando módulo ${name}:`, error);
+                    console.error(`[GameEngine] Error limpiando módulo ${moduleName}:`, error);
                 }
             }
-        });
+        }
 
         console.log('[GameEngine] Motor detenido');
         this.eventBus.emit('engine:stopped');
@@ -340,6 +576,9 @@ export class GameEngine {
         const frameStartTime = performance.now();
         this.deltaTime = frameStartTime - this.lastTime;
 
+        // Emitir evento de inicio de frame para el PerformanceMonitor
+        this.eventBus.emit('engine:frame-start', { timestamp: frameStartTime });
+
         // Limitar deltaTime para evitar saltos grandes
         const maxDeltaTime = this.config.performance?.maxDeltaTime || 50;
         if (this.deltaTime > maxDeltaTime) {
@@ -347,15 +586,33 @@ export class GameEngine {
         }
 
         try {
+            // Emitir evento de inicio de actualización
+            this.eventBus.emit('engine:update-start', { timestamp: performance.now() });
+            
             // Medir tiempo de actualización
             const updateStartTime = performance.now();
             this.update(this.deltaTime);
             this.performanceMetrics.updateTime = performance.now() - updateStartTime;
+            
+            // Emitir evento de fin de actualización
+            this.eventBus.emit('engine:update-end', { 
+                timestamp: performance.now(),
+                updateTime: this.performanceMetrics.updateTime 
+            });
 
+            // Emitir evento de inicio de renderizado
+            this.eventBus.emit('engine:render-start', { timestamp: performance.now() });
+            
             // Medir tiempo de renderizado
             const renderStartTime = performance.now();
             this.render();
             this.performanceMetrics.renderTime = performance.now() - renderStartTime;
+            
+            // Emitir evento de fin de renderizado
+            this.eventBus.emit('engine:render-end', { 
+                timestamp: performance.now(),
+                renderTime: this.performanceMetrics.renderTime 
+            });
 
             // Calcular métricas de frame
             this.performanceMetrics.totalFrameTime = performance.now() - frameStartTime;
@@ -365,6 +622,13 @@ export class GameEngine {
             console.error('[GameEngine] Error en el game loop:', error);
             this.eventBus.emit('engine:error', { error, context: 'gameLoop' });
         }
+
+        // Emitir evento de fin de frame
+        this.eventBus.emit('engine:frame-end', { 
+            timestamp: performance.now(),
+            frameTime: this.performanceMetrics.totalFrameTime,
+            deltaTime: this.deltaTime
+        });
 
         this.lastTime = frameStartTime;
         this.frameCount++;
@@ -551,8 +815,171 @@ export class GameEngine {
             canvas: {
                 width: this.canvas?.width || 0,
                 height: this.canvas?.height || 0
+            },
+            // Estadísticas de sistemas de rendimiento
+            performanceMonitor: this.performanceMonitor?.getCurrentMetrics() || null,
+            memoryManager: this.memoryManager?.getStats() || null,
+            performanceOptimizer: this.performanceOptimizer?.getStats() || null,
+            renderOptimizer: this.renderOptimizer?.getStats() || null
+        };
+    }
+
+    /**
+     * Obtener estadísticas de rendimiento formateadas
+     * @returns {Object} Estadísticas formateadas para mostrar
+     */
+    getPerformanceStats() {
+        const stats = {
+            motor: {
+                fps: `${Math.round(1000 / this.deltaTime)} FPS`,
+                fpsPromedio: `${this.getAverageFPS()} FPS`,
+                tiempoFrame: `${this.performanceMetrics.totalFrameTime.toFixed(2)}ms`,
+                tiempoUpdate: `${this.performanceMetrics.updateTime.toFixed(2)}ms`,
+                tiempoRender: `${this.performanceMetrics.renderTime.toFixed(2)}ms`,
+                frames: this.frameCount.toLocaleString('es-ES'),
+                estado: this.stateManager.getCurrentState()
             }
         };
+
+        // Agregar estadísticas de sistemas de rendimiento si están disponibles
+        if (this.performanceMonitor) {
+            stats.monitor = this.performanceMonitor.getFormattedStats();
+        }
+
+        if (this.memoryManager) {
+            stats.memoria = this.memoryManager.getFormattedStats();
+        }
+
+        if (this.performanceOptimizer) {
+            stats.optimizador = this.performanceOptimizer.getFormattedStats();
+        }
+
+        if (this.renderOptimizer) {
+            stats.renderizador = this.renderOptimizer.getFormattedStats();
+        }
+
+        return stats;
+    }
+
+    /**
+     * Obtener resumen de rendimiento
+     * @returns {Object} Resumen de rendimiento
+     */
+    getPerformanceSummary() {
+        const currentFPS = Math.round(1000 / this.deltaTime);
+        const avgFPS = this.getAverageFPS();
+        const fpsEfficiency = (avgFPS / this.targetFPS) * 100;
+
+        let performanceLevel = 'excelente';
+        if (fpsEfficiency < 60) performanceLevel = 'crítico';
+        else if (fpsEfficiency < 80) performanceLevel = 'bajo';
+        else if (fpsEfficiency < 95) performanceLevel = 'bueno';
+
+        return {
+            nivelRendimiento: performanceLevel,
+            fpsActual: currentFPS,
+            fpsPromedio: avgFPS,
+            fpsObjetivo: this.targetFPS,
+            eficienciaFPS: `${fpsEfficiency.toFixed(1)}%`,
+            tiempoFramePromedio: `${this.performanceMetrics.totalFrameTime.toFixed(2)}ms`,
+            usoMemoria: this.performanceMonitor?.getCurrentMetrics()?.memory?.used ? 
+                this.formatBytes(this.performanceMonitor.getCurrentMetrics().memory.used) : 'No disponible',
+            optimizacionesActivas: this.performanceOptimizer?.getStats()?.metrics?.optimizationsApplied || 0,
+            alertasRendimiento: this.performanceMonitor?.getCurrentMetrics()?.counters?.errorsCount || 0
+        };
+    }
+
+    /**
+     * Formatear bytes en formato legible
+     * @param {number} bytes - Bytes a formatear
+     * @returns {string} Bytes formateados
+     * @private
+     */
+    formatBytes(bytes) {
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        if (bytes === 0) return '0 B';
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+    }
+
+    /**
+     * Forzar optimización de rendimiento
+     */
+    forceOptimization() {
+        if (this.performanceOptimizer) {
+            this.performanceOptimizer.forceOptimization();
+        }
+    }
+
+    /**
+     * Configurar nivel de rendimiento
+     * @param {string} level - Nivel de rendimiento (high, medium, low)
+     */
+    setPerformanceLevel(level) {
+        if (this.performanceOptimizer) {
+            this.performanceOptimizer.setPerformanceLevel({ level });
+        }
+        
+        // Notificar a módulos sobre el cambio de nivel
+        this.modules.forEach((moduleWrapper, name) => {
+            if (typeof moduleWrapper.instance.onPerformanceLevelChanged === 'function') {
+                moduleWrapper.instance.onPerformanceLevelChanged(level);
+            }
+        });
+
+        console.log(`[GameEngine] Nivel de rendimiento establecido: ${level}`);
+    }
+
+    /**
+     * Habilitar/deshabilitar monitoreo de rendimiento
+     * @param {boolean} enabled - Estado del monitoreo
+     */
+    setPerformanceMonitoring(enabled) {
+        if (this.performanceMonitor) {
+            this.performanceMonitor.setEnabled(enabled);
+        }
+        
+        console.log(`[GameEngine] Monitoreo de rendimiento ${enabled ? 'habilitado' : 'deshabilitado'}`);
+    }
+
+    /**
+     * Limpiar memoria manualmente
+     */
+    cleanupMemory() {
+        if (this.memoryManager) {
+            this.memoryManager.performCleanup();
+        }
+        
+        // Sugerir garbage collection
+        this.eventBus.emit('memory:force-gc');
+        
+        console.log('[GameEngine] Limpieza de memoria ejecutada');
+    }
+
+    /**
+     * Alternar display de rendimiento
+     */
+    togglePerformanceDisplay() {
+        if (this.performanceDisplay) {
+            this.performanceDisplay.toggle();
+        } else if (this.config.debug?.enabled) {
+            // Crear display si no existe pero debug está habilitado
+            this.performanceDisplay = new PerformanceDisplay(this.config, this.eventBus);
+            this.performanceDisplay.setVisible(true);
+        }
+    }
+
+    /**
+     * Mostrar/ocultar display de rendimiento
+     * @param {boolean} visible - Estado de visibilidad
+     */
+    setPerformanceDisplayVisible(visible) {
+        if (this.performanceDisplay) {
+            this.performanceDisplay.setVisible(visible);
+        } else if (visible && this.config.debug?.enabled) {
+            this.performanceDisplay = new PerformanceDisplay(this.config, this.eventBus);
+            this.performanceDisplay.setVisible(true);
+        }
     }
 
     // ===== MÉTODOS DE ESTADO =====
@@ -738,6 +1165,32 @@ export class GameEngine {
      */
     destroy() {
         this.stop();
+
+        // Limpiar sistemas de rendimiento
+        if (this.performanceMonitor) {
+            this.performanceMonitor.destroy();
+            this.performanceMonitor = null;
+        }
+
+        if (this.memoryManager) {
+            this.memoryManager.destroy();
+            this.memoryManager = null;
+        }
+
+        if (this.performanceOptimizer) {
+            this.performanceOptimizer.destroy();
+            this.performanceOptimizer = null;
+        }
+
+        if (this.renderOptimizer) {
+            this.renderOptimizer.destroy();
+            this.renderOptimizer = null;
+        }
+
+        if (this.performanceDisplay) {
+            this.performanceDisplay.destroy();
+            this.performanceDisplay = null;
+        }
 
         // Limpiar módulos en orden inverso
         for (const moduleName of this.moduleLoadOrder.reverse()) {

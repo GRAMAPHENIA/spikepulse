@@ -74,12 +74,99 @@ export const GAME_CONFIG = {
         }
     },
 
+    // Configuración del renderizador
+    renderer: {
+        enableDirtyRectangles: true,
+        enableObjectPooling: true,
+        enableLayerCaching: true,
+        maxRenderObjects: 1000,
+        cullingEnabled: true,
+        cullingMargin: 50,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+        backgroundColor: '#0F0F0F',
+        debug: {
+            showMetrics: false,
+            showHitboxes: false,
+            showDirtyRegions: false
+        },
+        layers: {
+            background: {
+                visible: true,
+                alpha: 1.0,
+                zIndex: 0,
+                parallax: { x: 0.5, y: 0.5 },
+                enableCaching: true,
+                enableSorting: false
+            },
+            world: {
+                visible: true,
+                alpha: 1.0,
+                zIndex: 1,
+                parallax: { x: 0.8, y: 0.8 },
+                enableCaching: true,
+                enableSorting: false
+            },
+            entities: {
+                visible: true,
+                alpha: 1.0,
+                zIndex: 2,
+                parallax: { x: 1, y: 1 },
+                enableCaching: false,
+                enableSorting: true,
+                sortBy: 'zIndex'
+            },
+            player: {
+                visible: true,
+                alpha: 1.0,
+                zIndex: 3,
+                parallax: { x: 1, y: 1 },
+                enableCaching: false,
+                enableSorting: false
+            },
+            effects: {
+                visible: true,
+                alpha: 1.0,
+                zIndex: 4,
+                parallax: { x: 1, y: 1 },
+                enableCaching: false,
+                enableSorting: true,
+                sortBy: 'y'
+            },
+            ui: {
+                visible: true,
+                alpha: 1.0,
+                zIndex: 5,
+                parallax: { x: 0, y: 0 },
+                enableCaching: false,
+                enableSorting: false
+            },
+            debug: {
+                visible: false,
+                alpha: 0.8,
+                zIndex: 6,
+                parallax: { x: 0, y: 0 },
+                enableCaching: false,
+                enableSorting: false
+            }
+        }
+    },
+
     // Configuración de rendimiento
     performance: {
         targetFPS: 60,
         maxDeltaTime: 50,
         enableObjectPooling: true,
-        maxParticles: 100
+        maxParticles: 100,
+        memoryThreshold: 0.8,
+        gcThreshold: 0.9,
+        adaptiveQuality: true,
+        aggressiveOptimization: false,
+        monitoringInterval: 1000,
+        optimizationInterval: 5000,
+        enableOptimizations: true,
+        maxCacheSize: 50,
+        cleanupInterval: 30000
     },
 
     // Configuración de debug
@@ -88,7 +175,12 @@ export const GAME_CONFIG = {
         showHitboxes: false,
         showFPS: false,
         eventBus: false,
-        logLevel: 'warn' // 'debug', 'info', 'warn', 'error'
+        logLevel: 'warn', // 'debug', 'info', 'warn', 'error'
+        showPerformanceDisplay: false,
+        performanceDisplayPosition: 'top-left',
+        performanceDisplayUpdate: 500,
+        showPerformanceGraphs: true,
+        compactPerformanceDisplay: false
     },
 
     // Estados del juego
@@ -280,11 +372,15 @@ export const DEV_CONFIG_OVERRIDES = {
         showHitboxes: true,
         showFPS: true,
         eventBus: true,
-        logLevel: 'debug'
+        logLevel: 'debug',
+        showPerformanceDisplay: true,
+        showPerformanceGraphs: true
     },
     performance: {
         targetFPS: 60,
-        maxDeltaTime: 50
+        maxDeltaTime: 50,
+        enableOptimizations: true,
+        adaptiveQuality: true
     }
 };
 
