@@ -86,6 +86,18 @@ export const SPANISH_TEXT = {
     NETWORK_ERROR: 'Error de conexión. Verifica tu conexión a internet.',
     UNKNOWN_ERROR: 'Ha ocurrido un error desconocido.',
     
+    // Errores específicos del sistema
+    ERROR_CANVAS: 'Error en el canvas del juego. Intentando recuperar...',
+    ERROR_MODULE: 'Error en un componente del juego. Intentando recuperar...',
+    ERROR_ENGINE: 'Error en el motor del juego. Intentando recuperar...',
+    ERROR_JAVASCRIPT: 'Error inesperado. El juego intentará continuar...',
+    ERROR_MEMORY: 'Problema de memoria detectado. Liberando recursos...',
+    ERROR_RESOURCE: 'Error cargando recursos del juego.',
+    ERROR_PHYSICS: 'Error en el sistema de física del juego.',
+    ERROR_INPUT: 'Error en el sistema de controles.',
+    ERROR_RENDERER: 'Error en el sistema de renderizado.',
+    ERROR_RECOVERY: 'Error durante la recuperación del sistema.',
+    
     // Accesibilidad
     CANVAS_ALT: 'Canvas del juego Spikepulse',
     GAME_AREA_LABEL: 'Área de juego principal',

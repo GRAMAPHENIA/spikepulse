@@ -10,6 +10,11 @@ import { MemoryManager } from '../utils/MemoryManager.js';
 import { PerformanceOptimizer } from '../utils/PerformanceOptimizer.js';
 import { RenderOptimizer } from '../utils/RenderOptimizer.js';
 import { PerformanceDisplay } from '../modules/debug/PerformanceDisplay.js';
+import { ErrorHandler } from '../utils/ErrorHandler.js';
+import { ErrorLogger } from '../utils/ErrorLogger.js';
+import { ErrorRecovery } from '../utils/ErrorRecovery.js';
+import { DebugManager } from '../modules/debug/DebugManager.js';
+import { DeveloperConsole } from '../modules/debug/DeveloperConsole.js';
 
 export class GameEngine {
     /**
@@ -48,6 +53,15 @@ export class GameEngine {
         this.renderOptimizer = null;
         this.performanceDisplay = null;
 
+        // Sistemas de manejo de errores
+        this.errorHandler = null;
+        this.errorLogger = null;
+        this.errorRecovery = null;
+
+        // Sistemas de debugging
+        this.debugManager = null;
+        this.developerConsole = null;
+
         this.init();
     }
 
@@ -56,6 +70,8 @@ export class GameEngine {
      * @private
      */
     init() {
+        this.setupErrorHandling();
+        this.setupDebugging();
         this.setupCanvas();
         this.setupEventListeners();
         this.setupStates();
@@ -64,6 +80,590 @@ export class GameEngine {
         this.eventBus.setDebugMode(this.config.debug?.eventBus || false);
 
         console.log('[GameEngine] Motor inicializado');
+    }
+
+    /**
+     * Configurar sistema de manejo de errores
+     * @private
+     */
+    setupErrorHandling() {
+        try {
+            // Inicializar ErrorLogger
+            this.errorLogger = new ErrorLogger({
+                maxLogSize: this.config.debug?.maxErrorLogs || 500,
+                enableConsoleLog: this.config.debug?.enableErrorConsoleLog !== false,
+                enableLocalStorage: this.config.debug?.enableErrorStorage !== false,
+                logLevel: this.config.debug?.errorLogLevel || 'error'
+            });
+
+            // Inicializar ErrorRecovery
+            this.errorRecovery = new ErrorRecovery(this.eventBus, {
+                maxRetryAttempts: this.config.debug?.maxRecoveryAttempts || 3,
+                retryDelay: this.config.debug?.recoveryRetryDelay || 1000,
+                enableAutoRecovery: this.config.debug?.enableAutoRecovery !== false,
+                recoveryTimeout: this.config.debug?.recoveryTimeout || 10000
+            });
+
+            // Inicializar ErrorHandler
+            this.errorHandler = new ErrorHandler(this.eventBus, {
+                maxErrors: this.config.debug?.maxErrors || 100,
+                enableLogging: this.config.debug?.enableErrorLogging !== false,
+                enableRecovery: this.config.debug?.enableErrorRecovery !== false,
+                logLevel: this.config.debug?.errorLogLevel || 'error',
+                retryAttempts: this.config.debug?.maxRecoveryAttempts || 3,
+                retryDelay: this.config.debug?.recoveryRetryDelay || 1000
+            });
+
+            // Configurar eventos específicos del motor para manejo de errores
+            this.setupErrorEvents();
+
+            console.log('[GameEngine] Sistema de manejo de errores configurado');
+        } catch (error) {
+            console.error('[GameEngine] Error configurando sistema de manejo de errores:', error);
+            // Continuar sin sistema de errores si hay problema
+            this.errorHandler = null;
+            this.errorLogger = null;
+            this.errorRecovery = null;
+        }
+    }
+
+    /**
+     * Configurar eventos específicos para el manejo de errores
+     * @private
+     */
+    setupErrorEvents() {
+        // Eventos de recuperación de módulos
+        this.eventBus.on('engine:reinitialize-module', (data) => {
+            this.handleModuleRecovery(data.moduleName);
+        });
+
+        this.eventBus.on('engine:reload-module', (data) => {
+            this.reloadModule(data.name);
+        });
+
+        this.eventBus.on('engine:cleanup-module', (data) => {
+            this.cleanupModule(data.name);
+        });
+
+        // Eventos de verificación de estado
+        this.eventBus.on('engine:check-module-status', (data) => {
+            this.checkModuleStatus(data.moduleName);
+        });
+
+        // Eventos de recuperación de canvas
+        this.eventBus.on('renderer:reinitialize-canvas', () => {
+            this.handleCanvasRecovery();
+        });
+
+        // Eventos de limpieza de memoria
+        this.eventBus.on('memory:cleanup', () => {
+            this.performMemoryCleanup();
+        });
+
+        // Eventos de error específicos del motor
+        this.eventBus.on('engine:critical-error', (data) => {
+            this.handleCriticalError(data);
+        });
+    }
+
+    /**
+     * Manejar recuperación de módulo
+     * @param {string} moduleName - Nombre del módulo
+     * @private
+     */
+    async handleModuleRecovery(moduleName) {
+        try {
+            console.log(`[GameEngine] Iniciando recuperación de módulo: ${moduleName}`);
+            
+            const moduleWrapper = this.modules.get(moduleName);
+            if (!moduleWrapper) {
+                throw new Error(`Módulo ${moduleName} no encontrado`);
+            }
+
+            // Deshabilitar módulo temporalmente
+            moduleWrapper.isEnabled = false;
+
+            // Limpiar módulo
+            if (typeof moduleWrapper.instance.destroy === 'function') {
+                moduleWrapper.instance.destroy();
+            }
+
+            // Reinicializar módulo
+            moduleWrapper.isInitialized = false;
+            this.initializeModule(moduleName, moduleWrapper);
+
+            // Reactivar módulo
+            moduleWrapper.isEnabled = true;
+
+            console.log(`[GameEngine] Módulo ${moduleName} recuperado exitosamente`);
+            
+            this.eventBus.emit('engine:module-recovered', { 
+                moduleName, 
+                success: true 
+            });
+
+        } catch (error) {
+            console.error(`[GameEngine] Error recuperando módulo ${moduleName}:`, error);
+            
+            this.eventBus.emit('engine:module-recovered', { 
+                moduleName, 
+                success: false, 
+                error 
+            });
+        }
+    }
+
+    /**
+     * Recargar un módulo específico
+     * @param {string} moduleName - Nombre del módulo
+     * @private
+     */
+    async reloadModule(moduleName) {
+        try {
+            console.log(`[GameEngine] Recargando módulo: ${moduleName}`);
+            
+            // Desregistrar módulo actual
+            this.unregisterModule(moduleName);
+
+            // Recargar módulo dinámicamente
+            let ModuleClass;
+            switch (moduleName) {
+                case 'renderer':
+                    ModuleClass = (await import('../modules/renderer/Renderer.js')).Renderer;
+                    break;
+                case 'player':
+                    ModuleClass = (await import('../modules/player/Player.js')).Player;
+                    break;
+                case 'world':
+                    ModuleClass = (await import('../modules/world/World.js')).World;
+                    break;
+                case 'input':
+                    ModuleClass = (await import('../modules/input/InputManager.js')).InputManager;
+                    break;
+                default:
+                    throw new Error(`Módulo desconocido: ${moduleName}`);
+            }
+
+            // Crear nueva instancia
+            const newInstance = new ModuleClass(this.config, this.eventBus);
+            
+            // Registrar módulo con prioridad apropiada
+            const priorities = {
+                renderer: 100,
+                world: 80,
+                player: 70,
+                input: 90
+            };
+
+            this.registerModule({
+                name: moduleName,
+                instance: newInstance,
+                priority: priorities[moduleName] || 50
+            });
+
+            console.log(`[GameEngine] Módulo ${moduleName} recargado exitosamente`);
+
+        } catch (error) {
+            console.error(`[GameEngine] Error recargando módulo ${moduleName}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Limpiar un módulo específico
+     * @param {string} moduleName - Nombre del módulo
+     * @private
+     */
+    cleanupModule(moduleName) {
+        const moduleWrapper = this.modules.get(moduleName);
+        if (moduleWrapper) {
+            try {
+                // Ejecutar limpieza específica del módulo
+                if (typeof moduleWrapper.instance.cleanup === 'function') {
+                    moduleWrapper.instance.cleanup();
+                }
+
+                // Limpiar eventos del módulo
+                this.eventBus.offContext(moduleWrapper.instance);
+
+                console.log(`[GameEngine] Módulo ${moduleName} limpiado`);
+            } catch (error) {
+                console.error(`[GameEngine] Error limpiando módulo ${moduleName}:`, error);
+            }
+        }
+    }
+
+    /**
+     * Verificar estado de un módulo
+     * @param {string} moduleName - Nombre del módulo
+     * @private
+     */
+    checkModuleStatus(moduleName) {
+        const moduleWrapper = this.modules.get(moduleName);
+        
+        const status = {
+            moduleName,
+            exists: !!moduleWrapper,
+            isInitialized: moduleWrapper?.isInitialized || false,
+            isEnabled: moduleWrapper?.isEnabled || false,
+            isWorking: false,
+            lastUpdateTime: moduleWrapper?.lastUpdateTime || 0,
+            lastRenderTime: moduleWrapper?.lastRenderTime || 0
+        };
+
+        // Verificar si el módulo está funcionando
+        if (moduleWrapper && moduleWrapper.isInitialized && moduleWrapper.isEnabled) {
+            try {
+                // Verificar si el módulo tiene métodos básicos
+                const hasUpdate = typeof moduleWrapper.instance.update === 'function';
+                const hasRender = typeof moduleWrapper.instance.render === 'function';
+                
+                status.isWorking = hasUpdate || hasRender;
+                status.hasUpdate = hasUpdate;
+                status.hasRender = hasRender;
+            } catch (error) {
+                status.isWorking = false;
+                status.error = error.message;
+            }
+        }
+
+        this.eventBus.emit('engine:module-status-response', status);
+    }
+
+    /**
+     * Manejar recuperación de canvas
+     * @private
+     */
+    async handleCanvasRecovery() {
+        try {
+            console.log('[GameEngine] Iniciando recuperación de canvas...');
+            
+            // Verificar si el canvas existe
+            let canvas = document.getElementById('gameCanvas');
+            if (!canvas) {
+                // Crear nuevo canvas
+                canvas = document.createElement('canvas');
+                canvas.id = 'gameCanvas';
+                canvas.width = this.config.canvas?.width || 800;
+                canvas.height = this.config.canvas?.height || 400;
+                canvas.setAttribute('aria-label', 'Canvas del juego Spikepulse');
+
+                // Agregar al DOM
+                const gameContainer = document.querySelector('.game-container') || document.body;
+                gameContainer.appendChild(canvas);
+            }
+
+            // Actualizar referencias
+            this.canvas = canvas;
+            this.context = canvas.getContext('2d');
+
+            if (!this.context) {
+                throw new Error('No se puede obtener contexto 2D');
+            }
+
+            // Configurar propiedades del contexto
+            this.context.imageSmoothingEnabled = true;
+            this.context.imageSmoothingQuality = 'high';
+
+            // Notificar al renderer
+            const rendererWrapper = this.modules.get('renderer');
+            if (rendererWrapper && rendererWrapper.instance) {
+                if (typeof rendererWrapper.instance.updateCanvas === 'function') {
+                    rendererWrapper.instance.updateCanvas(canvas, this.context);
+                }
+            }
+
+            console.log('[GameEngine] Canvas recuperado exitosamente');
+            
+            this.eventBus.emit('engine:canvas-recovered', { 
+                canvas, 
+                context: this.context 
+            });
+
+        } catch (error) {
+            console.error('[GameEngine] Error recuperando canvas:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Realizar limpieza de memoria
+     * @private
+     */
+    performMemoryCleanup() {
+        try {
+            console.log('[GameEngine] Iniciando limpieza de memoria...');
+
+            // Forzar garbage collection si está disponible
+            if (window.gc) {
+                window.gc();
+            }
+
+            // Limpiar caches de módulos
+            this.modules.forEach((moduleWrapper, name) => {
+                if (moduleWrapper.instance && typeof moduleWrapper.instance.clearCache === 'function') {
+                    moduleWrapper.instance.clearCache();
+                }
+            });
+
+            // Limpiar historial de FPS
+            this.fpsHistory = this.fpsHistory.slice(-30); // Mantener solo los últimos 30
+
+            console.log('[GameEngine] Limpieza de memoria completada');
+            
+            this.eventBus.emit('engine:memory-cleaned');
+
+        } catch (error) {
+            console.error('[GameEngine] Error durante limpieza de memoria:', error);
+        }
+    }
+
+    /**
+     * Manejar error crítico
+     * @param {Object} errorData - Datos del error crítico
+     * @private
+     */
+    handleCriticalError(errorData) {
+        console.error('[GameEngine] Error crítico detectado:', errorData);
+
+        try {
+            // Pausar el juego
+            this.pause();
+
+            // Notificar al usuario
+            this.eventBus.emit('ui:show-critical-error', {
+                message: 'Error crítico detectado. El juego se ha pausado.',
+                error: errorData,
+                actions: ['restart', 'continue']
+            });
+
+            // Intentar recuperación automática si está habilitada
+            if (this.errorRecovery && this.config.debug?.enableAutoRecovery) {
+                setTimeout(() => {
+                    this.errorRecovery.attemptRecovery('ENGINE_ERROR', errorData, {
+                        context: 'critical_error'
+                    });
+                }, 2000);
+            }
+
+        } catch (recoveryError) {
+            console.error('[GameEngine] Error durante manejo de error crítico:', recoveryError);
+        }
+    }
+
+    /**
+     * Configurar sistemas de debugging
+     * @private
+     */
+    setupDebugging() {
+        try {
+            // Inicializar DeveloperConsole
+            this.developerConsole = new DeveloperConsole(this.eventBus, {
+                maxHistory: this.config.debug?.maxConsoleHistory || 100,
+                maxOutput: this.config.debug?.maxConsoleOutput || 500,
+                enableAutoComplete: this.config.debug?.enableConsoleAutoComplete !== false,
+                enableHistory: this.config.debug?.enableConsoleHistory !== false
+            });
+
+            // Inicializar DebugManager
+            this.debugManager = new DebugManager(this.config, this.eventBus);
+
+            // Configurar eventos específicos del motor para debugging
+            this.setupDebugEvents();
+
+            console.log('[GameEngine] Sistemas de debugging configurados');
+        } catch (error) {
+            console.error('[GameEngine] Error configurando sistemas de debugging:', error);
+            // Continuar sin sistemas de debug si hay problema
+            this.debugManager = null;
+            this.developerConsole = null;
+        }
+    }
+
+    /**
+     * Configurar eventos específicos para debugging
+     * @private
+     */
+    setupDebugEvents() {
+        // Eventos de solicitud de información para la consola
+        this.eventBus.on('console:request-fps', () => {
+            const fps = Math.round(1000 / this.deltaTime);
+            const avgFPS = this.getAverageFPS();
+            this.developerConsole?.log(`FPS: ${fps} (Promedio: ${avgFPS})`, 'info');
+        });
+
+        this.eventBus.on('console:request-game-state', () => {
+            const currentState = this.stateManager.getCurrentState();
+            this.developerConsole?.log(`Estado actual: ${currentState}`, 'info');
+        });
+
+        this.eventBus.on('console:request-memory-info', () => {
+            if (performance.memory) {
+                const used = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+                const total = (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(1);
+                const limit = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(1);
+                this.developerConsole?.log(`Memoria: ${used}MB / ${total}MB (Límite: ${limit}MB)`, 'info');
+            } else {
+                this.developerConsole?.log('Información de memoria no disponible', 'warning');
+            }
+        });
+
+        this.eventBus.on('console:request-player-info', () => {
+            const playerModule = this.modules.get('player');
+            if (playerModule && playerModule.instance) {
+                const playerInfo = playerModule.instance.getDebugInfo?.() || 'Info no disponible';
+                this.developerConsole?.log(`Jugador: ${JSON.stringify(playerInfo, null, 2)}`, 'info');
+            } else {
+                this.developerConsole?.log('Módulo de jugador no disponible', 'error');
+            }
+        });
+
+        this.eventBus.on('console:request-game-speed', () => {
+            // Asumir velocidad normal por defecto
+            this.developerConsole?.log('Velocidad del juego: 1.0x', 'info');
+        });
+
+        // Eventos de modificación de propiedades del jugador
+        this.eventBus.on('console:get-player-property', (data) => {
+            const playerModule = this.modules.get('player');
+            if (playerModule && playerModule.instance) {
+                const value = playerModule.instance.getProperty?.(data.property);
+                if (value !== undefined) {
+                    this.developerConsole?.log(`${data.property}: ${value}`, 'info');
+                } else {
+                    this.developerConsole?.log(`Propiedad no encontrada: ${data.property}`, 'error');
+                }
+            } else {
+                this.developerConsole?.log('Módulo de jugador no disponible', 'error');
+            }
+        });
+
+        this.eventBus.on('console:set-player-property', (data) => {
+            const playerModule = this.modules.get('player');
+            if (playerModule && playerModule.instance) {
+                const success = playerModule.instance.setProperty?.(data.property, data.value);
+                if (success) {
+                    this.developerConsole?.log(`${data.property} = ${data.value}`, 'success');
+                } else {
+                    this.developerConsole?.log(`No se pudo establecer ${data.property}`, 'error');
+                }
+            } else {
+                this.developerConsole?.log('Módulo de jugador no disponible', 'error');
+            }
+        });
+
+        // Eventos de control del juego
+        this.eventBus.on('game:set-speed', (data) => {
+            // Implementar cambio de velocidad del juego
+            this.gameSpeed = data.speed;
+            this.developerConsole?.log(`Velocidad del juego establecida a ${data.speed}x`, 'success');
+        });
+
+        this.eventBus.on('game:toggle-pause', () => {
+            if (this.isRunning) {
+                this.pause();
+                this.developerConsole?.log('Juego pausado', 'info');
+            } else {
+                this.resume();
+                this.developerConsole?.log('Juego reanudado', 'info');
+            }
+        });
+
+        this.eventBus.on('game:reset', () => {
+            this.resetGame();
+            this.developerConsole?.log('Juego reiniciado', 'success');
+        });
+
+        // Eventos de debug
+        this.eventBus.on('debug:toggle', (data) => {
+            if (this.debugManager) {
+                if (data.enabled !== undefined) {
+                    if (data.enabled) {
+                        this.debugManager.isDebugMode = true;
+                        if (!this.debugManager.isInitialized) {
+                            this.debugManager.init();
+                        }
+                    } else {
+                        this.debugManager.isDebugMode = false;
+                    }
+                } else {
+                    this.debugManager.toggleDebugMode();
+                }
+            }
+        });
+
+        this.eventBus.on('debug:clear-logs', () => {
+            if (this.errorLogger) {
+                this.errorLogger.clearLogs({ all: true });
+            }
+            this.developerConsole?.log('Logs de error limpiados', 'success');
+        });
+
+        // Eventos de solicitud de hitboxes para debug
+        this.eventBus.on('debug:request-hitboxes', (data) => {
+            // Solicitar hitboxes a todos los módulos
+            this.modules.forEach((moduleWrapper, name) => {
+                if (moduleWrapper.instance && typeof moduleWrapper.instance.renderDebugHitboxes === 'function') {
+                    moduleWrapper.instance.renderDebugHitboxes(data.context);
+                }
+            });
+        });
+
+        // Eventos de estadísticas de módulos
+        this.eventBus.on('engine:request-module-stats', () => {
+            const moduleStats = {};
+            this.modules.forEach((moduleWrapper, name) => {
+                moduleStats[name] = {
+                    isInitialized: moduleWrapper.isInitialized,
+                    isEnabled: moduleWrapper.isEnabled,
+                    priority: moduleWrapper.priority,
+                    lastUpdateTime: moduleWrapper.lastUpdateTime,
+                    lastRenderTime: moduleWrapper.lastRenderTime
+                };
+            });
+
+            this.eventBus.emit('engine:module-stats-response', moduleStats);
+        });
+
+        // Actualizar contexto de la consola con referencias del juego
+        this.eventBus.emit('game:context-updated', {
+            game: this,
+            modules: this.modules
+        });
+    }
+
+    /**
+     * Reiniciar el juego
+     * @private
+     */
+    resetGame() {
+        try {
+            // Pausar el juego
+            const wasRunning = this.isRunning;
+            this.pause();
+
+            // Reinicializar módulos
+            this.modules.forEach((moduleWrapper, name) => {
+                if (moduleWrapper.instance && typeof moduleWrapper.instance.reset === 'function') {
+                    moduleWrapper.instance.reset();
+                }
+            });
+
+            // Cambiar al estado inicial
+            this.stateManager.changeState('menu');
+
+            // Reanudar si estaba corriendo
+            if (wasRunning) {
+                this.resume();
+            }
+
+            console.log('[GameEngine] Juego reiniciado');
+            this.eventBus.emit('game:reset-completed');
+
+        } catch (error) {
+            console.error('[GameEngine] Error reiniciando juego:', error);
+            this.eventBus.emit('engine:error', { error, context: 'resetGame' });
+        }
     }
 
     /**
@@ -531,6 +1131,33 @@ export class GameEngine {
             }
         }
 
+        // Limpiar sistemas de manejo de errores
+        if (this.errorHandler) {
+            this.errorHandler.destroy();
+            this.errorHandler = null;
+        }
+
+        if (this.errorLogger) {
+            this.errorLogger.destroy();
+            this.errorLogger = null;
+        }
+
+        if (this.errorRecovery) {
+            this.errorRecovery.destroy();
+            this.errorRecovery = null;
+        }
+
+        // Limpiar sistemas de debugging
+        if (this.debugManager) {
+            this.debugManager.destroy();
+            this.debugManager = null;
+        }
+
+        if (this.developerConsole) {
+            this.developerConsole.destroy();
+            this.developerConsole = null;
+        }
+
         console.log('[GameEngine] Motor detenido');
         this.eventBus.emit('engine:stopped');
     }
@@ -715,6 +1342,11 @@ export class GameEngine {
             }
         }
 
+        // Actualizar sistemas de debugging
+        if (this.debugManager) {
+            this.debugManager.update(deltaTime);
+        }
+
         // Emitir evento de actualización
         this.eventBus.emit('engine:update', { deltaTime });
     }
@@ -754,6 +1386,11 @@ export class GameEngine {
                     moduleWrapper.isEnabled = false;
                 }
             }
+        }
+
+        // Renderizar sistemas de debugging
+        if (this.debugManager) {
+            this.debugManager.render(this.context);
         }
 
         // Emitir evento de renderizado
@@ -820,7 +1457,16 @@ export class GameEngine {
             performanceMonitor: this.performanceMonitor?.getCurrentMetrics() || null,
             memoryManager: this.memoryManager?.getStats() || null,
             performanceOptimizer: this.performanceOptimizer?.getStats() || null,
-            renderOptimizer: this.renderOptimizer?.getStats() || null
+            renderOptimizer: this.renderOptimizer?.getStats() || null,
+            
+            // Estadísticas de sistemas de manejo de errores
+            errorHandler: this.errorHandler?.getErrorStats() || null,
+            errorLogger: this.errorLogger?.getStats() || null,
+            errorRecovery: this.errorRecovery?.getStats() || null,
+            
+            // Estadísticas de sistemas de debugging
+            debugManager: this.debugManager?.getStats() || null,
+            developerConsole: this.developerConsole?.getStats() || null
         };
     }
 
