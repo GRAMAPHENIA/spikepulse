@@ -35,6 +35,9 @@
             <button id="startBtn" class="spikepulse-screen-button spikepulse-screen-button--primary" aria-describedby="game-description">
                 COMENZAR AVENTURA
             </button>
+            <button id="highScoresBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary" style="margin-top: 10px;">
+                VER RÉCORDS
+            </button>
             <div class="spikepulse-controls-info">
                 <h2 class="spikepulse-controls-info__title">Controles</h2>
                 <ul class="spikepulse-controls-info__list">
@@ -66,6 +69,25 @@
             <p id="finalScore" class="spikepulse-screen-score">Distancia: 0m</p>
             <button id="restartBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
                 REINTENTAR MISIÓN
+            </button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Puntuaciones Altas -->
+    <div id="highScoresScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--high-scores hidden" role="dialog" aria-labelledby="high-scores-title">
+        <div class="spikepulse-screen-content spikepulse-screen-content--high-scores">
+            <h2 id="high-scores-title" class="spikepulse-screen-title">🏆 RÉCORDS</h2>
+            <div id="highScoresList" class="spikepulse-high-scores-list">
+                <p class="spikepulse-loading-text">Cargando récords...</p>
+            </div>
+            <div class="spikepulse-player-stats">
+                <h3>Estadísticas Personales</h3>
+                <div id="playerStatsContent" class="spikepulse-stats-grid">
+                    <!-- Las estadísticas se cargarán aquí -->
+                </div>
+            </div>
+            <button id="backToMenuBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
+                VOLVER AL MENÚ
             </button>
         </div>
     </div>
@@ -148,7 +170,7 @@
     </nav>
 
     <!-- Scripts modulares -->
-    <script src="game.js"></script>
+    <script type="module" src="game.js"></script>
 </body>
 
 </html>

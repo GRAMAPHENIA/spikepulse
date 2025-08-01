@@ -1,3 +1,8 @@
+// ===== IMPORTACIONES =====
+import { StorageManager } from './src/utils/StorageManager.js';
+import { HighScoreManager } from './src/utils/HighScoreManager.js';
+import { SettingsManager } from './src/utils/SettingsManager.js';
+
 // ===== CONFIGURACIÓN DEL JUEGO =====
 const GAME_CONFIG = {
     canvas: {
@@ -45,10 +50,18 @@ let gameObjects = {
 };
 let gameStats = {
     distance: 0,
-    startTime: 0
+    startTime: 0,
+    jumps: 0,
+    dashes: 0,
+    gravityChanges: 0
 };
 let keys = {};
 let lastObstacleX = 0;
+
+// ===== SISTEMAS DE PERSISTENCIA =====
+let storageManager = null;
+let highScoreManager = null;
+let settingsManager = null;
 
 // ===== CLASES DEL JUEGO =====
 
@@ -166,6 +179,9 @@ class Player {
             this.velocityY = GAME_CONFIG.player.jumpForce * this.gravityDirection;
             this.jumpsRemaining--;
             
+            // Incrementar contador de saltos
+            gameStats.jumps++;
+            
             // Si es el segundo salto, hacer un salto ligeramente más débil
             if (this.jumpsRemaining === 0 && !this.isGrounded && !this.isOnCeiling) {
                 this.velocityY = GAME_CONFIG.player.jumpForce * 0.8 * this.gravityDirection;
@@ -185,6 +201,9 @@ class Player {
             this.isDashing = true;
             this.dashTimer = GAME_CONFIG.player.dashDuration / 16.67; // Convertir ms a frames (60fps)
             this.dashCooldown = 60; // 1 segundo de cooldown
+            
+            // Incrementar contador de dashes
+            gameStats.dashes++;
             
             // Determinar dirección del dash
             let dashDirection = 1; // Por defecto hacia la derecha
@@ -214,6 +233,9 @@ class Player {
         // Cambiar dirección de la gravedad
         this.gravityDirection *= -1;
         this.velocityY = 0; // Resetear velocidad Y para evitar efectos extraños
+        
+        // Incrementar contador de cambios de gravedad
+        gameStats.gravityChanges++;
         
         // Restaurar saltos al cambiar gravedad
         this.jumpsRemaining = GAME_CONFIG.player.maxJumps;
@@ -506,6 +528,9 @@ function initGame() {
     // Reiniciar estadísticas
     gameStats.distance = 0;
     gameStats.startTime = Date.now();
+    gameStats.jumps = 0;
+    gameStats.dashes = 0;
+    gameStats.gravityChanges = 0;
 }
 
 function updateGame() {
@@ -553,6 +578,117 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// ===== FUNCIONES DE PUNTUACIONES ALTAS =====
+
+function showHighScores() {
+    console.log('Mostrando puntuaciones altas...');
+    
+    // Ocultar menú principal
+    document.getElementById('startScreen').classList.add('hidden');
+    
+    // Mostrar pantalla de puntuaciones altas
+    document.getElementById('highScoresScreen').classList.remove('hidden');
+    
+    // Cargar y mostrar puntuaciones
+    loadHighScoresDisplay();
+    
+    // Cargar y mostrar estadísticas del jugador
+    loadPlayerStatsDisplay();
+}
+
+function hideHighScores() {
+    // Ocultar pantalla de puntuaciones altas
+    document.getElementById('highScoresScreen').classList.add('hidden');
+    
+    // Mostrar menú principal
+    document.getElementById('startScreen').classList.remove('hidden');
+}
+
+function loadHighScoresDisplay() {
+    const highScoresList = document.getElementById('highScoresList');
+    
+    if (!highScoreManager) {
+        highScoresList.innerHTML = '<p class="spikepulse-no-scores">Sistema de puntuaciones no disponible</p>';
+        return;
+    }
+    
+    const highScores = highScoreManager.getFormattedHighScores();
+    
+    if (highScores.length === 0) {
+        highScoresList.innerHTML = '<p class="spikepulse-no-scores">¡Aún no hay récords!<br>¡Sé el primero en establecer uno!</p>';
+        return;
+    }
+    
+    let html = '';
+    highScores.forEach((score, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+        
+        html += `
+            <div class="spikepulse-high-score-item">
+                <div class="spikepulse-high-score-position">${medal} ${score.position}</div>
+                <div class="spikepulse-high-score-main">
+                    <div class="spikepulse-high-score-distance">${score.distance}</div>
+                    <div class="spikepulse-high-score-details">
+                        ${score.time} • ${score.jumps} saltos • ${score.dashes} dashes
+                    </div>
+                </div>
+                <div class="spikepulse-high-score-date">${score.date}</div>
+            </div>
+        `;
+    });
+    
+    highScoresList.innerHTML = html;
+}
+
+function loadPlayerStatsDisplay() {
+    const playerStatsContent = document.getElementById('playerStatsContent');
+    
+    if (!highScoreManager) {
+        playerStatsContent.innerHTML = '<p class="spikepulse-no-scores">Estadísticas no disponibles</p>';
+        return;
+    }
+    
+    const stats = highScoreManager.getPlayerStats();
+    
+    // Formatear tiempo total (convertir ms a minutos)
+    const totalMinutes = Math.floor(stats.totalPlayTime / 60000);
+    const totalSeconds = Math.floor((stats.totalPlayTime % 60000) / 1000);
+    const formattedTime = totalMinutes > 0 ? `${totalMinutes}min ${totalSeconds}s` : `${totalSeconds}s`;
+    
+    const html = `
+        <div class="spikepulse-stat-item">
+            <span class="spikepulse-stat-value">${stats.bestDistance}m</span>
+            <span class="spikepulse-stat-label">Mejor Distancia</span>
+        </div>
+        <div class="spikepulse-stat-item">
+            <span class="spikepulse-stat-value">${stats.gamesPlayed}</span>
+            <span class="spikepulse-stat-label">Partidas Jugadas</span>
+        </div>
+        <div class="spikepulse-stat-item">
+            <span class="spikepulse-stat-value">${Math.round(stats.totalDistance)}m</span>
+            <span class="spikepulse-stat-label">Distancia Total</span>
+        </div>
+        <div class="spikepulse-stat-item">
+            <span class="spikepulse-stat-value">${stats.averageDistance}m</span>
+            <span class="spikepulse-stat-label">Promedio</span>
+        </div>
+        <div class="spikepulse-stat-item">
+            <span class="spikepulse-stat-value">${stats.totalJumps}</span>
+            <span class="spikepulse-stat-label">Saltos Totales</span>
+        </div>
+        <div class="spikepulse-stat-item">
+            <span class="spikepulse-stat-value">${stats.totalDashes}</span>
+            <span class="spikepulse-stat-label">Dashes Totales</span>
+        </div>
+        <div class="spikepulse-stat-item">
+            <span class="spikepulse-stat-value">${formattedTime}</span>
+            <span class="spikepulse-stat-label">Tiempo Jugado</span>
+        </div>
+    `;
+    
+    playerStatsContent.innerHTML = html;
+}
+
 // ===== FUNCIONES DE ESTADO DEL JUEGO =====
 
 function startGame() {
@@ -586,14 +722,47 @@ function pauseGame() {
 function gameOver() {
     gameState = 'gameOver';
     
+    // Calcular tiempo total de juego
+    const totalTime = Date.now() - gameStats.startTime;
+    
+    // Preparar datos de la partida
+    const gameData = {
+        distance: gameStats.distance,
+        time: totalTime,
+        jumps: gameStats.jumps,
+        dashes: gameStats.dashes,
+        gravityChanges: gameStats.gravityChanges,
+        playerName: 'Jugador'
+    };
+    
+    // Intentar agregar a puntuaciones altas
+    let isNewRecord = false;
+    if (highScoreManager) {
+        const result = highScoreManager.addHighScore(gameData);
+        if (result.success) {
+            isNewRecord = result.isNewRecord;
+            console.log(`Nueva puntuación agregada en posición ${result.position}`);
+        }
+    }
+    
     // Mostrar pantalla de game over
-    document.getElementById('finalScore').textContent = `Distancia: ${gameStats.distance}m`;
+    let scoreText = `Distancia: ${gameStats.distance}m`;
+    if (isNewRecord) {
+        scoreText += ' - ¡NUEVO RÉCORD!';
+        document.getElementById('finalScore').style.color = '#FFD700';
+    } else {
+        document.getElementById('finalScore').style.color = '#FFF';
+    }
+    
+    document.getElementById('finalScore').textContent = scoreText;
     document.getElementById('gameOverScreen').classList.remove('hidden');
     
     // Efecto de vibración (si está disponible)
     if (navigator.vibrate) {
-        navigator.vibrate(200);
+        navigator.vibrate(isNewRecord ? [200, 100, 200] : 200);
     }
+    
+    console.log('Partida terminada:', gameData);
 }
 
 function restartGame() {
@@ -616,6 +785,10 @@ function setupEventListeners() {
     document.getElementById('startBtn').addEventListener('click', startGame);
     document.getElementById('restartBtn').addEventListener('click', restartGame);
     document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+    
+    // Botones de puntuaciones altas
+    document.getElementById('highScoresBtn').addEventListener('click', showHighScores);
+    document.getElementById('backToMenuBtn').addEventListener('click', hideHighScores);
     
     // Controles móviles
     document.getElementById('jumpBtn').addEventListener('click', () => {
@@ -765,9 +938,51 @@ function initCanvas() {
     resizeCanvas();
 }
 
+// ===== INICIALIZACIÓN DE SISTEMAS DE PERSISTENCIA =====
+function initPersistenceSystems() {
+    try {
+        console.log('Inicializando sistemas de persistencia...');
+        
+        // Inicializar StorageManager
+        storageManager = new StorageManager('spikepulse');
+        console.log('StorageManager inicializado');
+        
+        // Inicializar HighScoreManager
+        highScoreManager = new HighScoreManager(storageManager);
+        console.log('HighScoreManager inicializado');
+        
+        // Inicializar SettingsManager
+        settingsManager = new SettingsManager(storageManager);
+        console.log('SettingsManager inicializado');
+        
+        // Mostrar estadísticas en consola
+        const stats = storageManager.getStorageStats();
+        console.log('Estadísticas de almacenamiento:', stats);
+        
+        const playerStats = highScoreManager.getPlayerStats();
+        console.log('Estadísticas del jugador:', playerStats);
+        
+        // Mostrar mejor puntuación en el menú si existe
+        const bestScore = highScoreManager.getBestScore();
+        if (bestScore) {
+            console.log(`Mejor puntuación: ${bestScore.distance}m`);
+            // Aquí podrías mostrar la mejor puntuación en el menú
+        }
+        
+    } catch (error) {
+        console.error('Error inicializando sistemas de persistencia:', error);
+        // El juego puede continuar sin persistencia
+    }
+}
+
 // Inicializar cuando se carga la página
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM cargado, inicializando...');
+    
+    // Inicializar sistemas de persistencia primero
+    initPersistenceSystems();
+    
+    // Inicializar canvas y controles
     initCanvas();
     setupEventListeners();
     
