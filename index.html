@@ -60,7 +60,7 @@
     </div>
 
     <!-- Pantalla de Game Over -->
-    <div id="gameOverScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--game-over spikepulse-hidden" role="dialog" aria-labelledby="game-over-title">
+    <div id="gameOverScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--game-over hidden" role="dialog" aria-labelledby="game-over-title">
         <div class="spikepulse-screen-content spikepulse-screen-content--game-over">
             <h2 id="game-over-title" class="spikepulse-screen-title spikepulse-screen-title--game-over">¡PERDISTE!</h2>
             <p id="finalScore" class="spikepulse-screen-score">Distancia: 0m</p>
@@ -71,7 +71,7 @@
     </div>
 
     <!-- HUD del juego -->
-    <div id="gameHUD" class="spikepulse-hud spikepulse-hidden" role="complementary" aria-label="Estadísticas del juego">
+    <div id="gameHUD" class="spikepulse-hud hidden" role="complementary" aria-label="Estadísticas del juego">
         <div class="spikepulse-hud__container">
             <div class="spikepulse-hud__stat">
                 <div class="spikepulse-hud__label spikepulse-hud__label--distance">DISTANCIA</div>
@@ -101,7 +101,7 @@
     </div>
 
     <!-- Botón de pausa -->
-    <div id="pauseContainer" class="spikepulse-pause-container spikepulse-hidden">
+    <div id="pauseContainer" class="spikepulse-pause-container hidden">
         <button id="pauseBtn" class="spikepulse-pause-btn" aria-label="Pausar juego">
             PAUSA
         </button>
@@ -111,7 +111,7 @@
     <main class="spikepulse-main" role="main">
         <section class="spikepulse-game-container" aria-label="Área de juego">
             <canvas id="gameCanvas" 
-                    class="spikepulse-canvas spikepulse-hidden" 
+                    class="spikepulse-canvas hidden" 
                     width="800" 
                     height="400"
                     aria-label="Canvas del juego Spikepulse"
@@ -122,7 +122,7 @@
     </main>
 
     <!-- Controles móviles -->
-    <nav id="mobileControls" class="spikepulse-mobile-controls spikepulse-hidden" role="navigation" aria-label="Controles del juego">
+    <nav id="mobileControls" class="spikepulse-mobile-controls hidden" role="navigation" aria-label="Controles del juego">
         <!-- Controles de movimiento -->
         <div class="spikepulse-control-group spikepulse-control-group--movement">
             <button id="leftBtn" class="spikepulse-control-btn spikepulse-control-btn--movement" aria-label="Mover izquierda">
@@ -148,7 +148,7 @@
     </nav>
 
     <!-- Scripts modulares -->
-    <script type="module" src="src/main.js"></script>
+    <script src="game.js"></script>
 </body>
 
 </html>
