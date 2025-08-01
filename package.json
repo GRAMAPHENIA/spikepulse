@@ -1,0 +1,28 @@
+{
+  "name": "spikepulse",
+  "version": "1.0.0",
+  "description": "Spikepulse - Un emocionante juego de plataformas con estética noir",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "node tests/runTests.js",
+    "test:noir": "node tests/runTests.js NoirThemeManager",
+    "test:palette": "node tests/runTests.js NoirPalette",
+    "dev": "python -m http.server 8000",
+    "serve": "python -m http.server 8000"
+  },
+  "keywords": [
+    "game",
+    "javascript",
+    "canvas",
+    "noir",
+    "platformer",
+    "spanish"
+  ],
+  "author": "Spikepulse Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

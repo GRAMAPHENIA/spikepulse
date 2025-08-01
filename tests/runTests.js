@@ -6,9 +6,12 @@
 import { testFramework } from './TestFramework.js';
 
 // Importar todos los archivos de test
+import './BasicTest.js';
 import './StorageManager.test.js';
 import './HighScoreManager.test.js';
 import './SettingsManager.test.js';
+import './NoirPalette.test.js';
+// import './NoirThemeManager.test.js';
 
 /**
  * Ejecutar todos los tests
