@@ -167,7 +167,7 @@
     - _Requirements: 7.3_
 
 - [ ] 11. Testing and quality assurance
-  - [ ] 11.1 Write unit tests for core modules
+  - [x] 11.1 Write unit tests for core modules
     - Create unit tests for Player, World, Renderer, and InputManager modules
     - Implement test coverage for critical game mechanics
     - _Requirements: 1.4_

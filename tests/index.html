@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spikepulse - Tests Unitarios</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0F0F0F;
+            color: #FFF;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1A1A2E, #16213E);
+            border-radius: 10px;
+            border: 2px solid #FFD700;
+        }
+
+        .header h1 {
+            color: #FFD700;
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #FFD700;
+        }
+
+        .header p {
+            color: #CCC;
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #FFD700;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #FFA500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: #2D3748;
+            color: #FFF;
+        }
+
+        .btn.secondary:hover {
+            background: #4A5568;
+        }
+
+        .output {
+            background: #1A1A1A;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD700;
+            display: block;
+        }
+
+        .stat-label {
+            color: #CCC;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #FFD700;
+            font-size: 1.2em;
+            padding: 20px;
+        }
+
+        .success {
+            color: #38A169;
+        }
+
+        .error {
+            color: #E53E3E;
+        }
+
+        .warning {
+            color: #D69E2E;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🎮 SPIKEPULSE</h1>
+        <p>Suite de Tests Unitarios</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="runAllTests()">🚀 Ejecutar Todos los Tests</button>
+        <button class="btn secondary" onclick="runSuiteTests('StorageManager')">💾 StorageManager</button>
+        <button class="btn secondary" onclick="runSuiteTests('HighScoreManager')">🏆 HighScoreManager</button>
+        <button class="btn secondary" onclick="runSuiteTests('SettingsManager')">⚙️ SettingsManager</button>
+        <button class="btn secondary" onclick="clearOutput()">🗑️ Limpiar</button>
+    </div>
+
+    <div class="stats" id="statsContainer" style="display: none;">
+        <div class="stat-card">
+            <span class="stat-value" id="totalTests">0</span>
+            <div class="stat-label">Tests Totales</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value success" id="passedTests">0</span>
+            <div class="stat-label">Pasaron</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value error" id="failedTests">0</span>
+            <div class="stat-label">Fallaron</div>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="successRate">0%</span>
+            <div class="stat-label">Tasa de Éxito</div>
+        </div>
+    </div>
+
+    <div class="output" id="output">
+        <div class="loading">
+            🎯 Listo para ejecutar tests...<br>
+            Haz clic en uno de los botones de arriba para comenzar.
+        </div>
+    </div>
+
+    <script type="module">
+        import { runAllTests as runAllTestsModule, runSuiteTests as runSuiteTestsModule } from './runTests.js';
+
+        const output = document.getElementById('output');
+        const statsContainer = document.getElementById('statsContainer');
+
+        // Interceptar console.log para mostrar en la página
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function logToPage(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '';
+            const className = type === 'error' ? 'error' : type === 'warn' ? 'warning' : '';
+
+            const line = document.createElement('div');
+            line.className = className;
+            line.textContent = `[${timestamp}] ${prefix} ${message}`;
+
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        console.log = (...args) => {
+            originalLog(...args);
+            logToPage(args.join(' '));
+        };
+
+        console.error = (...args) => {
+            originalError(...args);
+            logToPage(args.join(' '), 'error');
+        };
+
+        console.warn = (...args) => {
+            originalWarn(...args);
+            logToPage(args.join(' '), 'warn');
+        };
+
+        // Funciones globales para los botones
+        window.runAllTests = async function () {
+            clearOutput();
+            showLoading();
+
+            try {
+                const results = await runAllTestsModule();
+                updateStats(results);
+            } catch (error) {
+                console.error('Error ejecutando tests:', error);
+            }
+        };
+
+        window.runSuiteTests = async function (suiteName) {
+            clearOutput();
+            showLoading();
+
+            try {
+                const results = await runSuiteTestsModule(suiteName);
+                if (results) {
+                    updateStats(results);
+                }
+            } catch (error) {
+                console.error('Error ejecutando tests de suite:', error);
+            }
+        };
+
+        window.clearOutput = function () {
+            output.innerHTML = '';
+            statsContainer.style.display = 'none';
+        };
+
+        function showLoading() {
+            output.innerHTML = '<div class="loading">⏳ Ejecutando tests...</div>';
+            statsContainer.style.display = 'none';
+        }
+
+        function updateStats(results) {
+            if (!results) return;
+
+            const successRate = results.total > 0 ?
+                ((results.passed / results.total) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalTests').textContent = results.total || 0;
+            document.getElementById('passedTests').textContent = results.passed || 0;
+            document.getElementById('failedTests').textContent = results.failed || 0;
+            document.getElementById('successRate').textContent = successRate + '%';
+
+            // Cambiar color de la tasa de éxito según el resultado
+            const successRateElement = document.getElementById('successRate');
+            if (successRate == 100) {
+                successRateElement.className = 'stat-value success';
+            } else if (successRate >= 80) {
+                successRateElement.className = 'stat-value warning';
+            } else {
+                successRateElement.className = 'stat-value error';
+            }
+
+            statsContainer.style.display = 'grid';
+        }
+
+        // Mostrar información inicial
+        console.log('🎮 Spikepulse Test Suite cargada');
+        console.log('📋 Tests disponibles: StorageManager, HighScoreManager, SettingsManager');
+        console.log('🚀 Haz clic en "Ejecutar Todos los Tests" para comenzar');
+        console.log('🔧 Versión actualizada - Fix v3: Tests ajustados para datos iniciales');
+    </script>
+</body>
+
+</html>
