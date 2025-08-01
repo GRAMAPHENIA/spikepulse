@@ -22,6 +22,35 @@
 </head>
 
 <body class="spikepulse-app">
+    <!-- Filtros SVG para soporte de daltonismo -->
+    <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
+        <defs>
+            <!-- Filtro para Protanopia (deficiencia rojo-verde) -->
+            <filter id="protanopia-filter">
+                <feColorMatrix type="matrix" values="0.567 0.433 0 0 0
+                                                     0.558 0.442 0 0 0
+                                                     0 0.242 0.758 0 0
+                                                     0 0 0 1 0"/>
+            </filter>
+            
+            <!-- Filtro para Deuteranopia (deficiencia verde-rojo) -->
+            <filter id="deuteranopia-filter">
+                <feColorMatrix type="matrix" values="0.625 0.375 0 0 0
+                                                     0.7 0.3 0 0 0
+                                                     0 0.3 0.7 0 0
+                                                     0 0 0 1 0"/>
+            </filter>
+            
+            <!-- Filtro para Tritanopia (deficiencia azul-amarillo) -->
+            <filter id="tritanopia-filter">
+                <feColorMatrix type="matrix" values="0.95 0.05 0 0 0
+                                                     0 0.433 0.567 0 0
+                                                     0 0.475 0.525 0 0
+                                                     0 0 0 1 0"/>
+            </filter>
+        </defs>
+    </svg>
+
     <!-- Efectos de bruma de fondo -->
     <div class="spikepulse-fog"></div>
     <div class="spikepulse-fog__particle" style="width: 300px; height: 200px; top: 10%; left: 20%;"></div>
@@ -37,6 +66,9 @@
             </button>
             <button id="highScoresBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary" style="margin-top: 10px;">
                 VER RÉCORDS
+            </button>
+            <button id="settingsBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary" style="margin-top: 10px;">
+                CONFIGURACIÓN
             </button>
             <div class="spikepulse-controls-info">
                 <h2 class="spikepulse-controls-info__title">Controles</h2>
@@ -89,6 +121,227 @@
             <button id="backToMenuBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
                 VOLVER AL MENÚ
             </button>
+        </div>
+    </div>
+
+    <!-- Pantalla de Configuración -->
+    <div id="settingsScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--settings hidden" role="dialog" aria-labelledby="settings-title">
+        <div class="spikepulse-screen-content spikepulse-screen-content--settings">
+            <h2 id="settings-title" class="spikepulse-screen-title">⚙️ CONFIGURACIÓN</h2>
+            
+            <div class="spikepulse-settings-container">
+                <!-- Pestañas de configuración -->
+                <div class="spikepulse-settings-tabs">
+                    <button class="spikepulse-settings-tab spikepulse-settings-tab--active" data-tab="audio">
+                        🔊 Audio
+                    </button>
+                    <button class="spikepulse-settings-tab" data-tab="graphics">
+                        🎨 Gráficos
+                    </button>
+                    <button class="spikepulse-settings-tab" data-tab="controls">
+                        🎮 Controles
+                    </button>
+                    <button class="spikepulse-settings-tab" data-tab="accessibility">
+                        ♿ Accesibilidad
+                    </button>
+                </div>
+
+                <!-- Contenido de las pestañas -->
+                <div class="spikepulse-settings-content">
+                    
+                    <!-- Pestaña Audio -->
+                    <div id="audioSettings" class="spikepulse-settings-panel spikepulse-settings-panel--active">
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="soundEnabled" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Efectos de Sonido</span>
+                            </label>
+                        </div>
+                        
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <span class="spikepulse-setting-text">Volumen de Efectos</span>
+                                <input type="range" id="soundVolume" class="spikepulse-setting-slider" min="0" max="100" value="70">
+                                <span class="spikepulse-setting-value" id="soundVolumeValue">70%</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="musicEnabled" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Música de Fondo</span>
+                            </label>
+                        </div>
+                        
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <span class="spikepulse-setting-text">Volumen de Música</span>
+                                <input type="range" id="musicVolume" class="spikepulse-setting-slider" min="0" max="100" value="50">
+                                <span class="spikepulse-setting-value" id="musicVolumeValue">50%</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="vibrationEnabled" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Vibración (Móvil)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña Gráficos -->
+                    <div id="graphicsSettings" class="spikepulse-settings-panel">
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <span class="spikepulse-setting-text">Calidad Gráfica</span>
+                                <select id="graphicsQuality" class="spikepulse-setting-select">
+                                    <option value="low">Baja</option>
+                                    <option value="medium">Media</option>
+                                    <option value="high">Alta</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="showFPS" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Mostrar FPS</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="enableParticles" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Efectos de Partículas</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="enableScreenShake" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Vibración de Pantalla</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <span class="spikepulse-setting-text">Velocidad de Animación</span>
+                                <input type="range" id="animationSpeed" class="spikepulse-setting-slider" min="50" max="200" value="100">
+                                <span class="spikepulse-setting-value" id="animationSpeedValue">100%</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña Controles -->
+                    <div id="controlsSettings" class="spikepulse-settings-panel">
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <span class="spikepulse-setting-text">Sensibilidad Táctil</span>
+                                <input type="range" id="touchSensitivity" class="spikepulse-setting-slider" min="50" max="200" value="100">
+                                <span class="spikepulse-setting-value" id="touchSensitivityValue">100%</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <h4 class="spikepulse-setting-subtitle">Controles de Teclado</h4>
+                            <div class="spikepulse-controls-grid">
+                                <div class="spikepulse-control-item">
+                                    <span class="spikepulse-control-action">Saltar:</span>
+                                    <span class="spikepulse-control-keys">Espacio, ↑, W</span>
+                                </div>
+                                <div class="spikepulse-control-item">
+                                    <span class="spikepulse-control-action">Dash:</span>
+                                    <span class="spikepulse-control-keys">Shift</span>
+                                </div>
+                                <div class="spikepulse-control-item">
+                                    <span class="spikepulse-control-action">Gravedad:</span>
+                                    <span class="spikepulse-control-keys">Ctrl</span>
+                                </div>
+                                <div class="spikepulse-control-item">
+                                    <span class="spikepulse-control-action">Mover:</span>
+                                    <span class="spikepulse-control-keys">← → A D</span>
+                                </div>
+                                <div class="spikepulse-control-item">
+                                    <span class="spikepulse-control-action">Pausa:</span>
+                                    <span class="spikepulse-control-keys">Escape</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <h4 class="spikepulse-setting-subtitle">Controles Móviles</h4>
+                            <p class="spikepulse-setting-description">
+                                Los controles móviles aparecen automáticamente en dispositivos táctiles.
+                                Puedes tocar la pantalla para saltar o usar los botones en pantalla.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña Accesibilidad -->
+                    <div id="accessibilitySettings" class="spikepulse-settings-panel">
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="highContrast" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Alto Contraste</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="reducedMotion" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Movimiento Reducido</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <span class="spikepulse-setting-text">Tamaño de Fuente</span>
+                                <select id="fontSize" class="spikepulse-setting-select">
+                                    <option value="small">Pequeña</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="large">Grande</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <span class="spikepulse-setting-text">Soporte para Daltonismo</span>
+                                <select id="colorBlindSupport" class="spikepulse-setting-select">
+                                    <option value="none">Ninguno</option>
+                                    <option value="protanopia">Protanopia (Rojo-Verde)</option>
+                                    <option value="deuteranopia">Deuteranopia (Verde-Rojo)</option>
+                                    <option value="tritanopia">Tritanopia (Azul-Amarillo)</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="screenReaderSupport" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Soporte para Lector de Pantalla</span>
+                            </label>
+                        </div>
+
+                        <div class="spikepulse-setting-group">
+                            <label class="spikepulse-setting-label">
+                                <input type="checkbox" id="showHints" class="spikepulse-setting-checkbox">
+                                <span class="spikepulse-setting-text">Mostrar Consejos</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="spikepulse-settings-actions">
+                <button id="resetSettingsBtn" class="spikepulse-screen-button spikepulse-screen-button--danger">
+                    RESTABLECER
+                </button>
+                <button id="backToMenuFromSettingsBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
+                    VOLVER AL MENÚ
+                </button>
+            </div>
         </div>
     </div>
 

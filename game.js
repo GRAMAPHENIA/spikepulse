@@ -578,6 +578,421 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// ===== FUNCIONES DE CONFIGURACIÓN =====
+
+function showSettings() {
+    console.log('Mostrando configuración...');
+    
+    // Ocultar menú principal
+    document.getElementById('startScreen').classList.add('hidden');
+    
+    // Mostrar pantalla de configuración
+    document.getElementById('settingsScreen').classList.remove('hidden');
+    
+    // Cargar configuración actual
+    loadCurrentSettings();
+    
+    // Configurar event listeners para las pestañas
+    setupSettingsTabs();
+    
+    // Configurar event listeners para los controles
+    setupSettingsControls();
+}
+
+function hideSettings() {
+    // Ocultar pantalla de configuración
+    document.getElementById('settingsScreen').classList.add('hidden');
+    
+    // Mostrar menú principal
+    document.getElementById('startScreen').classList.remove('hidden');
+}
+
+function setupSettingsTabs() {
+    const tabs = document.querySelectorAll('.spikepulse-settings-tab');
+    const panels = document.querySelectorAll('.spikepulse-settings-panel');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.getAttribute('data-tab');
+            
+            // Remover clase activa de todas las pestañas
+            tabs.forEach(t => t.classList.remove('spikepulse-settings-tab--active'));
+            panels.forEach(p => p.classList.remove('spikepulse-settings-panel--active'));
+            
+            // Activar pestaña seleccionada
+            tab.classList.add('spikepulse-settings-tab--active');
+            document.getElementById(targetTab + 'Settings').classList.add('spikepulse-settings-panel--active');
+        });
+    });
+}
+
+function setupSettingsControls() {
+    // Configurar sliders con actualización en tiempo real
+    const sliders = [
+        { id: 'soundVolume', valueId: 'soundVolumeValue', suffix: '%' },
+        { id: 'musicVolume', valueId: 'musicVolumeValue', suffix: '%' },
+        { id: 'animationSpeed', valueId: 'animationSpeedValue', suffix: '%' },
+        { id: 'touchSensitivity', valueId: 'touchSensitivityValue', suffix: '%' }
+    ];
+    
+    sliders.forEach(slider => {
+        const element = document.getElementById(slider.id);
+        const valueElement = document.getElementById(slider.valueId);
+        
+        if (element && valueElement) {
+            element.addEventListener('input', (e) => {
+                const value = e.target.value;
+                valueElement.textContent = value + slider.suffix;
+                
+                // Aplicar configuración inmediatamente
+                applySetting(slider.id, parseFloat(value) / 100);
+            });
+        }
+    });
+    
+    // Configurar checkboxes
+    const checkboxes = [
+        'soundEnabled', 'musicEnabled', 'vibrationEnabled',
+        'showFPS', 'enableParticles', 'enableScreenShake',
+        'highContrast', 'reducedMotion', 'screenReaderSupport', 'showHints'
+    ];
+    
+    checkboxes.forEach(checkboxId => {
+        const element = document.getElementById(checkboxId);
+        if (element) {
+            element.addEventListener('change', (e) => {
+                applySetting(checkboxId, e.target.checked);
+            });
+        }
+    });
+    
+    // Configurar selects
+    const selects = ['graphicsQuality', 'fontSize', 'colorBlindSupport'];
+    
+    selects.forEach(selectId => {
+        const element = document.getElementById(selectId);
+        if (element) {
+            element.addEventListener('change', (e) => {
+                applySetting(selectId, e.target.value);
+            });
+        }
+    });
+}
+
+function loadCurrentSettings() {
+    if (!settingsManager) {
+        console.warn('SettingsManager no disponible');
+        return;
+    }
+    
+    try {
+        // Cargar valores de audio
+        document.getElementById('soundEnabled').checked = settingsManager.get('soundEnabled');
+        document.getElementById('soundVolume').value = Math.round(settingsManager.get('soundVolume') * 100);
+        document.getElementById('soundVolumeValue').textContent = Math.round(settingsManager.get('soundVolume') * 100) + '%';
+        
+        document.getElementById('musicEnabled').checked = settingsManager.get('musicEnabled');
+        document.getElementById('musicVolume').value = Math.round(settingsManager.get('musicVolume') * 100);
+        document.getElementById('musicVolumeValue').textContent = Math.round(settingsManager.get('musicVolume') * 100) + '%';
+        
+        document.getElementById('vibrationEnabled').checked = settingsManager.get('vibrationEnabled');
+        
+        // Cargar valores de gráficos
+        document.getElementById('graphicsQuality').value = settingsManager.get('graphicsQuality');
+        document.getElementById('showFPS').checked = settingsManager.get('showFPS');
+        document.getElementById('enableParticles').checked = settingsManager.get('enableParticles');
+        document.getElementById('enableScreenShake').checked = settingsManager.get('enableScreenShake');
+        
+        document.getElementById('animationSpeed').value = Math.round(settingsManager.get('animationSpeed') * 100);
+        document.getElementById('animationSpeedValue').textContent = Math.round(settingsManager.get('animationSpeed') * 100) + '%';
+        
+        // Cargar valores de controles
+        document.getElementById('touchSensitivity').value = Math.round(settingsManager.get('touchSensitivity') * 100);
+        document.getElementById('touchSensitivityValue').textContent = Math.round(settingsManager.get('touchSensitivity') * 100) + '%';
+        
+        // Cargar valores de accesibilidad
+        document.getElementById('highContrast').checked = settingsManager.get('highContrast');
+        document.getElementById('reducedMotion').checked = settingsManager.get('reducedMotion');
+        document.getElementById('fontSize').value = settingsManager.get('fontSize');
+        document.getElementById('colorBlindSupport').value = settingsManager.get('colorBlindSupport');
+        document.getElementById('screenReaderSupport').checked = settingsManager.get('screenReaderSupport');
+        document.getElementById('showHints').checked = settingsManager.get('showHints');
+        
+        console.log('Configuración cargada en la interfaz');
+    } catch (error) {
+        console.error('Error cargando configuración:', error);
+    }
+}
+
+function applySetting(key, value) {
+    if (!settingsManager) {
+        console.warn('SettingsManager no disponible');
+        return;
+    }
+    
+    try {
+        // Convertir nombres de configuración de la interfaz a nombres internos
+        const settingMap = {
+            'soundVolume': 'soundVolume',
+            'musicVolume': 'musicVolume',
+            'animationSpeed': 'animationSpeed',
+            'touchSensitivity': 'touchSensitivity'
+        };
+        
+        const settingKey = settingMap[key] || key;
+        const success = settingsManager.set(settingKey, value);
+        
+        if (success) {
+            console.log(`Configuración "${settingKey}" actualizada:`, value);
+            
+            // Aplicar efectos inmediatos específicos
+            applyImmediateEffect(settingKey, value);
+        } else {
+            console.warn(`No se pudo actualizar la configuración "${settingKey}"`);
+        }
+    } catch (error) {
+        console.error(`Error aplicando configuración "${key}":`, error);
+    }
+}
+
+function applyImmediateEffect(key, value) {
+    try {
+        switch (key) {
+            case 'showFPS':
+                // Mostrar/ocultar contador de FPS
+                toggleFPSDisplay(value);
+                break;
+                
+            case 'vibrationEnabled':
+                // Probar vibración si se habilita
+                if (value && navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+                break;
+                
+            case 'animationSpeed':
+                // Actualizar velocidad de animaciones CSS
+                document.documentElement.style.setProperty('--animation-speed', value.toString());
+                break;
+                
+            case 'highContrast':
+                // Aplicar/quitar alto contraste
+                document.documentElement.classList.toggle('high-contrast', value);
+                showSettingFeedback(value ? 'Alto contraste activado' : 'Alto contraste desactivado');
+                break;
+                
+            case 'reducedMotion':
+                // Aplicar/quitar movimiento reducido
+                document.documentElement.classList.toggle('reduced-motion', value);
+                showSettingFeedback(value ? 'Movimiento reducido activado' : 'Movimiento reducido desactivado');
+                break;
+                
+            case 'fontSize':
+                // Cambiar tamaño de fuente
+                const fontSizeMap = { small: '14px', normal: '16px', large: '18px' };
+                const fontSizeNames = { small: 'Pequeña', normal: 'Normal', large: 'Grande' };
+                document.documentElement.style.fontSize = fontSizeMap[value] || '16px';
+                showSettingFeedback(`Tamaño de fuente: ${fontSizeNames[value]}`);
+                break;
+                
+            case 'colorBlindSupport':
+                // Aplicar filtros para daltonismo
+                document.documentElement.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
+                if (value !== 'none') {
+                    document.documentElement.classList.add(value);
+                }
+                const colorBlindNames = {
+                    none: 'Ninguno',
+                    protanopia: 'Protanopia',
+                    deuteranopia: 'Deuteranopia',
+                    tritanopia: 'Tritanopia'
+                };
+                showSettingFeedback(`Soporte daltonismo: ${colorBlindNames[value]}`);
+                break;
+                
+            case 'graphicsQuality':
+                // Aplicar calidad gráfica
+                const qualityNames = { low: 'Baja', medium: 'Media', high: 'Alta' };
+                showSettingFeedback(`Calidad gráfica: ${qualityNames[value]}`);
+                break;
+        }
+    } catch (error) {
+        console.error(`Error aplicando efecto inmediato para "${key}":`, error);
+    }
+}
+
+function showSettingFeedback(message) {
+    // Crear elemento de feedback temporal
+    const feedback = document.createElement('div');
+    feedback.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #FFD700;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 14px;
+        z-index: 10000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    feedback.textContent = message;
+    
+    document.body.appendChild(feedback);
+    
+    // Mostrar con animación
+    setTimeout(() => {
+        feedback.style.opacity = '1';
+    }, 10);
+    
+    // Ocultar y remover después de 2 segundos
+    setTimeout(() => {
+        feedback.style.opacity = '0';
+        setTimeout(() => {
+            if (document.body.contains(feedback)) {
+                document.body.removeChild(feedback);
+            }
+        }, 300);
+    }, 2000);
+}
+
+function applyInitialSettings() {
+    if (!settingsManager) {
+        console.warn('SettingsManager no disponible para aplicar configuraciones iniciales');
+        return;
+    }
+    
+    try {
+        console.log('Aplicando configuraciones iniciales...');
+        
+        // Aplicar configuraciones de accesibilidad
+        const highContrast = settingsManager.get('highContrast');
+        if (highContrast) {
+            document.documentElement.classList.add('high-contrast');
+        }
+        
+        const reducedMotion = settingsManager.get('reducedMotion');
+        if (reducedMotion) {
+            document.documentElement.classList.add('reduced-motion');
+        }
+        
+        // Aplicar tamaño de fuente
+        const fontSize = settingsManager.get('fontSize');
+        const fontSizeMap = { small: '14px', normal: '16px', large: '18px' };
+        document.documentElement.style.fontSize = fontSizeMap[fontSize] || '16px';
+        
+        // Aplicar soporte para daltonismo
+        const colorBlindSupport = settingsManager.get('colorBlindSupport');
+        if (colorBlindSupport !== 'none') {
+            document.documentElement.classList.add(colorBlindSupport);
+        }
+        
+        // Aplicar velocidad de animación
+        const animationSpeed = settingsManager.get('animationSpeed');
+        document.documentElement.style.setProperty('--animation-speed', animationSpeed.toString());
+        
+        // Aplicar contador de FPS si está habilitado
+        const showFPS = settingsManager.get('showFPS');
+        if (showFPS) {
+            toggleFPSDisplay(true);
+        }
+        
+        console.log('Configuraciones iniciales aplicadas');
+    } catch (error) {
+        console.error('Error aplicando configuraciones iniciales:', error);
+    }
+}
+
+function toggleFPSDisplay(show) {
+    // Crear o mostrar/ocultar contador de FPS
+    let fpsDisplay = document.getElementById('fpsDisplay');
+    
+    if (show) {
+        if (!fpsDisplay) {
+            fpsDisplay = document.createElement('div');
+            fpsDisplay.id = 'fpsDisplay';
+            fpsDisplay.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: rgba(0, 0, 0, 0.7);
+                color: #FFD700;
+                padding: 5px 10px;
+                border-radius: 5px;
+                font-family: monospace;
+                font-size: 14px;
+                z-index: 9999;
+                pointer-events: none;
+            `;
+            fpsDisplay.textContent = 'FPS: --';
+            document.body.appendChild(fpsDisplay);
+            
+            // Iniciar actualización de FPS
+            startFPSCounter();
+        }
+        fpsDisplay.style.display = 'block';
+    } else {
+        if (fpsDisplay) {
+            fpsDisplay.style.display = 'none';
+        }
+    }
+}
+
+let fpsCounter = {
+    fps: 0,
+    lastTime: 0,
+    frames: 0
+};
+
+function startFPSCounter() {
+    function updateFPS() {
+        const now = performance.now();
+        fpsCounter.frames++;
+        
+        if (now - fpsCounter.lastTime >= 1000) {
+            fpsCounter.fps = Math.round((fpsCounter.frames * 1000) / (now - fpsCounter.lastTime));
+            fpsCounter.frames = 0;
+            fpsCounter.lastTime = now;
+            
+            const fpsDisplay = document.getElementById('fpsDisplay');
+            if (fpsDisplay && fpsDisplay.style.display !== 'none') {
+                fpsDisplay.textContent = `FPS: ${fpsCounter.fps}`;
+            }
+        }
+        
+        requestAnimationFrame(updateFPS);
+    }
+    
+    updateFPS();
+}
+
+function resetSettings() {
+    if (!settingsManager) {
+        console.warn('SettingsManager no disponible');
+        return;
+    }
+    
+    // Confirmar con el usuario
+    if (confirm('¿Estás seguro de que quieres restablecer toda la configuración a los valores por defecto?')) {
+        const success = settingsManager.reset();
+        
+        if (success) {
+            // Recargar la interfaz con los valores por defecto
+            loadCurrentSettings();
+            
+            // Mostrar mensaje de confirmación
+            alert('Configuración restablecida a valores por defecto');
+            
+            console.log('Configuración restablecida');
+        } else {
+            alert('Error al restablecer la configuración');
+        }
+    }
+}
+
 // ===== FUNCIONES DE PUNTUACIONES ALTAS =====
 
 function showHighScores() {
@@ -757,8 +1172,9 @@ function gameOver() {
     document.getElementById('finalScore').textContent = scoreText;
     document.getElementById('gameOverScreen').classList.remove('hidden');
     
-    // Efecto de vibración (si está disponible)
-    if (navigator.vibrate) {
+    // Efecto de vibración (si está disponible y habilitado)
+    const vibrationEnabled = settingsManager ? settingsManager.get('vibrationEnabled') : true;
+    if (navigator.vibrate && vibrationEnabled) {
         navigator.vibrate(isNewRecord ? [200, 100, 200] : 200);
     }
     
@@ -789,6 +1205,11 @@ function setupEventListeners() {
     // Botones de puntuaciones altas
     document.getElementById('highScoresBtn').addEventListener('click', showHighScores);
     document.getElementById('backToMenuBtn').addEventListener('click', hideHighScores);
+    
+    // Botones de configuración
+    document.getElementById('settingsBtn').addEventListener('click', showSettings);
+    document.getElementById('backToMenuFromSettingsBtn').addEventListener('click', hideSettings);
+    document.getElementById('resetSettingsBtn').addEventListener('click', resetSettings);
     
     // Controles móviles
     document.getElementById('jumpBtn').addEventListener('click', () => {
@@ -968,6 +1389,9 @@ function initPersistenceSystems() {
             console.log(`Mejor puntuación: ${bestScore.distance}m`);
             // Aquí podrías mostrar la mejor puntuación en el menú
         }
+        
+        // Aplicar configuraciones iniciales
+        applyInitialSettings();
         
     } catch (error) {
         console.error('Error inicializando sistemas de persistencia:', error);
