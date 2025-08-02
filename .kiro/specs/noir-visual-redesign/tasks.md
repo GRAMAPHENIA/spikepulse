@@ -85,6 +85,9 @@
 
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
+
+
+
 - [ ] 3.1 Crear UpperObstacleGenerator
   - Implementar generador de obstáculos colgantes desde el techo
   - Crear tipos de obstáculos superiores (ceiling_spike, hanging_tech, stalactite)

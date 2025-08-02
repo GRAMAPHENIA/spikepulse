@@ -271,6 +271,11 @@
             <div class="hud-label">Peligro</div>
             <div id="dangerLevel">●</div>
         </div>
+        
+        <div class="hud-item">
+            <div class="hud-label">Dificultad</div>
+            <div id="difficultyLevel">I</div>
+        </div>
     </div>
 
     <!-- Controles -->
@@ -331,6 +336,16 @@
             config: {
                 showFPS: false,
                 particles: true
+            },
+            
+            // Coordinador de obstáculos
+            obstacleCoordinator: {
+                lastPattern: null,
+                patternStreak: 0,
+                minSpacing: 150,
+                maxSpacing: 300,
+                difficultyLevel: 0,
+                patternHistory: []
             }
         };
 
@@ -453,6 +468,12 @@
             // Resetear stats
             game.stats.distance = 0;
             
+            // Resetear coordinador de obstáculos
+            game.obstacleCoordinator.lastPattern = null;
+            game.obstacleCoordinator.patternStreak = 0;
+            game.obstacleCoordinator.difficultyLevel = 0;
+            game.obstacleCoordinator.patternHistory = [];
+            
             // Crear obstáculos iniciales (suelo y techo)
             createObstacleSet(400);
             createObstacleSet(600);
@@ -479,6 +500,9 @@
             
             // Actualizar stats
             game.stats.distance += game.world.speed * 0.1;
+            
+            // Balanceador dinámico de dificultad
+            balanceDifficulty();
             
             // Actualizar HUD
             updateHUD();
@@ -570,8 +594,10 @@
                 lastUpperObstacle ? lastUpperObstacle.x : 0
             );
             
-            if (lastX < game.canvas.width - 200) {
-                createObstacleSet(game.canvas.width + Math.random() * 200);
+            // Usar espaciado dinámico para crear nuevos obstáculos
+            const dynamicSpacing = calculateDynamicSpacing();
+            if (lastX < game.canvas.width - dynamicSpacing) {
+                createObstacleSet(game.canvas.width + dynamicSpacing * 0.5);
             }
         }
 
@@ -597,45 +623,150 @@
             });
         }
 
+        // Coordinador inteligente de obstáculos
         function createObstacleSet(x) {
-            // Decidir qué tipo de obstáculos crear basado en la dificultad
-            const difficulty = Math.min(game.stats.distance / 100, 1); // Aumenta con la distancia
-            const obstaclePattern = Math.random();
+            const coordinator = game.obstacleCoordinator;
             
-            if (difficulty < 0.3) {
-                // Fase inicial: principalmente obstáculos del suelo
-                if (obstaclePattern < 0.7) {
-                    createObstacle(x);
-                } else {
-                    createUpperObstacle(x);
-                }
+            // Actualizar nivel de dificultad
+            coordinator.difficultyLevel = Math.min(game.stats.distance / 50, 1);
+            
+            // Seleccionar patrón basado en historia y dificultad
+            const pattern = selectObstaclePattern();
+            
+            // Crear obstáculos según el patrón seleccionado
+            executeObstaclePattern(pattern, x);
+            
+            // Actualizar historial
+            updatePatternHistory(pattern);
+        }
+
+        function selectObstaclePattern() {
+            const coordinator = game.obstacleCoordinator;
+            const difficulty = coordinator.difficultyLevel;
+            
+            // Definir patrones disponibles según dificultad
+            let availablePatterns = [];
+            
+            if (difficulty < 0.2) {
+                // Fase inicial: patrones simples
+                availablePatterns = ['ground_only', 'ceiling_only'];
+            } else if (difficulty < 0.4) {
+                // Fase temprana: introducir variedad
+                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple'];
             } else if (difficulty < 0.6) {
-                // Fase intermedia: introducir más variedad
-                if (obstaclePattern < 0.4) {
+                // Fase intermedia: patrones más complejos
+                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple', 'narrow_passage', 'staggered'];
+            } else if (difficulty < 0.8) {
+                // Fase avanzada: todos los patrones
+                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple', 'narrow_passage', 'staggered', 'zigzag', 'tunnel'];
+            } else {
+                // Fase experta: patrones complejos con mayor probabilidad
+                availablePatterns = ['narrow_passage', 'staggered', 'zigzag', 'tunnel', 'chaos', 'ground_only', 'ceiling_only'];
+            }
+            
+            // Evitar repetir el mismo patrón demasiadas veces
+            if (coordinator.patternStreak >= 3) {
+                availablePatterns = availablePatterns.filter(p => p !== coordinator.lastPattern);
+            }
+            
+            // Seleccionar patrón aleatorio de los disponibles
+            return availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
+        }
+
+        function executeObstaclePattern(pattern, x) {
+            const spacing = calculateDynamicSpacing();
+            
+            switch (pattern) {
+                case 'ground_only':
                     createObstacle(x);
-                } else if (obstaclePattern < 0.8) {
+                    break;
+                    
+                case 'ceiling_only':
                     createUpperObstacle(x);
-                } else {
-                    // Pasillo estrecho
+                    break;
+                    
+                case 'alternating_simple':
+                    if (Math.random() < 0.5) {
+                        createObstacle(x);
+                        createUpperObstacle(x + spacing * 0.6);
+                    } else {
+                        createUpperObstacle(x);
+                        createObstacle(x + spacing * 0.6);
+                    }
+                    break;
+                    
+                case 'narrow_passage':
+                    // Pasillo estrecho con obstáculos arriba y abajo
                     createObstacle(x);
                     createUpperObstacle(x + 15);
-                }
-            } else {
-                // Fase avanzada: patrones complejos
-                if (obstaclePattern < 0.25) {
+                    break;
+                    
+                case 'staggered':
+                    // Obstáculos escalonados
                     createObstacle(x);
-                } else if (obstaclePattern < 0.5) {
-                    createUpperObstacle(x);
-                } else if (obstaclePattern < 0.75) {
-                    // Pasillo estrecho
+                    createUpperObstacle(x + 40);
+                    createObstacle(x + 80);
+                    break;
+                    
+                case 'zigzag':
+                    // Patrón zigzag
+                    createObstacle(x);
+                    createUpperObstacle(x + 60);
+                    createObstacle(x + 120);
+                    createUpperObstacle(x + 180);
+                    break;
+                    
+                case 'tunnel':
+                    // Túnel con obstáculos en ambos lados
                     createObstacle(x);
                     createUpperObstacle(x + 10);
-                } else {
-                    // Patrón alternado
-                    createObstacle(x);
-                    createUpperObstacle(x + 80);
-                    createObstacle(x + 160);
-                }
+                    createObstacle(x + 80);
+                    createUpperObstacle(x + 90);
+                    break;
+                    
+                case 'chaos':
+                    // Patrón caótico para máxima dificultad
+                    const numObstacles = 3 + Math.floor(Math.random() * 3);
+                    for (let i = 0; i < numObstacles; i++) {
+                        const offsetX = i * (30 + Math.random() * 40);
+                        if (Math.random() < 0.5) {
+                            createObstacle(x + offsetX);
+                        } else {
+                            createUpperObstacle(x + offsetX);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        function calculateDynamicSpacing() {
+            const coordinator = game.obstacleCoordinator;
+            const difficulty = coordinator.difficultyLevel;
+            
+            // Espaciado que se reduce con la dificultad
+            const baseSpacing = coordinator.minSpacing + 
+                (coordinator.maxSpacing - coordinator.minSpacing) * (1 - difficulty);
+            
+            // Agregar variación aleatoria
+            const variation = baseSpacing * 0.3;
+            return baseSpacing + (Math.random() - 0.5) * variation;
+        }
+
+        function updatePatternHistory(pattern) {
+            const coordinator = game.obstacleCoordinator;
+            
+            // Actualizar racha de patrones
+            if (pattern === coordinator.lastPattern) {
+                coordinator.patternStreak++;
+            } else {
+                coordinator.patternStreak = 1;
+                coordinator.lastPattern = pattern;
+            }
+            
+            // Mantener historial de últimos 10 patrones
+            coordinator.patternHistory.push(pattern);
+            if (coordinator.patternHistory.length > 10) {
+                coordinator.patternHistory.shift();
             }
         }
 
@@ -796,6 +927,27 @@
                 dangerElement.textContent = '●●●';
                 dangerElement.style.color = '#FFFFFF'; // Blanco (máximo peligro)
             }
+            
+            // Actualizar indicador de dificultad
+            const difficultyLevel = game.obstacleCoordinator.difficultyLevel;
+            const difficultyElement = document.getElementById('difficultyLevel');
+            
+            if (difficultyLevel < 0.2) {
+                difficultyElement.textContent = 'I';
+                difficultyElement.style.color = '#808080';
+            } else if (difficultyLevel < 0.4) {
+                difficultyElement.textContent = 'II';
+                difficultyElement.style.color = '#909090';
+            } else if (difficultyLevel < 0.6) {
+                difficultyElement.textContent = 'III';
+                difficultyElement.style.color = '#A0A0A0';
+            } else if (difficultyLevel < 0.8) {
+                difficultyElement.textContent = 'IV';
+                difficultyElement.style.color = '#B0B0B0';
+            } else {
+                difficultyElement.textContent = 'V';
+                difficultyElement.style.color = '#FFFFFF';
+            }
         }
 
         function calculateDangerLevel() {
@@ -837,6 +989,13 @@
         function gameOver() {
             game.running = false;
             
+            // Mostrar estadísticas de patrones en consola
+            console.log('🎮 Estadísticas de la partida:');
+            console.log('Distancia:', Math.floor(game.stats.distance) + 'm');
+            console.log('Dificultad final:', (game.obstacleCoordinator.difficultyLevel * 100).toFixed(1) + '%');
+            console.log('Último patrón:', game.obstacleCoordinator.lastPattern);
+            console.log('Historial de patrones:', game.obstacleCoordinator.patternHistory);
+            
             // Actualizar récords
             const currentDistance = Math.floor(game.stats.distance);
             const bestDistance = parseInt(localStorage.getItem('bestDistance') || '0');
@@ -853,6 +1012,27 @@
             // Mostrar pantalla de game over
             document.getElementById('finalDistance').textContent = currentDistance;
             showScreen('gameOverScreen');
+        }
+
+        // Balanceador dinámico de dificultad
+        function balanceDifficulty() {
+            const coordinator = game.obstacleCoordinator;
+            const player = game.player;
+            
+            // Ajustar espaciado basado en el rendimiento del jugador
+            if (player.jumpsLeft === 0 && !player.onGround) {
+                // Jugador en problemas, reducir dificultad ligeramente
+                coordinator.minSpacing = Math.min(coordinator.minSpacing + 0.5, 180);
+                coordinator.maxSpacing = Math.min(coordinator.maxSpacing + 0.5, 320);
+            } else if (player.jumpsLeft === 2 && player.dashAvailable) {
+                // Jugador en buena forma, puede aumentar dificultad
+                coordinator.minSpacing = Math.max(coordinator.minSpacing - 0.2, 120);
+                coordinator.maxSpacing = Math.max(coordinator.maxSpacing - 0.2, 280);
+            }
+            
+            // Mantener límites razonables
+            coordinator.minSpacing = Math.max(120, Math.min(180, coordinator.minSpacing));
+            coordinator.maxSpacing = Math.max(280, Math.min(350, coordinator.maxSpacing));
         }
 
         // Inicializar cuando el DOM esté listo
