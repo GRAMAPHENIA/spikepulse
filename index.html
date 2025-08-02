@@ -266,6 +266,11 @@
             <div class="hud-label">Gravedad</div>
             <div id="gravityDisplay">↓</div>
         </div>
+        
+        <div class="hud-item">
+            <div class="hud-label">Peligro</div>
+            <div id="dangerLevel">●</div>
+        </div>
     </div>
 
     <!-- Controles -->
@@ -276,7 +281,7 @@
 
     <!-- Instrucciones -->
     <div id="instructions" class="instructions hidden">
-        ESPACIO: Saltar | A/D: Mover | SHIFT: Dash | CTRL: Gravedad
+        ESPACIO: Saltar | A/D: Mover | SHIFT: Dash | CTRL: Gravedad | ¡Evita obstáculos superiores!
     </div>
 
     <script>
@@ -305,12 +310,13 @@
             world: {
                 gravity: 0.5,
                 groundY: 370,
-                ceilingY: 0,
+                ceilingY: 30, // Ajustado para el techo visual
                 speed: 2
             },
             
             // Obstáculos
             obstacles: [],
+            upperObstacles: [],
             
             // Stats
             stats: {
@@ -432,7 +438,7 @@
         function resetGame() {
             // Resetear jugador
             game.player.x = 100;
-            game.player.y = 300;
+            game.player.y = 200; // Posición más centrada entre suelo y techo
             game.player.velY = 0;
             game.player.velX = 0;
             game.player.onGround = false;
@@ -442,14 +448,15 @@
             
             // Resetear obstáculos
             game.obstacles = [];
+            game.upperObstacles = [];
             
             // Resetear stats
             game.stats.distance = 0;
             
-            // Crear obstáculos iniciales
-            createObstacle(400);
-            createObstacle(600);
-            createObstacle(800);
+            // Crear obstáculos iniciales (suelo y techo)
+            createObstacleSet(400);
+            createObstacleSet(600);
+            createObstacleSet(800);
         }
 
         function gameLoop() {
@@ -508,6 +515,7 @@
             
             // Suelo y techo
             if (!player.gravityInverted) {
+                // Gravedad normal: el jugador cae hacia el suelo
                 if (player.y > game.world.groundY - player.height) {
                     player.y = game.world.groundY - player.height;
                     player.velY = 0;
@@ -515,7 +523,13 @@
                     player.jumpsLeft = 2;
                     player.dashAvailable = true;
                 }
+                // Límite superior
+                if (player.y < game.world.ceilingY) {
+                    player.y = game.world.ceilingY;
+                    player.velY = Math.max(player.velY, 0); // No puede ir más arriba
+                }
             } else {
+                // Gravedad invertida: el jugador "cae" hacia el techo
                 if (player.y < game.world.ceilingY) {
                     player.y = game.world.ceilingY;
                     player.velY = 0;
@@ -523,22 +537,41 @@
                     player.jumpsLeft = 2;
                     player.dashAvailable = true;
                 }
+                // Límite inferior
+                if (player.y > game.world.groundY - player.height) {
+                    player.y = game.world.groundY - player.height;
+                    player.velY = Math.min(player.velY, 0); // No puede ir más abajo
+                }
             }
         }
 
         function updateObstacles() {
-            // Mover obstáculos
+            // Mover obstáculos del suelo
             game.obstacles.forEach(obstacle => {
+                obstacle.x -= game.world.speed;
+            });
+            
+            // Mover obstáculos superiores
+            game.upperObstacles.forEach(obstacle => {
                 obstacle.x -= game.world.speed;
             });
             
             // Remover obstáculos fuera de pantalla
             game.obstacles = game.obstacles.filter(obstacle => obstacle.x > -obstacle.width);
+            game.upperObstacles = game.upperObstacles.filter(obstacle => obstacle.x > -obstacle.width);
             
-            // Crear nuevos obstáculos
+            // Crear nuevos conjuntos de obstáculos
             const lastObstacle = game.obstacles[game.obstacles.length - 1];
-            if (!lastObstacle || lastObstacle.x < game.canvas.width - 200) {
-                createObstacle(game.canvas.width + Math.random() * 200);
+            const lastUpperObstacle = game.upperObstacles[game.upperObstacles.length - 1];
+            
+            // Usar el obstáculo más lejano como referencia
+            const lastX = Math.max(
+                lastObstacle ? lastObstacle.x : 0,
+                lastUpperObstacle ? lastUpperObstacle.x : 0
+            );
+            
+            if (lastX < game.canvas.width - 200) {
+                createObstacleSet(game.canvas.width + Math.random() * 200);
             }
         }
 
@@ -548,14 +581,81 @@
                 x: x,
                 y: game.world.groundY - height,
                 width: 20,
-                height: height
+                height: height,
+                type: 'ground'
             });
+        }
+
+        function createUpperObstacle(x) {
+            const height = 40 + Math.random() * 80;
+            game.upperObstacles.push({
+                x: x,
+                y: game.world.ceilingY,
+                width: 20,
+                height: height,
+                type: 'ceiling'
+            });
+        }
+
+        function createObstacleSet(x) {
+            // Decidir qué tipo de obstáculos crear basado en la dificultad
+            const difficulty = Math.min(game.stats.distance / 100, 1); // Aumenta con la distancia
+            const obstaclePattern = Math.random();
+            
+            if (difficulty < 0.3) {
+                // Fase inicial: principalmente obstáculos del suelo
+                if (obstaclePattern < 0.7) {
+                    createObstacle(x);
+                } else {
+                    createUpperObstacle(x);
+                }
+            } else if (difficulty < 0.6) {
+                // Fase intermedia: introducir más variedad
+                if (obstaclePattern < 0.4) {
+                    createObstacle(x);
+                } else if (obstaclePattern < 0.8) {
+                    createUpperObstacle(x);
+                } else {
+                    // Pasillo estrecho
+                    createObstacle(x);
+                    createUpperObstacle(x + 15);
+                }
+            } else {
+                // Fase avanzada: patrones complejos
+                if (obstaclePattern < 0.25) {
+                    createObstacle(x);
+                } else if (obstaclePattern < 0.5) {
+                    createUpperObstacle(x);
+                } else if (obstaclePattern < 0.75) {
+                    // Pasillo estrecho
+                    createObstacle(x);
+                    createUpperObstacle(x + 10);
+                } else {
+                    // Patrón alternado
+                    createObstacle(x);
+                    createUpperObstacle(x + 80);
+                    createObstacle(x + 160);
+                }
+            }
         }
 
         function checkCollisions() {
             const player = game.player;
             
+            // Verificar colisiones con obstáculos del suelo
             game.obstacles.forEach(obstacle => {
+                if (player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y) {
+                    
+                    // Colisión detectada
+                    gameOver();
+                }
+            });
+            
+            // Verificar colisiones con obstáculos superiores
+            game.upperObstacles.forEach(obstacle => {
                 if (player.x < obstacle.x + obstacle.width &&
                     player.x + player.width > obstacle.x &&
                     player.y < obstacle.y + obstacle.height &&
@@ -594,14 +694,52 @@
             ctx.fillStyle = '#404040';
             ctx.fillRect(0, game.world.groundY, game.canvas.width, game.canvas.height - game.world.groundY);
             
-            // Dibujar jugador
-            ctx.fillStyle = '#FFFFFF';
+            // Dibujar techo
+            ctx.fillStyle = '#404040';
+            ctx.fillRect(0, 0, game.canvas.width, 30); // Techo de 30px de altura
+            
+            // Dibujar jugador con efecto de peligro
+            const dangerLevel = calculateDangerLevel();
+            
+            // Color del jugador basado en el peligro
+            if (dangerLevel === 0) {
+                ctx.fillStyle = '#FFFFFF'; // Blanco normal
+            } else if (dangerLevel === 1) {
+                ctx.fillStyle = '#F0F0F0'; // Ligeramente más tenue
+            } else {
+                ctx.fillStyle = '#E0E0E0'; // Más tenue (máximo peligro)
+            }
+            
             ctx.fillRect(game.player.x, game.player.y, game.player.width, game.player.height);
             
-            // Dibujar obstáculos
+            // Agregar borde de advertencia si hay peligro
+            if (dangerLevel > 0) {
+                ctx.strokeStyle = dangerLevel === 1 ? '#C0C0C0' : '#FFFFFF';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(game.player.x - 1, game.player.y - 1, game.player.width + 2, game.player.height + 2);
+            }
+            
+            // Dibujar obstáculos del suelo
             ctx.fillStyle = '#808080';
             game.obstacles.forEach(obstacle => {
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+            
+            // Dibujar obstáculos superiores
+            ctx.fillStyle = '#606060'; // Ligeramente más oscuros para diferenciación
+            game.upperObstacles.forEach(obstacle => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                
+                // Agregar pequeño detalle visual (líneas de "colgado")
+                ctx.strokeStyle = '#404040';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    const lineX = obstacle.x + (obstacle.width / 4) * (i + 1);
+                    ctx.beginPath();
+                    ctx.moveTo(lineX, obstacle.y);
+                    ctx.lineTo(lineX, obstacle.y + 10);
+                    ctx.stroke();
+                }
             });
             
             // Efectos de dash
@@ -643,6 +781,44 @@
             document.getElementById('jumpsDisplay').textContent = game.player.jumpsLeft;
             document.getElementById('dashDisplay').textContent = game.player.dashAvailable ? '✓' : '✗';
             document.getElementById('gravityDisplay').textContent = game.player.gravityInverted ? '↑' : '↓';
+            
+            // Calcular nivel de peligro basado en obstáculos cercanos
+            const dangerLevel = calculateDangerLevel();
+            const dangerElement = document.getElementById('dangerLevel');
+            
+            if (dangerLevel === 0) {
+                dangerElement.textContent = '●';
+                dangerElement.style.color = '#808080'; // Gris
+            } else if (dangerLevel === 1) {
+                dangerElement.textContent = '●●';
+                dangerElement.style.color = '#C0C0C0'; // Gris claro
+            } else {
+                dangerElement.textContent = '●●●';
+                dangerElement.style.color = '#FFFFFF'; // Blanco (máximo peligro)
+            }
+        }
+
+        function calculateDangerLevel() {
+            const player = game.player;
+            const dangerZone = 150; // Distancia para considerar peligroso
+            let nearbyObstacles = 0;
+            
+            // Contar obstáculos del suelo cercanos
+            game.obstacles.forEach(obstacle => {
+                if (obstacle.x > player.x && obstacle.x < player.x + dangerZone) {
+                    nearbyObstacles++;
+                }
+            });
+            
+            // Contar obstáculos superiores cercanos
+            game.upperObstacles.forEach(obstacle => {
+                if (obstacle.x > player.x && obstacle.x < player.x + dangerZone) {
+                    nearbyObstacles++;
+                }
+            });
+            
+            // Retornar nivel de peligro (0-2)
+            return Math.min(nearbyObstacles, 2);
         }
 
         function togglePause() {

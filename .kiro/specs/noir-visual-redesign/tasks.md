@@ -80,6 +80,9 @@
   - Adaptar lógica de gravedad invertida para obstáculos superiores
 
 
+
+
+
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
 - [ ] 3.1 Crear UpperObstacleGenerator
