@@ -290,4 +290,131 @@
 
 .spikepulse-hud.sp-exiting {
     animation: sp-fade-out-up var(--sp-transition-slow) ease-out;
+}/
+* ===== CONTROLES DEL JUEGO ===== */
+.spikepulse-game-controls {
+    position: fixed;
+    top: var(--sp-space-lg);
+    right: var(--sp-space-lg);
+    z-index: var(--sp-z-hud);
+    display: flex;
+    gap: var(--sp-space-sm);
+    align-items: center;
+}
+
+.spikepulse-game-controls.hidden {
+    display: none;
+}
+
+/* Botón de pausa actualizado */
+.spikepulse-control-btn--pause {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-space-sm) var(--sp-space-lg);
+    background: var(--sp-glass-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--sp-secondary);
+    border-radius: var(--sp-radius-xl);
+    color: white;
+    font-family: var(--sp-font-primary);
+    font-size: var(--sp-text-lg);
+    font-weight: var(--sp-font-bold);
+    text-transform: uppercase;
+    letter-spacing: var(--sp-tracking-wide);
+    cursor: pointer;
+    transition: all var(--sp-transition-normal);
+    box-shadow: var(--sp-shadow-glow-secondary);
+    user-select: none;
+}
+
+.spikepulse-control-btn--pause:hover {
+    background: var(--sp-secondary);
+    transform: scale(1.05);
+    box-shadow: var(--sp-glow-intense-secondary);
+}
+
+.spikepulse-control-btn--pause:focus {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+/* Botón de fullscreen */
+.spikepulse-control-btn--fullscreen {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: var(--sp-space-sm);
+    background: var(--sp-glass-bg);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--sp-primary);
+    border-radius: var(--sp-radius-lg);
+    color: var(--sp-primary);
+    font-family: var(--sp-font-primary);
+    font-size: var(--sp-text-xl);
+    cursor: pointer;
+    transition: all var(--sp-transition-normal);
+    box-shadow: var(--sp-shadow-glow-primary);
+    user-select: none;
+}
+
+.spikepulse-control-btn--fullscreen:hover {
+    background: var(--sp-primary);
+    color: var(--sp-bg-primary);
+    transform: scale(1.05);
+    box-shadow: var(--sp-glow-intense-primary);
+}
+
+.spikepulse-control-btn--fullscreen:focus {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+.spikepulse-control-btn--fullscreen:active {
+    transform: scale(0.95);
+}
+
+.spikepulse-control-btn__icon {
+    display: inline-block;
+    line-height: 1;
+}
+
+/* ===== RESPONSIVE PARA CONTROLES ===== */
+@media (max-width: 768px) {
+    .spikepulse-game-controls {
+        top: var(--sp-space-md);
+        right: var(--sp-space-md);
+        gap: var(--sp-space-xs);
+    }
+    
+    .spikepulse-control-btn--pause {
+        padding: var(--sp-space-xs) var(--sp-space-md);
+        font-size: var(--sp-text-base);
+    }
+    
+    .spikepulse-control-btn--fullscreen {
+        width: 40px;
+        height: 40px;
+        font-size: var(--sp-text-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    .spikepulse-game-controls {
+        top: var(--sp-space-sm);
+        right: var(--sp-space-sm);
+    }
+    
+    .spikepulse-control-btn--pause {
+        padding: var(--sp-space-xs) var(--sp-space-sm);
+        font-size: var(--sp-text-sm);
+    }
+    
+    .spikepulse-control-btn--fullscreen {
+        width: 36px;
+        height: 36px;
+        font-size: var(--sp-text-base);
+    }
 }

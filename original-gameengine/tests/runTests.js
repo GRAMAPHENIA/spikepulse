@@ -11,6 +11,12 @@ import './StorageManager.test.js';
 import './HighScoreManager.test.js';
 import './SettingsManager.test.js';
 import './NoirPalette.test.js';
+import './FullscreenCanvasManager.simple.test.js';
+import './ViewportManager.test.js';
+import './ResponsiveHandler.test.js';
+import './PerformanceOptimizer.test.js';
+import './ScalableMemoryManager.test.js';
+import './FullscreenIntegrator.test.js';
 // import './NoirThemeManager.test.js';
 
 /**

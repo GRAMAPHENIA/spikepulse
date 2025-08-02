@@ -1,0 +1,425 @@
+/* 
+ * Spikepulse - Tema Noir Minimalista
+ * Sobrescribe los estilos principales para crear una UI más simple y elegante
+ */
+
+/* Variables CSS Noir Minimalistas */
+:root {
+    /* Paleta monocromática */
+    --sp-noir-white: #FFFFFF;
+    --sp-noir-light: #E0E0E0;
+    --sp-noir-medium: #808080;
+    --sp-noir-dark: #404040;
+    --sp-noir-black: #000000;
+    --sp-noir-accent: #C0C0C0;
+    
+    /* Sobrescribir variables principales */
+    --sp-primary: var(--sp-noir-white);
+    --sp-secondary: var(--sp-noir-medium);
+    --sp-accent: var(--sp-noir-accent);
+    --sp-bg-primary: var(--sp-noir-black);
+    --sp-bg-secondary: var(--sp-noir-dark);
+    --sp-text-primary: var(--sp-noir-white);
+    --sp-text-secondary: var(--sp-noir-light);
+    --sp-border: var(--sp-noir-dark);
+    
+    /* Tipografía minimalista */
+    --sp-font-primary: 'JetBrains Mono', 'Courier New', monospace;
+    --sp-font-secondary: 'JetBrains Mono', 'Courier New', monospace;
+    
+    /* Espaciado reducido */
+    --sp-space-xs: 0.25rem;
+    --sp-space-sm: 0.5rem;
+    --sp-space-md: 1rem;
+    --sp-space-lg: 1.5rem;
+    --sp-space-xl: 2rem;
+    
+    /* Transiciones suaves */
+    --sp-transition-fast: all 0.2s ease;
+    --sp-transition: all 0.3s ease;
+    --sp-transition-slow: all 0.5s ease;
+}
+
+/* Importar fuente minimalista */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&display=swap');
+
+/* Reset del body para tema noir */
+body.spikepulse-app {
+    background: var(--sp-noir-black);
+    color: var(--sp-noir-white);
+    font-family: var(--sp-font-primary);
+    font-weight: 300;
+}
+
+/* Fondo sutil con grid minimalista */
+body.spikepulse-app::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(90deg, transparent 98%, var(--sp-noir-dark) 100%),
+        linear-gradient(0deg, transparent 98%, var(--sp-noir-dark) 100%);
+    background-size: 60px 60px;
+    opacity: 0.08;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Eliminar efectos de bruma complejos */
+.spikepulse-fog,
+.spikepulse-fog__particle {
+    display: none !important;
+}
+
+/* Pantallas principales - estilo minimalista */
+.spikepulse-screen-overlay {
+    background: var(--sp-noir-black);
+    backdrop-filter: none;
+}
+
+.spikepulse-screen-content {
+    max-width: 400px;
+    padding: var(--sp-space-xl);
+}
+
+/* Títulos minimalistas */
+.spikepulse-screen-title {
+    font-family: var(--sp-font-primary);
+    font-weight: 600;
+    font-size: clamp(2rem, 6vw, 3rem);
+    letter-spacing: 0.2em;
+    text-align: center;
+    margin-bottom: var(--sp-space-lg);
+    color: var(--sp-noir-white);
+}
+
+.spikepulse-screen-title--main {
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    margin-bottom: var(--sp-space-md);
+}
+
+/* Descripción minimalista */
+.spikepulse-screen-description {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--sp-noir-medium);
+    text-align: center;
+    margin-bottom: var(--sp-space-xl);
+    letter-spacing: 0.05em;
+}
+
+/* Botones minimalistas */
+.spikepulse-screen-button {
+    background: transparent;
+    border: 1px solid var(--sp-noir-medium);
+    color: var(--sp-noir-white);
+    font-family: var(--sp-font-primary);
+    font-size: 0.8rem;
+    font-weight: 400;
+    padding: var(--sp-space-md) var(--sp-space-xl);
+    margin: var(--sp-space-xs) 0;
+    cursor: pointer;
+    transition: var(--sp-transition);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    min-width: 200px;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.spikepulse-screen-button:hover {
+    background: var(--sp-noir-white);
+    color: var(--sp-noir-black);
+    border-color: var(--sp-noir-white);
+    transform: translateY(-1px);
+}
+
+.spikepulse-screen-button:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.spikepulse-screen-button--primary {
+    border-color: var(--sp-noir-white);
+    color: var(--sp-noir-white);
+    margin-bottom: var(--sp-space-lg);
+}
+
+.spikepulse-screen-button--secondary {
+    border-color: var(--sp-noir-dark);
+    color: var(--sp-noir-medium);
+    font-size: 0.7rem;
+    padding: var(--sp-space-sm) var(--sp-space-lg);
+    min-width: 150px;
+}
+
+.spikepulse-screen-button--secondary:hover {
+    border-color: var(--sp-noir-medium);
+    color: var(--sp-noir-white);
+    background: transparent;
+}
+
+/* Ocultar información de controles por defecto */
+.spikepulse-controls-info {
+    display: none;
+}
+
+/* HUD minimalista */
+.spikepulse-hud {
+    background: transparent;
+    border: none;
+    padding: var(--sp-space-md);
+}
+
+.spikepulse-hud__container {
+    display: flex;
+    gap: var(--sp-space-lg);
+    align-items: center;
+}
+
+.spikepulse-hud__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-space-xs);
+}
+
+.spikepulse-hud__label {
+    font-size: 0.6rem;
+    font-weight: 300;
+    color: var(--sp-noir-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.spikepulse-hud__value {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--sp-noir-white);
+}
+
+.spikepulse-hud__separator {
+    width: 1px;
+    height: 20px;
+    background: var(--sp-noir-dark);
+    margin: 0 var(--sp-space-sm);
+}
+
+/* Controles del juego minimalistas */
+.spikepulse-game-controls {
+    top: var(--sp-space-md);
+    right: var(--sp-space-md);
+    gap: var(--sp-space-sm);
+}
+
+.spikepulse-control-btn {
+    background: transparent;
+    border: 1px solid var(--sp-noir-dark);
+    color: var(--sp-noir-medium);
+    font-family: var(--sp-font-primary);
+    font-size: 0.6rem;
+    font-weight: 300;
+    padding: var(--sp-space-sm);
+    cursor: pointer;
+    transition: var(--sp-transition);
+    min-width: 60px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.spikepulse-control-btn:hover {
+    border-color: var(--sp-noir-medium);
+    color: var(--sp-noir-white);
+}
+
+.spikepulse-control-btn:active {
+    transform: scale(0.95);
+}
+
+/* Canvas del juego */
+.spikepulse-canvas {
+    border: 1px solid var(--sp-noir-dark);
+    background: var(--sp-noir-black);
+}
+
+/* Configuración minimalista */
+.spikepulse-settings-container {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.spikepulse-settings-tabs {
+    display: none; /* Ocultar pestañas para simplicidad */
+}
+
+.spikepulse-settings-content {
+    padding: 0;
+}
+
+.spikepulse-settings-panel {
+    display: block !important; /* Mostrar todo en una sola vista */
+}
+
+.spikepulse-setting-group {
+    margin-bottom: var(--sp-space-lg);
+    padding-bottom: var(--sp-space-md);
+    border-bottom: 1px solid var(--sp-noir-dark);
+}
+
+.spikepulse-setting-group:last-child {
+    border-bottom: none;
+}
+
+.spikepulse-setting-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 300;
+    color: var(--sp-noir-light);
+    margin-bottom: var(--sp-space-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.spikepulse-setting-text {
+    color: var(--sp-noir-white);
+}
+
+.spikepulse-setting-select,
+.spikepulse-setting-slider {
+    background: transparent;
+    border: 1px solid var(--sp-noir-dark);
+    color: var(--sp-noir-white);
+    font-family: var(--sp-font-primary);
+    font-size: 0.7rem;
+    padding: var(--sp-space-sm);
+    width: 100%;
+    transition: var(--sp-transition);
+}
+
+.spikepulse-setting-select:focus,
+.spikepulse-setting-slider:focus {
+    outline: none;
+    border-color: var(--sp-noir-medium);
+}
+
+.spikepulse-setting-checkbox {
+    margin-right: var(--sp-space-sm);
+    accent-color: var(--sp-noir-white);
+}
+
+/* Ocultar elementos complejos */
+.spikepulse-setting-subtitle,
+.spikepulse-controls-grid,
+.spikepulse-setting-description {
+    display: none;
+}
+
+/* Botones de acción de configuración */
+.spikepulse-settings-actions {
+    display: flex;
+    gap: var(--sp-space-md);
+    justify-content: center;
+    margin-top: var(--sp-space-xl);
+}
+
+.spikepulse-settings-actions .spikepulse-screen-button {
+    min-width: 120px;
+    width: auto;
+    flex: 1;
+}
+
+/* Controles móviles ocultos por defecto */
+.spikepulse-mobile-controls {
+    display: none;
+}
+
+/* Responsive minimalista */
+@media (max-width: 768px) {
+    .spikepulse-screen-title--main {
+        font-size: 2.5rem;
+    }
+    
+    .spikepulse-screen-button {
+        min-width: 150px;
+        font-size: 0.7rem;
+        padding: var(--sp-space-sm) var(--sp-space-lg);
+    }
+    
+    .spikepulse-hud {
+        padding: var(--sp-space-sm);
+    }
+    
+    .spikepulse-hud__container {
+        gap: var(--sp-space-md);
+    }
+    
+    .spikepulse-hud__label {
+        font-size: 0.5rem;
+    }
+    
+    .spikepulse-hud__value {
+        font-size: 0.7rem;
+    }
+}
+
+/* Animaciones suaves */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.spikepulse-screen-overlay:not(.hidden) {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Estados de hover más sutiles */
+.spikepulse-screen-button:hover,
+.spikepulse-control-btn:hover {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* Mejoras de accesibilidad */
+.spikepulse-screen-button:focus,
+.spikepulse-control-btn:focus,
+.spikepulse-setting-select:focus,
+.spikepulse-setting-slider:focus {
+    outline: 2px solid var(--sp-noir-medium);
+    outline-offset: 2px;
+}
+
+/* Indicador de carga minimalista */
+.spikepulse-loading-text {
+    color: var(--sp-noir-medium);
+    font-size: 0.8rem;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Estadísticas de récords */
+.spikepulse-high-scores-list,
+.spikepulse-player-stats {
+    margin-bottom: var(--sp-space-lg);
+}
+
+.spikepulse-stats-grid {
+    display: grid;
+    gap: var(--sp-space-md);
+    text-align: center;
+}
+
+/* Puntuación final */
+.spikepulse-screen-score {
+    font-size: 1.2rem;
+    color: var(--sp-noir-white);
+    margin-bottom: var(--sp-space-lg);
+    text-align: center;
+}

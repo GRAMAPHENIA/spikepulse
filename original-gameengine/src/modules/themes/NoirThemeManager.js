@@ -177,6 +177,7 @@ export class NoirThemeManager {
         
         // Mapear colores existentes a equivalentes noir
         const colorMappings = {
+            // Colores principales
             '--sp-primary': palette.colorSlots.slot1,
             '--sp-secondary': palette.colorSlots.slot2,
             '--sp-accent': palette.colorSlots.slot3,
@@ -196,10 +197,71 @@ export class NoirThemeManager {
             '--sp-text-tertiary': palette.base.mediumGray,
             '--sp-text-muted': palette.base.coolGray,
             
+            // Grises
+            '--sp-gray-100': palette.base.white,
+            '--sp-gray-200': palette.base.lightGray,
+            '--sp-gray-300': palette.base.lightGray,
+            '--sp-gray-400': palette.base.mediumGray,
+            '--sp-gray-500': palette.base.mediumGray,
+            '--sp-gray-600': palette.base.darkGray,
+            '--sp-gray-700': palette.base.darkGray,
+            '--sp-gray-800': palette.base.charcoal,
+            '--sp-gray-900': palette.base.black,
+            
             // Efectos de glow convertidos a sombras noir
             '--sp-glow-primary': palette.effects.dramaticShadow,
             '--sp-glow-secondary': palette.effects.mediumShadow,
-            '--sp-glow-accent': palette.effects.lightShadow
+            '--sp-glow-accent': palette.effects.lightShadow,
+            '--sp-glow-danger': palette.effects.mediumShadow,
+            '--sp-glow-success': palette.effects.lightShadow,
+            '--sp-glow-intense-primary': palette.effects.dramaticShadow,
+            '--sp-glow-intense-secondary': palette.effects.dramaticShadow,
+            '--sp-glow-intense-accent': palette.effects.dramaticShadow,
+            
+            // Colores específicos del juego
+            '--sp-player-color': palette.colorSlots.slot1,
+            '--sp-player-glow': palette.effects.dramaticShadow,
+            '--sp-player-dash': palette.colorSlots.slot2,
+            '--sp-player-gravity': palette.colorSlots.slot3,
+            '--sp-obstacle-color': palette.base.darkGray,
+            '--sp-obstacle-glow': palette.effects.mediumShadow,
+            '--sp-ground-color': palette.base.charcoal,
+            '--sp-ground-accent': palette.base.darkGray,
+            
+            // Efectos atmosféricos
+            '--sp-fog-color': palette.transparencies.fogLight,
+            '--sp-atmosphere-color': palette.transparencies.overlayMedium,
+            '--sp-industrial-accent': palette.base.darkGray,
+            
+            // Transparencias
+            '--sp-overlay-light': palette.transparencies.overlayLight,
+            '--sp-overlay-medium': palette.transparencies.overlayMedium,
+            '--sp-overlay-heavy': palette.transparencies.overlayHeavy,
+            '--sp-glass-bg': palette.transparencies.glassBackground,
+            '--sp-glass-border': palette.transparencies.glassBorder,
+            '--sp-glass-highlight': palette.transparencies.glassHighlight,
+            
+            // Estados interactivos
+            '--sp-hover-overlay': palette.transparencies.hoverOverlay,
+            '--sp-active-overlay': palette.transparencies.activeOverlay,
+            '--sp-focus-color': palette.colorSlots.slot1,
+            '--sp-disabled-overlay': palette.transparencies.overlayMedium,
+            
+            // Gradientes noir
+            '--sp-gradient-primary': palette.gradients.primary,
+            '--sp-gradient-secondary': palette.gradients.secondary,
+            '--sp-gradient-accent': palette.gradients.accent,
+            '--sp-gradient-dark': palette.gradients.dark,
+            '--sp-gradient-bg': palette.gradients.background,
+            
+            // Sombras
+            '--sp-shadow-sm': palette.effects.lightShadow,
+            '--sp-shadow-md': palette.effects.mediumShadow,
+            '--sp-shadow-lg': palette.effects.dramaticShadow,
+            '--sp-shadow-xl': palette.effects.dramaticShadow,
+            '--sp-shadow-glow-primary': palette.effects.dramaticShadow,
+            '--sp-shadow-glow-secondary': palette.effects.dramaticShadow,
+            '--sp-shadow-glow-accent': palette.effects.dramaticShadow
         };
         
         // Aplicar mapeos
@@ -207,6 +269,8 @@ export class NoirThemeManager {
             root.style.setProperty(cssVar, noirValue);
             this.appliedVariables.set(cssVar, noirValue);
         });
+        
+        console.log(`[NoirThemeManager] ${Object.keys(colorMappings).length} variables CSS sobrescritas con valores noir`);
     }
     
     /**

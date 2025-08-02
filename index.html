@@ -1,429 +1,694 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spikepulse - Domina la Gravedad</title>
-    <meta name="description" content="Spikepulse: Un emocionante juego de plataformas donde controlas un cubo a través de obstáculos peligrosos usando mecánicas avanzadas como salto doble, dash y gravedad invertida.">
-    <meta name="keywords" content="juego, plataformas, español, spikepulse, geometry dash, salto, gravedad">
-    <meta name="author" content="Spikepulse Team">
+    <title>Spikepulse - Simple Working Version</title>
     
-    <!-- Preconnect para fuentes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Fuentes Spikepulse -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- CSS personalizado -->
-    <link rel="stylesheet" href="src/styles/main.css">
+    <style>
+        /* Estilo noir minimalista */
+        :root {
+            --noir-white: #FFFFFF;
+            --noir-light: #E0E0E0;
+            --noir-medium: #808080;
+            --noir-dark: #404040;
+            --noir-black: #000000;
+            --font-main: 'Courier New', monospace;
+        }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--noir-black);
+            color: var(--noir-white);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Fondo con grid sutil */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, transparent 98%, var(--noir-dark) 100%),
+                linear-gradient(0deg, transparent 98%, var(--noir-dark) 100%);
+            background-size: 60px 60px;
+            opacity: 0.08;
+            z-index: -1;
+        }
+
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .screen.hidden {
+            display: none;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--noir-medium);
+            margin-bottom: 3rem;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--noir-medium);
+            color: var(--noir-white);
+            font-family: inherit;
+            font-size: 0.8rem;
+            padding: 0.8rem 2rem;
+            margin: 0.3rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            width: 200px;
+        }
+
+        .btn:hover {
+            background: var(--noir-white);
+            color: var(--noir-black);
+            border-color: var(--noir-white);
+        }
+
+        .btn--primary {
+            border-color: var(--noir-white);
+            margin-bottom: 1.5rem;
+        }
+
+        .game-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+
+        .game-area.hidden {
+            display: none;
+        }
+
+        canvas {
+            border: 1px solid var(--noir-dark);
+            background: var(--noir-black);
+        }
+
+        .hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--noir-light);
+            z-index: 200;
+        }
+
+        .hud.hidden {
+            display: none;
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .hud-label {
+            font-size: 0.6rem;
+            color: var(--noir-medium);
+            text-transform: uppercase;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 200;
+        }
+
+        .controls.hidden {
+            display: none;
+        }
+
+        .control-btn {
+            background: transparent;
+            border: 1px solid var(--noir-dark);
+            color: var(--noir-medium);
+            font-family: inherit;
+            font-size: 0.6rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 60px;
+        }
+
+        .control-btn:hover {
+            border-color: var(--noir-medium);
+            color: var(--noir-white);
+        }
+
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            color: var(--noir-medium);
+            text-align: center;
+            z-index: 200;
+        }
+
+        .instructions.hidden {
+            display: none;
+        }
+    </style>
 </head>
-
-<body class="spikepulse-app">
-    <!-- Filtros SVG para soporte de daltonismo -->
-    <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
-        <defs>
-            <!-- Filtro para Protanopia (deficiencia rojo-verde) -->
-            <filter id="protanopia-filter">
-                <feColorMatrix type="matrix" values="0.567 0.433 0 0 0
-                                                     0.558 0.442 0 0 0
-                                                     0 0.242 0.758 0 0
-                                                     0 0 0 1 0"/>
-            </filter>
-            
-            <!-- Filtro para Deuteranopia (deficiencia verde-rojo) -->
-            <filter id="deuteranopia-filter">
-                <feColorMatrix type="matrix" values="0.625 0.375 0 0 0
-                                                     0.7 0.3 0 0 0
-                                                     0 0.3 0.7 0 0
-                                                     0 0 0 1 0"/>
-            </filter>
-            
-            <!-- Filtro para Tritanopia (deficiencia azul-amarillo) -->
-            <filter id="tritanopia-filter">
-                <feColorMatrix type="matrix" values="0.95 0.05 0 0 0
-                                                     0 0.433 0.567 0 0
-                                                     0 0.475 0.525 0 0
-                                                     0 0 0 1 0"/>
-            </filter>
-        </defs>
-    </svg>
-
-    <!-- Efectos de bruma de fondo -->
-    <div class="spikepulse-fog"></div>
-    <div class="spikepulse-fog__particle" style="width: 300px; height: 200px; top: 10%; left: 20%;"></div>
-    <div class="spikepulse-fog__particle spikepulse-fog__particle--delayed" style="width: 250px; height: 150px; top: 60%; right: 15%;"></div>
-    <div class="spikepulse-fog__particle spikepulse-fog__particle--slow" style="width: 400px; height: 300px; top: 30%; left: 60%;"></div>
+<body>
     <!-- Pantalla de inicio -->
-    <div id="startScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--menu" role="dialog" aria-labelledby="main-title">
-        <div class="spikepulse-screen-content spikepulse-screen-content--menu">
-            <h1 id="main-title" class="spikepulse-screen-title spikepulse-screen-title--main">SPIKEPULSE</h1>
-            <p class="spikepulse-screen-description">¡Domina la gravedad y evita los obstáculos!</p>
-            <button id="startBtn" class="spikepulse-screen-button spikepulse-screen-button--primary" aria-describedby="game-description">
-                COMENZAR AVENTURA
-            </button>
-            <button id="highScoresBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary" style="margin-top: 10px;">
-                VER RÉCORDS
-            </button>
-            <button id="settingsBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary" style="margin-top: 10px;">
-                CONFIGURACIÓN
-            </button>
-            <div class="spikepulse-controls-info">
-                <h2 class="spikepulse-controls-info__title">Controles</h2>
-                <ul class="spikepulse-controls-info__list">
-                    <li class="spikepulse-controls-info__item">
-                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--jump">🖱️</span>
-                        Click / Espacio: Saltar
-                    </li>
-                    <li class="spikepulse-controls-info__item">
-                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--move">← →</span>
-                        A D: Mover
-                    </li>
-                    <li class="spikepulse-controls-info__item">
-                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--dash">⚡</span>
-                        Shift: Dash
-                    </li>
-                    <li class="spikepulse-controls-info__item">
-                        <span class="spikepulse-controls-info__icon spikepulse-controls-info__icon--gravity">🔄</span>
-                        Ctrl: Cambiar gravedad
-                    </li>
-                </ul>
-            </div>
+    <div id="startScreen" class="screen">
+        <h1 class="title">SPIKEPULSE</h1>
+        <p class="subtitle">Simple Working Version</p>
+        
+        <button id="startBtn" class="btn btn--primary">COMENZAR</button>
+        <button id="recordsBtn" class="btn">RÉCORDS</button>
+        <button id="configBtn" class="btn">CONFIG</button>
+    </div>
+
+    <!-- Pantalla de récords -->
+    <div id="recordsScreen" class="screen hidden">
+        <h2 class="title" style="font-size: 2rem;">RÉCORDS</h2>
+        <div style="margin: 2rem 0;">
+            <p style="margin: 1rem 0;">Mejor Distancia: <span id="bestDistance">0</span>m</p>
+            <p style="margin: 1rem 0;">Partidas: <span id="gamesPlayed">0</span></p>
         </div>
+        <button id="backFromRecords" class="btn">VOLVER</button>
+    </div>
+
+    <!-- Pantalla de configuración -->
+    <div id="configScreen" class="screen hidden">
+        <h2 class="title" style="font-size: 2rem;">CONFIG</h2>
+        <div style="margin: 2rem 0;">
+            <label style="display: block; margin: 1rem 0;">
+                <input type="checkbox" id="showFPS" style="margin-right: 0.5rem;">
+                Mostrar FPS
+            </label>
+            <label style="display: block; margin: 1rem 0;">
+                <input type="checkbox" id="particles" checked style="margin-right: 0.5rem;">
+                Partículas
+            </label>
+        </div>
+        <button id="backFromConfig" class="btn">VOLVER</button>
     </div>
 
     <!-- Pantalla de Game Over -->
-    <div id="gameOverScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--game-over hidden" role="dialog" aria-labelledby="game-over-title">
-        <div class="spikepulse-screen-content spikepulse-screen-content--game-over">
-            <h2 id="game-over-title" class="spikepulse-screen-title spikepulse-screen-title--game-over">¡PERDISTE!</h2>
-            <p id="finalScore" class="spikepulse-screen-score">Distancia: 0m</p>
-            <button id="restartBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
-                REINTENTAR MISIÓN
-            </button>
+    <div id="gameOverScreen" class="screen hidden">
+        <h2 class="title" style="font-size: 2rem;">GAME OVER</h2>
+        <p class="subtitle">Distancia: <span id="finalDistance">0</span>m</p>
+        <button id="restartBtn" class="btn btn--primary">REINTENTAR</button>
+        <button id="menuBtn" class="btn">MENÚ</button>
+    </div>
+
+    <!-- Área de juego -->
+    <div id="gameArea" class="game-area hidden">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+    </div>
+
+    <!-- HUD -->
+    <div id="gameHUD" class="hud hidden">
+        <div class="hud-item">
+            <div class="hud-label">Distancia</div>
+            <div id="distanceDisplay">0m</div>
+        </div>
+        <div class="hud-item">
+            <div class="hud-label">Saltos</div>
+            <div id="jumpsDisplay">2</div>
+        </div>
+        <div class="hud-item">
+            <div class="hud-label">Dash</div>
+            <div id="dashDisplay">✓</div>
+        </div>
+        <div class="hud-item">
+            <div class="hud-label">Gravedad</div>
+            <div id="gravityDisplay">↓</div>
         </div>
     </div>
 
-    <!-- Pantalla de Puntuaciones Altas -->
-    <div id="highScoresScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--high-scores hidden" role="dialog" aria-labelledby="high-scores-title">
-        <div class="spikepulse-screen-content spikepulse-screen-content--high-scores">
-            <h2 id="high-scores-title" class="spikepulse-screen-title">🏆 RÉCORDS</h2>
-            <div id="highScoresList" class="spikepulse-high-scores-list">
-                <p class="spikepulse-loading-text">Cargando récords...</p>
-            </div>
-            <div class="spikepulse-player-stats">
-                <h3>Estadísticas Personales</h3>
-                <div id="playerStatsContent" class="spikepulse-stats-grid">
-                    <!-- Las estadísticas se cargarán aquí -->
-                </div>
-            </div>
-            <button id="backToMenuBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
-                VOLVER AL MENÚ
-            </button>
-        </div>
+    <!-- Controles -->
+    <div id="gameControls" class="controls hidden">
+        <button id="pauseBtn" class="control-btn">PAUSA</button>
+        <button id="fullscreenBtn" class="control-btn">⛶</button>
     </div>
 
-    <!-- Pantalla de Configuración -->
-    <div id="settingsScreen" class="spikepulse-screen-overlay spikepulse-screen-overlay--settings hidden" role="dialog" aria-labelledby="settings-title">
-        <div class="spikepulse-screen-content spikepulse-screen-content--settings">
-            <h2 id="settings-title" class="spikepulse-screen-title">⚙️ CONFIGURACIÓN</h2>
+    <!-- Instrucciones -->
+    <div id="instructions" class="instructions hidden">
+        ESPACIO: Saltar | A/D: Mover | SHIFT: Dash | CTRL: Gravedad
+    </div>
+
+    <script>
+        // Estado del juego
+        const game = {
+            canvas: null,
+            ctx: null,
+            running: false,
+            paused: false,
             
-            <div class="spikepulse-settings-container">
-                <!-- Pestañas de configuración -->
-                <div class="spikepulse-settings-tabs">
-                    <button class="spikepulse-settings-tab spikepulse-settings-tab--active" data-tab="audio">
-                        🔊 Audio
-                    </button>
-                    <button class="spikepulse-settings-tab" data-tab="graphics">
-                        🎨 Gráficos
-                    </button>
-                    <button class="spikepulse-settings-tab" data-tab="controls">
-                        🎮 Controles
-                    </button>
-                    <button class="spikepulse-settings-tab" data-tab="accessibility">
-                        ♿ Accesibilidad
-                    </button>
-                </div>
+            // Jugador
+            player: {
+                x: 100,
+                y: 300,
+                width: 30,
+                height: 30,
+                velY: 0,
+                velX: 0,
+                onGround: false,
+                jumpsLeft: 2,
+                dashAvailable: true,
+                gravityInverted: false
+            },
+            
+            // Mundo
+            world: {
+                gravity: 0.5,
+                groundY: 370,
+                ceilingY: 0,
+                speed: 2
+            },
+            
+            // Obstáculos
+            obstacles: [],
+            
+            // Stats
+            stats: {
+                distance: 0,
+                startTime: 0
+            },
+            
+            // Input
+            keys: {},
+            
+            // Config
+            config: {
+                showFPS: false,
+                particles: true
+            }
+        };
 
-                <!-- Contenido de las pestañas -->
-                <div class="spikepulse-settings-content">
+        // Inicialización
+        function init() {
+            game.canvas = document.getElementById('gameCanvas');
+            game.ctx = game.canvas.getContext('2d');
+            
+            // Event listeners
+            setupEventListeners();
+            
+            console.log('✅ Juego inicializado correctamente');
+        }
+
+        function setupEventListeners() {
+            // Botones de navegación
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('recordsBtn').addEventListener('click', () => showScreen('recordsScreen'));
+            document.getElementById('configBtn').addEventListener('click', () => showScreen('configScreen'));
+            document.getElementById('backFromRecords').addEventListener('click', () => showScreen('startScreen'));
+            document.getElementById('backFromConfig').addEventListener('click', () => showScreen('startScreen'));
+            document.getElementById('restartBtn').addEventListener('click', startGame);
+            document.getElementById('menuBtn').addEventListener('click', () => showScreen('startScreen'));
+            
+            // Controles del juego
+            document.getElementById('pauseBtn').addEventListener('click', togglePause);
+            document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+            
+            // Teclado
+            document.addEventListener('keydown', (e) => {
+                game.keys[e.code] = true;
+                
+                // Controles específicos
+                if (e.code === 'Space' && game.running) {
+                    e.preventDefault();
+                    jump();
+                }
+                if (e.code === 'ShiftLeft' && game.running) {
+                    dash();
+                }
+                if (e.code === 'ControlLeft' && game.running) {
+                    toggleGravity();
+                }
+                if (e.code === 'Escape') {
+                    if (game.running) togglePause();
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                game.keys[e.code] = false;
+            });
+            
+            // Click para saltar
+            game.canvas.addEventListener('click', () => {
+                if (game.running) jump();
+            });
+        }
+
+        function showScreen(screenId) {
+            // Ocultar todas las pantallas
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            
+            // Ocultar elementos del juego
+            document.getElementById('gameArea').classList.add('hidden');
+            document.getElementById('gameHUD').classList.add('hidden');
+            document.getElementById('gameControls').classList.add('hidden');
+            document.getElementById('instructions').classList.add('hidden');
+            
+            // Mostrar pantalla solicitada
+            document.getElementById(screenId).classList.remove('hidden');
+            
+            // Parar el juego si está corriendo
+            if (game.running) {
+                game.running = false;
+            }
+        }
+
+        function startGame() {
+            console.log('🎮 Iniciando juego...');
+            
+            // Ocultar pantallas
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            
+            // Mostrar elementos del juego
+            document.getElementById('gameArea').classList.remove('hidden');
+            document.getElementById('gameHUD').classList.remove('hidden');
+            document.getElementById('gameControls').classList.remove('hidden');
+            document.getElementById('instructions').classList.remove('hidden');
+            
+            // Resetear juego
+            resetGame();
+            
+            // Iniciar loop
+            game.running = true;
+            game.paused = false;
+            game.stats.startTime = Date.now();
+            
+            gameLoop();
+        }
+
+        function resetGame() {
+            // Resetear jugador
+            game.player.x = 100;
+            game.player.y = 300;
+            game.player.velY = 0;
+            game.player.velX = 0;
+            game.player.onGround = false;
+            game.player.jumpsLeft = 2;
+            game.player.dashAvailable = true;
+            game.player.gravityInverted = false;
+            
+            // Resetear obstáculos
+            game.obstacles = [];
+            
+            // Resetear stats
+            game.stats.distance = 0;
+            
+            // Crear obstáculos iniciales
+            createObstacle(400);
+            createObstacle(600);
+            createObstacle(800);
+        }
+
+        function gameLoop() {
+            if (!game.running) return;
+            
+            if (!game.paused) {
+                update();
+            }
+            render();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            // Actualizar jugador
+            updatePlayer();
+            
+            // Actualizar obstáculos
+            updateObstacles();
+            
+            // Actualizar stats
+            game.stats.distance += game.world.speed * 0.1;
+            
+            // Actualizar HUD
+            updateHUD();
+            
+            // Verificar colisiones
+            checkCollisions();
+        }
+
+        function updatePlayer() {
+            const player = game.player;
+            
+            // Movimiento horizontal
+            if (game.keys['KeyA'] || game.keys['ArrowLeft']) {
+                player.velX = Math.max(player.velX - 0.5, -5);
+            } else if (game.keys['KeyD'] || game.keys['ArrowRight']) {
+                player.velX = Math.min(player.velX + 0.5, 5);
+            } else {
+                player.velX *= 0.8; // Fricción
+            }
+            
+            // Gravedad
+            const gravity = player.gravityInverted ? -game.world.gravity : game.world.gravity;
+            player.velY += gravity;
+            
+            // Aplicar velocidad
+            player.x += player.velX;
+            player.y += player.velY;
+            
+            // Límites del mundo
+            if (player.x < 0) player.x = 0;
+            if (player.x > game.canvas.width - player.width) {
+                player.x = game.canvas.width - player.width;
+            }
+            
+            // Suelo y techo
+            if (!player.gravityInverted) {
+                if (player.y > game.world.groundY - player.height) {
+                    player.y = game.world.groundY - player.height;
+                    player.velY = 0;
+                    player.onGround = true;
+                    player.jumpsLeft = 2;
+                    player.dashAvailable = true;
+                }
+            } else {
+                if (player.y < game.world.ceilingY) {
+                    player.y = game.world.ceilingY;
+                    player.velY = 0;
+                    player.onGround = true;
+                    player.jumpsLeft = 2;
+                    player.dashAvailable = true;
+                }
+            }
+        }
+
+        function updateObstacles() {
+            // Mover obstáculos
+            game.obstacles.forEach(obstacle => {
+                obstacle.x -= game.world.speed;
+            });
+            
+            // Remover obstáculos fuera de pantalla
+            game.obstacles = game.obstacles.filter(obstacle => obstacle.x > -obstacle.width);
+            
+            // Crear nuevos obstáculos
+            const lastObstacle = game.obstacles[game.obstacles.length - 1];
+            if (!lastObstacle || lastObstacle.x < game.canvas.width - 200) {
+                createObstacle(game.canvas.width + Math.random() * 200);
+            }
+        }
+
+        function createObstacle(x) {
+            const height = 40 + Math.random() * 60;
+            game.obstacles.push({
+                x: x,
+                y: game.world.groundY - height,
+                width: 20,
+                height: height
+            });
+        }
+
+        function checkCollisions() {
+            const player = game.player;
+            
+            game.obstacles.forEach(obstacle => {
+                if (player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y) {
                     
-                    <!-- Pestaña Audio -->
-                    <div id="audioSettings" class="spikepulse-settings-panel spikepulse-settings-panel--active">
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="soundEnabled" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Efectos de Sonido</span>
-                            </label>
-                        </div>
-                        
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <span class="spikepulse-setting-text">Volumen de Efectos</span>
-                                <input type="range" id="soundVolume" class="spikepulse-setting-slider" min="0" max="100" value="70">
-                                <span class="spikepulse-setting-value" id="soundVolumeValue">70%</span>
-                            </label>
-                        </div>
+                    // Colisión detectada
+                    gameOver();
+                }
+            });
+        }
 
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="musicEnabled" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Música de Fondo</span>
-                            </label>
-                        </div>
-                        
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <span class="spikepulse-setting-text">Volumen de Música</span>
-                                <input type="range" id="musicVolume" class="spikepulse-setting-slider" min="0" max="100" value="50">
-                                <span class="spikepulse-setting-value" id="musicVolumeValue">50%</span>
-                            </label>
-                        </div>
+        function render() {
+            const ctx = game.ctx;
+            
+            // Limpiar canvas
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, game.canvas.width, game.canvas.height);
+            
+            // Dibujar grid sutil
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < game.canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, game.canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < game.canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(game.canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Dibujar suelo
+            ctx.fillStyle = '#404040';
+            ctx.fillRect(0, game.world.groundY, game.canvas.width, game.canvas.height - game.world.groundY);
+            
+            // Dibujar jugador
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(game.player.x, game.player.y, game.player.width, game.player.height);
+            
+            // Dibujar obstáculos
+            ctx.fillStyle = '#808080';
+            game.obstacles.forEach(obstacle => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+            
+            // Efectos de dash
+            if (!game.player.dashAvailable) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(game.player.x - 5, game.player.y - 5, game.player.width + 10, game.player.height + 10);
+            }
+        }
 
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="vibrationEnabled" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Vibración (Móvil)</span>
-                            </label>
-                        </div>
-                    </div>
+        function jump() {
+            if (game.player.jumpsLeft > 0) {
+                const jumpForce = game.player.gravityInverted ? 12 : -12;
+                game.player.velY = jumpForce;
+                game.player.jumpsLeft--;
+                game.player.onGround = false;
+                
+                updateHUD();
+            }
+        }
 
-                    <!-- Pestaña Gráficos -->
-                    <div id="graphicsSettings" class="spikepulse-settings-panel">
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <span class="spikepulse-setting-text">Calidad Gráfica</span>
-                                <select id="graphicsQuality" class="spikepulse-setting-select">
-                                    <option value="low">Baja</option>
-                                    <option value="medium">Media</option>
-                                    <option value="high">Alta</option>
-                                </select>
-                            </label>
-                        </div>
+        function dash() {
+            if (game.player.dashAvailable) {
+                game.player.velX = game.keys['KeyA'] || game.keys['ArrowLeft'] ? -10 : 10;
+                game.player.dashAvailable = false;
+                
+                updateHUD();
+            }
+        }
 
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="showFPS" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Mostrar FPS</span>
-                            </label>
-                        </div>
+        function toggleGravity() {
+            game.player.gravityInverted = !game.player.gravityInverted;
+            game.player.velY = 0; // Reset velocidad vertical
+            
+            updateHUD();
+        }
 
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="enableParticles" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Efectos de Partículas</span>
-                            </label>
-                        </div>
+        function updateHUD() {
+            document.getElementById('distanceDisplay').textContent = Math.floor(game.stats.distance) + 'm';
+            document.getElementById('jumpsDisplay').textContent = game.player.jumpsLeft;
+            document.getElementById('dashDisplay').textContent = game.player.dashAvailable ? '✓' : '✗';
+            document.getElementById('gravityDisplay').textContent = game.player.gravityInverted ? '↑' : '↓';
+        }
 
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="enableScreenShake" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Vibración de Pantalla</span>
-                            </label>
-                        </div>
+        function togglePause() {
+            game.paused = !game.paused;
+            document.getElementById('pauseBtn').textContent = game.paused ? 'REANUDAR' : 'PAUSA';
+        }
 
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <span class="spikepulse-setting-text">Velocidad de Animación</span>
-                                <input type="range" id="animationSpeed" class="spikepulse-setting-slider" min="50" max="200" value="100">
-                                <span class="spikepulse-setting-value" id="animationSpeedValue">100%</span>
-                            </label>
-                        </div>
-                    </div>
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
 
-                    <!-- Pestaña Controles -->
-                    <div id="controlsSettings" class="spikepulse-settings-panel">
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <span class="spikepulse-setting-text">Sensibilidad Táctil</span>
-                                <input type="range" id="touchSensitivity" class="spikepulse-setting-slider" min="50" max="200" value="100">
-                                <span class="spikepulse-setting-value" id="touchSensitivityValue">100%</span>
-                            </label>
-                        </div>
+        function gameOver() {
+            game.running = false;
+            
+            // Actualizar récords
+            const currentDistance = Math.floor(game.stats.distance);
+            const bestDistance = parseInt(localStorage.getItem('bestDistance') || '0');
+            
+            if (currentDistance > bestDistance) {
+                localStorage.setItem('bestDistance', currentDistance.toString());
+                document.getElementById('bestDistance').textContent = currentDistance;
+            }
+            
+            const gamesPlayed = parseInt(localStorage.getItem('gamesPlayed') || '0') + 1;
+            localStorage.setItem('gamesPlayed', gamesPlayed.toString());
+            document.getElementById('gamesPlayed').textContent = gamesPlayed;
+            
+            // Mostrar pantalla de game over
+            document.getElementById('finalDistance').textContent = currentDistance;
+            showScreen('gameOverScreen');
+        }
 
-                        <div class="spikepulse-setting-group">
-                            <h4 class="spikepulse-setting-subtitle">Controles de Teclado</h4>
-                            <div class="spikepulse-controls-grid">
-                                <div class="spikepulse-control-item">
-                                    <span class="spikepulse-control-action">Saltar:</span>
-                                    <span class="spikepulse-control-keys">Espacio, ↑, W</span>
-                                </div>
-                                <div class="spikepulse-control-item">
-                                    <span class="spikepulse-control-action">Dash:</span>
-                                    <span class="spikepulse-control-keys">Shift</span>
-                                </div>
-                                <div class="spikepulse-control-item">
-                                    <span class="spikepulse-control-action">Gravedad:</span>
-                                    <span class="spikepulse-control-keys">Ctrl</span>
-                                </div>
-                                <div class="spikepulse-control-item">
-                                    <span class="spikepulse-control-action">Mover:</span>
-                                    <span class="spikepulse-control-keys">← → A D</span>
-                                </div>
-                                <div class="spikepulse-control-item">
-                                    <span class="spikepulse-control-action">Pausa:</span>
-                                    <span class="spikepulse-control-keys">Escape</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="spikepulse-setting-group">
-                            <h4 class="spikepulse-setting-subtitle">Controles Móviles</h4>
-                            <p class="spikepulse-setting-description">
-                                Los controles móviles aparecen automáticamente en dispositivos táctiles.
-                                Puedes tocar la pantalla para saltar o usar los botones en pantalla.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Pestaña Accesibilidad -->
-                    <div id="accessibilitySettings" class="spikepulse-settings-panel">
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="highContrast" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Alto Contraste</span>
-                            </label>
-                        </div>
-
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="reducedMotion" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Movimiento Reducido</span>
-                            </label>
-                        </div>
-
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <span class="spikepulse-setting-text">Tamaño de Fuente</span>
-                                <select id="fontSize" class="spikepulse-setting-select">
-                                    <option value="small">Pequeña</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="large">Grande</option>
-                                </select>
-                            </label>
-                        </div>
-
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <span class="spikepulse-setting-text">Soporte para Daltonismo</span>
-                                <select id="colorBlindSupport" class="spikepulse-setting-select">
-                                    <option value="none">Ninguno</option>
-                                    <option value="protanopia">Protanopia (Rojo-Verde)</option>
-                                    <option value="deuteranopia">Deuteranopia (Verde-Rojo)</option>
-                                    <option value="tritanopia">Tritanopia (Azul-Amarillo)</option>
-                                </select>
-                            </label>
-                        </div>
-
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="screenReaderSupport" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Soporte para Lector de Pantalla</span>
-                            </label>
-                        </div>
-
-                        <div class="spikepulse-setting-group">
-                            <label class="spikepulse-setting-label">
-                                <input type="checkbox" id="showHints" class="spikepulse-setting-checkbox">
-                                <span class="spikepulse-setting-text">Mostrar Consejos</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botones de acción -->
-            <div class="spikepulse-settings-actions">
-                <button id="resetSettingsBtn" class="spikepulse-screen-button spikepulse-screen-button--danger">
-                    RESTABLECER
-                </button>
-                <button id="backToMenuFromSettingsBtn" class="spikepulse-screen-button spikepulse-screen-button--secondary">
-                    VOLVER AL MENÚ
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- HUD del juego -->
-    <div id="gameHUD" class="spikepulse-hud hidden" role="complementary" aria-label="Estadísticas del juego">
-        <div class="spikepulse-hud__container">
-            <div class="spikepulse-hud__stat">
-                <div class="spikepulse-hud__label spikepulse-hud__label--distance">DISTANCIA</div>
-                <div id="distanceCounter" class="spikepulse-hud__value spikepulse-hud__value--distance" aria-live="polite">0m</div>
-            </div>
-            <div class="spikepulse-hud__separator"></div>
-            <div class="spikepulse-hud__stat">
-                <div class="spikepulse-hud__label spikepulse-hud__label--jumps">SALTOS</div>
-                <div id="jumpsCounter" class="spikepulse-hud__value spikepulse-hud__value--jumps">2</div>
-            </div>
-            <div class="spikepulse-hud__separator"></div>
-            <div class="spikepulse-hud__stat">
-                <div class="spikepulse-hud__label spikepulse-hud__label--dash">DASH</div>
-                <div id="dashStatus" class="spikepulse-hud__value spikepulse-hud__value--dash spikepulse-hud__value--dash-available">✓</div>
-            </div>
-            <div class="spikepulse-hud__separator"></div>
-            <div class="spikepulse-hud__stat">
-                <div class="spikepulse-hud__label spikepulse-hud__label--gravity">GRAVEDAD</div>
-                <div id="gravityStatus" class="spikepulse-hud__value spikepulse-hud__value--gravity">↓</div>
-            </div>
-            <div class="spikepulse-hud__separator"></div>
-            <div class="spikepulse-hud__stat">
-                <div class="spikepulse-hud__label spikepulse-hud__label--velocity">VELOCIDAD</div>
-                <div id="velocityStatus" class="spikepulse-hud__value spikepulse-hud__value--velocity spikepulse-hud__value--velocity-low">0</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Botón de pausa -->
-    <div id="pauseContainer" class="spikepulse-pause-container hidden">
-        <button id="pauseBtn" class="spikepulse-pause-btn" aria-label="Pausar juego">
-            PAUSA
-        </button>
-    </div>
-
-    <!-- Canvas del juego -->
-    <main class="spikepulse-main" role="main">
-        <section class="spikepulse-game-container" aria-label="Área de juego">
-            <canvas id="gameCanvas" 
-                    class="spikepulse-canvas hidden" 
-                    width="800" 
-                    height="400"
-                    aria-label="Canvas del juego Spikepulse"
-                    role="img">
-                Tu navegador no soporta canvas. Por favor actualiza tu navegador.
-            </canvas>
-        </section>
-    </main>
-
-    <!-- Controles móviles -->
-    <nav id="mobileControls" class="spikepulse-mobile-controls hidden" role="navigation" aria-label="Controles del juego">
-        <!-- Controles de movimiento -->
-        <div class="spikepulse-control-group spikepulse-control-group--movement">
-            <button id="leftBtn" class="spikepulse-control-btn spikepulse-control-btn--movement" aria-label="Mover izquierda">
-                <span class="spikepulse-control-btn__icon">←</span>
-            </button>
-            <button id="rightBtn" class="spikepulse-control-btn spikepulse-control-btn--movement" aria-label="Mover derecha">
-                <span class="spikepulse-control-btn__icon">→</span>
-            </button>
-        </div>
-
-        <!-- Controles de acción -->
-        <div class="spikepulse-control-group spikepulse-control-group--actions">
-            <button id="jumpBtn" class="spikepulse-control-btn spikepulse-control-btn--jump" aria-label="Saltar">
-                <span class="spikepulse-control-btn__text">SALTO</span>
-            </button>
-            <button id="dashBtn" class="spikepulse-control-btn spikepulse-control-btn--dash" aria-label="Hacer dash">
-                <span class="spikepulse-control-btn__text">DASH</span>
-            </button>
-            <button id="gravityBtn" class="spikepulse-control-btn spikepulse-control-btn--gravity" aria-label="Cambiar gravedad">
-                <span class="spikepulse-control-btn__text">GRAV</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Scripts modulares -->
-    <script type="module" src="game.js"></script>
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            
+            // Cargar récords
+            document.getElementById('bestDistance').textContent = localStorage.getItem('bestDistance') || '0';
+            document.getElementById('gamesPlayed').textContent = localStorage.getItem('gamesPlayed') || '0';
+            
+            console.log('✅ Spikepulse Simple cargado correctamente');
+        });
+    </script>
 </body>
-
 </html>

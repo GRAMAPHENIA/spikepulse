@@ -1,0 +1,312 @@
+/**
+ * Spikepulse - Tema Noir
+ * Paleta monocromática cinematográfica con preparación para transición a colores
+ */
+
+/* ===== VARIABLES NOIR BASE ===== */
+:root {
+    /* Colores base noir */
+    --sp-noir-black: #000000;
+    --sp-noir-darkGray: #1a1a1a;
+    --sp-noir-mediumGray: #333333;
+    --sp-noir-lightGray: #666666;
+    --sp-noir-white: #ffffff;
+    
+    /* Transparencias noir */
+    --sp-noir-black-alpha-10: rgba(0, 0, 0, 0.1);
+    --sp-noir-black-alpha-20: rgba(0, 0, 0, 0.2);
+    --sp-noir-black-alpha-30: rgba(0, 0, 0, 0.3);
+    --sp-noir-black-alpha-50: rgba(0, 0, 0, 0.5);
+    --sp-noir-black-alpha-70: rgba(0, 0, 0, 0.7);
+    --sp-noir-black-alpha-90: rgba(0, 0, 0, 0.9);
+    
+    --sp-noir-white-alpha-10: rgba(255, 255, 255, 0.1);
+    --sp-noir-white-alpha-20: rgba(255, 255, 255, 0.2);
+    --sp-noir-white-alpha-30: rgba(255, 255, 255, 0.3);
+    --sp-noir-white-alpha-50: rgba(255, 255, 255, 0.5);
+    --sp-noir-white-alpha-70: rgba(255, 255, 255, 0.7);
+    --sp-noir-white-alpha-90: rgba(255, 255, 255, 0.9);
+    
+    /* Highlights cinematográficos */
+    --sp-noir-highlight-subtle: rgba(255, 255, 255, 0.05);
+    --sp-noir-highlight-soft: rgba(255, 255, 255, 0.1);
+    --sp-noir-highlight-medium: rgba(255, 255, 255, 0.15);
+    --sp-noir-highlight-strong: rgba(255, 255, 255, 0.25);
+    --sp-noir-highlight-intense: rgba(255, 255, 255, 0.4);
+    
+    /* Sombras dramáticas */
+    --sp-noir-shadow-soft: rgba(0, 0, 0, 0.2);
+    --sp-noir-shadow-medium: rgba(0, 0, 0, 0.4);
+    --sp-noir-shadow-strong: rgba(0, 0, 0, 0.6);
+    --sp-noir-shadow-dramatic: rgba(0, 0, 0, 0.8);
+    --sp-noir-shadow-intense: rgba(0, 0, 0, 0.95);
+    
+    /* Gradientes noir */
+    --sp-noir-gradient-vertical: linear-gradient(to bottom, var(--sp-noir-black), var(--sp-noir-darkGray));
+    --sp-noir-gradient-horizontal: linear-gradient(to right, var(--sp-noir-black), var(--sp-noir-darkGray));
+    --sp-noir-gradient-radial: radial-gradient(circle, var(--sp-noir-darkGray), var(--sp-noir-black));
+    --sp-noir-gradient-dramatic: linear-gradient(135deg, var(--sp-noir-black) 0%, var(--sp-noir-darkGray) 50%, var(--sp-noir-black) 100%);
+    
+    /* Efectos de iluminación */
+    --sp-noir-rim-light: 0 0 20px var(--sp-noir-white-alpha-30);
+    --sp-noir-key-light: 0 0 40px var(--sp-noir-white-alpha-20);
+    --sp-noir-fill-light: 0 0 60px var(--sp-noir-white-alpha-10);
+    --sp-noir-back-light: inset 0 0 20px var(--sp-noir-white-alpha-10);
+}
+
+/* ===== APLICACIÓN DEL TEMA NOIR ===== */
+.spikepulse-noir-theme {
+    /* Colores principales remapeados a noir */
+    --sp-primary: var(--sp-noir-white);
+    --sp-secondary: var(--sp-noir-lightGray);
+    --sp-accent: var(--sp-noir-mediumGray);
+    
+    /* Fondos noir */
+    --sp-bg-primary: var(--sp-noir-black);
+    --sp-bg-secondary: var(--sp-noir-darkGray);
+    --sp-bg-tertiary: var(--sp-noir-mediumGray);
+    --sp-bg-quaternary: var(--sp-noir-lightGray);
+    
+    /* Textos noir */
+    --sp-text-primary: var(--sp-noir-white);
+    --sp-text-secondary: var(--sp-noir-lightGray);
+    --sp-text-tertiary: var(--sp-noir-mediumGray);
+    --sp-text-muted: var(--sp-noir-mediumGray);
+    
+    /* Efectos de glow convertidos a highlights sutiles */
+    --sp-glow-primary: var(--sp-noir-rim-light);
+    --sp-glow-secondary: var(--sp-noir-key-light);
+    --sp-glow-accent: var(--sp-noir-fill-light);
+    --sp-glow-danger: var(--sp-noir-rim-light);
+    --sp-glow-success: var(--sp-noir-key-light);
+    
+    /* Colores específicos del juego en noir */
+    --sp-player-color: var(--sp-noir-white);
+    --sp-player-glow: var(--sp-noir-rim-light);
+    --sp-player-dash: var(--sp-noir-lightGray);
+    --sp-player-gravity: var(--sp-noir-mediumGray);
+    
+    --sp-obstacle-color: var(--sp-noir-darkGray);
+    --sp-obstacle-glow: var(--sp-noir-shadow-medium);
+    
+    --sp-ground-color: var(--sp-noir-darkGray);
+    --sp-ground-accent: var(--sp-noir-mediumGray);
+    
+    /* Transparencias remapeadas */
+    --sp-overlay-light: var(--sp-noir-black-alpha-30);
+    --sp-overlay-medium: var(--sp-noir-black-alpha-50);
+    --sp-overlay-heavy: var(--sp-noir-black-alpha-90);
+    
+    --sp-glass-bg: var(--sp-noir-black-alpha-70);
+    --sp-glass-border: var(--sp-noir-white-alpha-10);
+    --sp-glass-highlight: var(--sp-noir-white-alpha-10);
+    
+    /* Estados interactivos noir */
+    --sp-hover-overlay: var(--sp-noir-white-alpha-10);
+    --sp-active-overlay: var(--sp-noir-white-alpha-20);
+    --sp-focus-color: var(--sp-noir-white);
+    --sp-disabled-overlay: var(--sp-noir-black-alpha-50);
+    
+    /* Gradientes noir */
+    --sp-gradient-primary: var(--sp-noir-gradient-vertical);
+    --sp-gradient-secondary: var(--sp-noir-gradient-horizontal);
+    --sp-gradient-accent: var(--sp-noir-gradient-radial);
+    --sp-gradient-dark: var(--sp-noir-gradient-dramatic);
+    --sp-gradient-bg: var(--sp-noir-gradient-dramatic);
+    
+    /* Sombras noir */
+    --sp-shadow-sm: 0 1px 3px var(--sp-noir-shadow-soft);
+    --sp-shadow-md: 0 4px 6px var(--sp-noir-shadow-medium);
+    --sp-shadow-lg: 0 10px 15px var(--sp-noir-shadow-strong);
+    --sp-shadow-xl: 0 20px 25px var(--sp-noir-shadow-dramatic);
+    
+    --sp-shadow-glow-primary: var(--sp-shadow-lg), var(--sp-noir-rim-light);
+    --sp-shadow-glow-secondary: var(--sp-shadow-lg), var(--sp-noir-key-light);
+    --sp-shadow-glow-accent: var(--sp-shadow-lg), var(--sp-noir-fill-light);
+}
+
+/* ===== EFECTOS DINÁMICOS NOIR ===== */
+.spikepulse-noir-enhanced {
+    /* Efectos mejorados durante el gameplay */
+    --sp-noir-rim-light: 0 0 30px var(--sp-noir-white-alpha-40);
+    --sp-noir-key-light: 0 0 50px var(--sp-noir-white-alpha-30);
+    
+    /* Contraste aumentado */
+    filter: contrast(1.1) brightness(1.05);
+}
+
+.spikepulse-noir-dramatic {
+    /* Efectos dramáticos para game over */
+    --sp-noir-shadow-dramatic: rgba(0, 0, 0, 0.95);
+    --sp-noir-highlight-intense: rgba(255, 255, 255, 0.6);
+    
+    /* Viñeta dramática */
+    background: radial-gradient(circle at center, transparent 30%, var(--sp-noir-black-alpha-70) 100%);
+    
+    /* Contraste dramático */
+    filter: contrast(1.3) brightness(0.8);
+}
+
+/* ===== ANIMACIONES NOIR ===== */
+@keyframes noir-pulse {
+    0%, 100% {
+        box-shadow: var(--sp-noir-rim-light);
+        opacity: 1;
+    }
+    50% {
+        box-shadow: var(--sp-noir-key-light);
+        opacity: 0.9;
+    }
+}
+
+@keyframes noir-glow {
+    0%, 100% {
+        filter: brightness(1) contrast(1);
+    }
+    50% {
+        filter: brightness(1.1) contrast(1.1);
+    }
+}
+
+@keyframes noir-fade-in {
+    from {
+        opacity: 0;
+        filter: brightness(0.5);
+    }
+    to {
+        opacity: 1;
+        filter: brightness(1);
+    }
+}
+
+@keyframes noir-dramatic-entrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+        filter: brightness(0.3) contrast(2);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+        filter: brightness(1.2) contrast(1.5);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1) contrast(1.1);
+    }
+}
+
+/* ===== CLASES UTILITARIAS NOIR ===== */
+.sp-noir-pulse {
+    animation: noir-pulse 2s ease-in-out infinite;
+}
+
+.sp-noir-glow {
+    animation: noir-glow 3s ease-in-out infinite;
+}
+
+.sp-noir-fade-in {
+    animation: noir-fade-in 0.8s ease-out;
+}
+
+.sp-noir-dramatic {
+    animation: noir-dramatic-entrance 1.2s ease-out;
+}
+
+/* Efectos de texto noir */
+.sp-noir-text-shadow {
+    text-shadow: 
+        0 0 10px var(--sp-noir-white-alpha-30),
+        0 0 20px var(--sp-noir-white-alpha-20),
+        0 0 30px var(--sp-noir-white-alpha-10);
+}
+
+.sp-noir-text-outline {
+    text-shadow: 
+        -1px -1px 0 var(--sp-noir-black),
+        1px -1px 0 var(--sp-noir-black),
+        -1px 1px 0 var(--sp-noir-black),
+        1px 1px 0 var(--sp-noir-black);
+}
+
+/* Efectos de borde noir */
+.sp-noir-border-glow {
+    border: 1px solid var(--sp-noir-white-alpha-20);
+    box-shadow: 
+        0 0 10px var(--sp-noir-white-alpha-10),
+        inset 0 0 10px var(--sp-noir-white-alpha-05);
+}
+
+.sp-noir-border-dramatic {
+    border: 2px solid var(--sp-noir-white-alpha-30);
+    box-shadow: 
+        0 0 20px var(--sp-noir-white-alpha-20),
+        inset 0 0 20px var(--sp-noir-black-alpha-30);
+}
+
+/* ===== PREPARACIÓN PARA TRANSICIÓN A COLORES ===== */
+.spikepulse-color-transition-ready {
+    /* Variables que serán reemplazadas cuando se active el color */
+    --sp-future-primary: var(--sp-noir-white);
+    --sp-future-secondary: var(--sp-noir-lightGray);
+    --sp-future-accent: var(--sp-noir-mediumGray);
+    
+    /* Transiciones suaves preparadas */
+    transition: 
+        color 0.8s ease-in-out,
+        background-color 0.8s ease-in-out,
+        border-color 0.8s ease-in-out,
+        box-shadow 0.8s ease-in-out,
+        filter 0.8s ease-in-out;
+}
+
+/* ===== MEDIA QUERIES NOIR ===== */
+@media (prefers-contrast: high) {
+    .spikepulse-noir-theme {
+        /* Alto contraste en noir */
+        --sp-noir-white: #ffffff;
+        --sp-noir-black: #000000;
+        --sp-noir-lightGray: #cccccc;
+        --sp-noir-mediumGray: #666666;
+        --sp-noir-darkGray: #333333;
+        
+        /* Eliminar efectos sutiles en alto contraste */
+        --sp-noir-rim-light: none;
+        --sp-noir-key-light: none;
+        --sp-noir-fill-light: none;
+        --sp-noir-back-light: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spikepulse-noir-theme * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ===== RESPONSIVE NOIR ===== */
+@media (max-width: 768px) {
+    .spikepulse-noir-theme {
+        /* Efectos más sutiles en móvil para rendimiento */
+        --sp-noir-rim-light: 0 0 10px var(--sp-noir-white-alpha-20);
+        --sp-noir-key-light: 0 0 20px var(--sp-noir-white-alpha-15);
+        --sp-noir-fill-light: 0 0 30px var(--sp-noir-white-alpha-10);
+    }
+}
+
+@media (max-width: 480px) {
+    .spikepulse-noir-theme {
+        /* Efectos mínimos en pantallas muy pequeñas */
+        --sp-noir-rim-light: none;
+        --sp-noir-key-light: none;
+        --sp-noir-fill-light: none;
+        
+        /* Simplificar gradientes */
+        --sp-gradient-bg: var(--sp-noir-black);
+        --sp-gradient-primary: var(--sp-noir-darkGray);
+        --sp-gradient-secondary: var(--sp-noir-mediumGray);
+    }
+}

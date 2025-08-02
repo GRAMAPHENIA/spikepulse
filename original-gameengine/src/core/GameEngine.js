@@ -15,6 +15,7 @@ import { ErrorLogger } from '../utils/ErrorLogger.js';
 import { ErrorRecovery } from '../utils/ErrorRecovery.js';
 import { DebugManager } from '../modules/debug/DebugManager.js';
 import { DeveloperConsole } from '../modules/debug/DeveloperConsole.js';
+import { FullscreenIntegrator } from '../modules/renderer/FullscreenIntegrator.js';
 
 export class GameEngine {
     /**
@@ -61,6 +62,9 @@ export class GameEngine {
         // Sistemas de debugging
         this.debugManager = null;
         this.developerConsole = null;
+
+        // Sistema fullscreen
+        this.fullscreenSystem = null;
 
         this.init();
     }
@@ -238,7 +242,7 @@ export class GameEngine {
                     ModuleClass = (await import('../modules/world/World.js')).World;
                     break;
                 case 'input':
-                    ModuleClass = (await import('../modules/input/InputManager.js')).InputManager;
+                    ModuleClass = (await import('../modules/InputManager.js')).InputManager;
                     break;
                 default:
                     throw new Error(`Módulo desconocido: ${moduleName}`);
@@ -685,7 +689,71 @@ export class GameEngine {
         this.context.imageSmoothingEnabled = true;
         this.context.imageSmoothingQuality = 'high';
 
+        // Inicializar sistema fullscreen
+        this.setupFullscreenSystem();
+
         console.log('[GameEngine] Canvas configurado');
+    }
+
+    /**
+     * Configurar sistema fullscreen
+     * @private
+     */
+    setupFullscreenSystem() {
+        try {
+            // Configuración para el sistema fullscreen
+            const fullscreenConfig = {
+                canvas: {
+                    minWidth: this.config.canvas?.minWidth || 320,
+                    minHeight: this.config.canvas?.minHeight || 240,
+                    maxWidth: this.config.canvas?.maxWidth || 3840,
+                    maxHeight: this.config.canvas?.maxHeight || 2160,
+                    aspectRatio: this.config.canvas?.aspectRatio || (this.config.canvas?.width / this.config.canvas?.height) || 16/9,
+                    maintainAspectRatio: this.config.canvas?.maintainAspectRatio !== false,
+                    backgroundColor: this.config.canvas?.backgroundColor || '#0F0F0F'
+                },
+                responsive: {
+                    breakpoints: {
+                        mobile: 768,
+                        tablet: 1024,
+                        desktop: 1440
+                    },
+                    touchOptimization: this.config.mobile?.enableTouchControls !== false,
+                    adaptiveUI: true,
+                    orientationHandling: true,
+                    densityOptimization: true
+                },
+                performance: {
+                    targetFPS: this.config.performance?.targetFPS || 60,
+                    minFPS: 30,
+                    adaptiveQuality: this.config.performance?.adaptiveQuality !== false,
+                    memoryThreshold: this.config.performance?.memoryThreshold || 0.8,
+                    gcThreshold: this.config.performance?.gcThreshold || 0.9,
+                    enableDynamicQuality: this.config.performance?.enableOptimizations !== false,
+                    enableMemoryManagement: this.config.performance?.enableObjectPooling !== false,
+                    enableCulling: this.config.renderer?.cullingEnabled !== false
+                }
+            };
+
+            // Crear sistema fullscreen
+            this.fullscreenSystem = new FullscreenIntegrator(
+                this.canvas,
+                fullscreenConfig,
+                this.eventBus
+            );
+
+            // Hacer disponible globalmente para debugging
+            if (typeof window !== 'undefined') {
+                window.spikepulseFullscreen = this.fullscreenSystem;
+            }
+
+            console.log('[GameEngine] Sistema fullscreen inicializado');
+
+        } catch (error) {
+            console.error('[GameEngine] Error inicializando sistema fullscreen:', error);
+            // Continuar sin sistema fullscreen si hay error
+            this.fullscreenSystem = null;
+        }
     }
 
     /**
@@ -888,25 +956,30 @@ export class GameEngine {
                 { Renderer },
                 { Player },
                 { World },
-                { InputManager }
+                { InputManager },
+                { NoirThemeManager }
             ] = await Promise.all([
                 import('../modules/renderer/Renderer.js'),
                 import('../modules/player/Player.js'),
                 import('../modules/world/World.js'),
-                import('../modules/input/InputManager.js')
+                import('../modules/InputManager.js'),
+                import('../modules/themes/NoirThemeManager.js')
             ]);
 
             // Crear instancias de los módulos con configuración
             const renderer = new Renderer(this.config, this.eventBus);
             const player = new Player(this.config, this.eventBus);
             const world = new World(this.config, this.eventBus);
-            const inputManager = new InputManager(this.config, this.eventBus);
+            const inputManager = new InputManager(this.eventBus, this.config);
+            const noirThemeManager = new NoirThemeManager(this.config, this.eventBus);
 
             // Registrar módulos en orden de prioridad
+            // NoirThemeManager tiene la prioridad más alta para aplicar tema antes que otros módulos
+            this.registerModule({ name: 'noirTheme', instance: noirThemeManager, priority: 110 });
             this.registerModule({ name: 'renderer', instance: renderer, priority: 100 });
+            this.registerModule({ name: 'input', instance: inputManager, priority: 90 });
             this.registerModule({ name: 'world', instance: world, priority: 80 });
             this.registerModule({ name: 'player', instance: player, priority: 70 });
-            this.registerModule({ name: 'input', instance: inputManager, priority: 90 });
 
             console.log('[GameEngine] Módulos cargados exitosamente');
             this.eventBus.emit('engine:modules-loaded');
@@ -935,6 +1008,18 @@ export class GameEngine {
 
         // Eventos de estado
         this.eventBus.on('state:change', this.handleStateChange, this);
+
+        // Eventos del sistema noir
+        this.eventBus.on('theme:noir-initialized', this.handleNoirThemeInitialized.bind(this));
+        this.eventBus.on('theme:noir-applied', this.handleNoirThemeApplied.bind(this));
+        this.eventBus.on('theme:error', this.handleNoirThemeError.bind(this));
+
+        // Eventos del sistema fullscreen
+        this.eventBus.on('fullscreen-system:initialized', this.handleFullscreenSystemInitialized.bind(this));
+        this.eventBus.on('engine:fullscreen-changed', this.handleFullscreenChanged.bind(this));
+        this.eventBus.on('engine:canvas-resized', this.handleCanvasResized.bind(this));
+        this.eventBus.on('engine:device-changed', this.handleDeviceChanged.bind(this));
+        this.eventBus.on('engine:quality-changed', this.handleQualityChanged.bind(this));
     }
 
     /**
@@ -1420,6 +1505,152 @@ export class GameEngine {
     }
 
     /**
+     * Manejar inicialización del tema noir
+     * @param {Object} data - Datos del evento
+     * @private
+     */
+    handleNoirThemeInitialized(data) {
+        console.log('[GameEngine] Tema noir inicializado:', data);
+        
+        // Notificar a otros módulos que el tema noir está listo
+        this.eventBus.emit('engine:noir-theme-ready', {
+            theme: data.theme,
+            palette: data.palette
+        });
+        
+        // Aplicar configuraciones específicas del motor para el tema noir
+        this.applyNoirEngineSettings();
+    }
+
+    /**
+     * Manejar aplicación del tema noir
+     * @param {Object} data - Datos del evento
+     * @private
+     */
+    handleNoirThemeApplied(data) {
+        console.log('[GameEngine] Tema noir aplicado:', data);
+        
+        // Validar que la aplicación del tema fue exitosa
+        this.validateNoirThemeApplication();
+        
+        // Emitir evento de confirmación
+        this.eventBus.emit('engine:noir-theme-applied', {
+            success: true,
+            theme: data.theme
+        });
+    }
+
+    /**
+     * Manejar errores del tema noir
+     * @param {Object} data - Datos del error
+     * @private
+     */
+    handleNoirThemeError(data) {
+        console.error('[GameEngine] Error en tema noir:', data);
+        
+        // Registrar error en el sistema de manejo de errores
+        if (this.errorHandler) {
+            this.errorHandler.handleError(data.error, {
+                context: `noir-theme-${data.context}`,
+                module: 'noirTheme',
+                recoverable: true
+            });
+        }
+        
+        // Intentar recuperación automática si está disponible
+        if (this.errorRecovery) {
+            this.errorRecovery.attemptRecovery('THEME_ERROR', data.error, {
+                context: 'noir_theme_error',
+                moduleName: 'noirTheme'
+            });
+        }
+    }
+
+    /**
+     * Aplicar configuraciones específicas del motor para el tema noir
+     * @private
+     */
+    applyNoirEngineSettings() {
+        try {
+            console.log('[GameEngine] Aplicando configuraciones noir del motor...');
+            
+            // Configurar canvas para efectos noir
+            if (this.canvas && this.context) {
+                // Configurar propiedades del contexto para mejor renderizado noir
+                this.context.imageSmoothingEnabled = true;
+                this.context.imageSmoothingQuality = 'high';
+                
+                // Aplicar clase noir al canvas
+                this.canvas.classList.add('spikepulse-noir-canvas');
+            }
+            
+            // Configurar optimizaciones de rendimiento para efectos noir
+            if (this.renderOptimizer) {
+                this.renderOptimizer.enableNoirOptimizations();
+            }
+            
+            // Configurar sistemas de monitoreo para efectos noir
+            if (this.performanceMonitor) {
+                this.performanceMonitor.enableNoirMetrics();
+            }
+            
+            console.log('[GameEngine] Configuraciones noir del motor aplicadas');
+            
+        } catch (error) {
+            console.error('[GameEngine] Error aplicando configuraciones noir:', error);
+        }
+    }
+
+    /**
+     * Validar que la aplicación del tema noir fue exitosa
+     * @private
+     */
+    validateNoirThemeApplication() {
+        try {
+            // Verificar que las variables CSS noir están aplicadas
+            const root = document.documentElement;
+            const computedStyle = getComputedStyle(root);
+            
+            const noirVariables = [
+                '--sp-noir-black',
+                '--sp-noir-white',
+                '--sp-noir-darkGray',
+                '--sp-noir-mediumGray',
+                '--sp-noir-lightGray'
+            ];
+            
+            let appliedCount = 0;
+            noirVariables.forEach(variable => {
+                const value = computedStyle.getPropertyValue(variable);
+                if (value && value.trim() !== '') {
+                    appliedCount++;
+                }
+            });
+            
+            const isValid = appliedCount >= noirVariables.length * 0.8; // Al menos 80% aplicadas
+            
+            if (isValid) {
+                console.log(`[GameEngine] Validación noir exitosa: ${appliedCount}/${noirVariables.length} variables aplicadas`);
+            } else {
+                console.warn(`[GameEngine] Validación noir fallida: solo ${appliedCount}/${noirVariables.length} variables aplicadas`);
+                
+                // Emitir evento de advertencia
+                this.eventBus.emit('engine:noir-validation-warning', {
+                    appliedCount,
+                    totalCount: noirVariables.length,
+                    percentage: (appliedCount / noirVariables.length) * 100
+                });
+            }
+            
+            return isValid;
+            
+        } catch (error) {
+            console.error('[GameEngine] Error validando aplicación noir:', error);
+            return false;
+        }
+    }
+
+    /**
      * Obtener estadísticas del motor
      * @returns {Object} Estadísticas del motor
      */
@@ -1652,6 +1883,8 @@ export class GameEngine {
      */
     enterMenuState() {
         this.eventBus.emit('ui:show-menu');
+        // Emitir evento específico para efectos noir dinámicos
+        this.eventBus.emit('state:change', { from: null, to: 'menu' });
         console.log('[GameEngine] Estado: Menú');
     }
 
@@ -1680,6 +1913,8 @@ export class GameEngine {
         console.log('[GameEngine] Entrando al estado de juego');
         this.eventBus.emit('ui:show-game');
         this.eventBus.emit('game:start');
+        // Emitir evento específico para efectos noir dinámicos
+        this.eventBus.emit('state:change', { from: null, to: 'playing' });
         console.log('[GameEngine] Estado: Jugando');
     }
 
@@ -1735,6 +1970,8 @@ export class GameEngine {
     enterGameOverState() {
         this.eventBus.emit('ui:show-game-over');
         this.eventBus.emit('game:game-over');
+        // Emitir evento específico para efectos noir dinámicos
+        this.eventBus.emit('state:change', { from: null, to: 'gameOver' });
         console.log('[GameEngine] Estado: Game Over');
     }
 
@@ -1807,6 +2044,152 @@ export class GameEngine {
     }
 
     /**
+     * Manejar inicialización del sistema fullscreen
+     * @param {Object} data - Datos del evento
+     * @private
+     */
+    handleFullscreenSystemInitialized(data) {
+        console.log('[GameEngine] Sistema fullscreen inicializado:', data);
+        
+        // Emitir evento para notificar que el sistema está listo
+        this.eventBus.emit('engine:fullscreen-ready', {
+            state: data.state,
+            components: data.components
+        });
+    }
+
+    /**
+     * Manejar cambio de fullscreen
+     * @param {Object} data - Datos del evento
+     * @private
+     */
+    handleFullscreenChanged(data) {
+        console.log(`[GameEngine] Fullscreen ${data.isFullscreen ? 'activado' : 'desactivado'}`);
+        
+        // Notificar a módulos sobre el cambio
+        this.modules.forEach((moduleWrapper, name) => {
+            if (moduleWrapper.instance && typeof moduleWrapper.instance.onFullscreenChanged === 'function') {
+                try {
+                    moduleWrapper.instance.onFullscreenChanged(data.isFullscreen, data.dimensions);
+                } catch (error) {
+                    console.error(`[GameEngine] Error notificando fullscreen a módulo ${name}:`, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * Manejar redimensionamiento de canvas
+     * @param {Object} data - Datos del evento
+     * @private
+     */
+    handleCanvasResized(data) {
+        console.log(`[GameEngine] Canvas redimensionado: ${data.dimensions.width}x${data.dimensions.height}`);
+        
+        // Actualizar referencias del canvas
+        if (this.canvas) {
+            this.canvas.width = data.dimensions.width;
+            this.canvas.height = data.dimensions.height;
+            
+            // Reconfigurar contexto
+            if (this.context) {
+                this.context.imageSmoothingEnabled = true;
+                this.context.imageSmoothingQuality = 'high';
+            }
+        }
+        
+        // Notificar a módulos sobre el redimensionamiento
+        this.modules.forEach((moduleWrapper, name) => {
+            if (moduleWrapper.instance && typeof moduleWrapper.instance.onCanvasResized === 'function') {
+                try {
+                    moduleWrapper.instance.onCanvasResized(data.dimensions, data.viewport);
+                } catch (error) {
+                    console.error(`[GameEngine] Error notificando resize a módulo ${name}:`, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * Manejar cambio de dispositivo
+     * @param {Object} data - Datos del evento
+     * @private
+     */
+    handleDeviceChanged(data) {
+        console.log(`[GameEngine] Dispositivo cambiado: ${data.oldType} → ${data.newType}`);
+        
+        // Notificar a módulos sobre el cambio de dispositivo
+        this.modules.forEach((moduleWrapper, name) => {
+            if (moduleWrapper.instance && typeof moduleWrapper.instance.onDeviceChanged === 'function') {
+                try {
+                    moduleWrapper.instance.onDeviceChanged(data.newType, data.deviceState);
+                } catch (error) {
+                    console.error(`[GameEngine] Error notificando cambio de dispositivo a módulo ${name}:`, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * Manejar cambio de calidad
+     * @param {Object} data - Datos del evento
+     * @private
+     */
+    handleQualityChanged(data) {
+        console.log(`[GameEngine] Calidad cambiada: ${data.oldQuality} → ${data.newQuality}`);
+        
+        // Notificar a módulos sobre el cambio de calidad
+        this.modules.forEach((moduleWrapper, name) => {
+            if (moduleWrapper.instance && typeof moduleWrapper.instance.onQualityChanged === 'function') {
+                try {
+                    moduleWrapper.instance.onQualityChanged(data.newQuality, data.config);
+                } catch (error) {
+                    console.error(`[GameEngine] Error notificando cambio de calidad a módulo ${name}:`, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * Alternar modo fullscreen
+     * @returns {Promise<boolean>} True si se cambió correctamente
+     */
+    async toggleFullscreen() {
+        if (this.fullscreenSystem) {
+            return await this.fullscreenSystem.toggleFullscreen();
+        } else {
+            console.warn('[GameEngine] Sistema fullscreen no disponible');
+            return false;
+        }
+    }
+
+    /**
+     * Habilitar/deshabilitar fullscreen
+     * @param {boolean} enabled - Si habilitar fullscreen
+     * @returns {Promise<boolean>} True si se cambió correctamente
+     */
+    async setFullscreen(enabled) {
+        if (this.fullscreenSystem) {
+            return await this.fullscreenSystem.setFullscreen(enabled);
+        } else {
+            console.warn('[GameEngine] Sistema fullscreen no disponible');
+            return false;
+        }
+    }
+
+    /**
+     * Obtener estado del sistema fullscreen
+     * @returns {Object|null} Estado del sistema fullscreen
+     */
+    getFullscreenState() {
+        if (this.fullscreenSystem) {
+            return this.fullscreenSystem.getSystemState();
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Limpiar recursos del motor
      */
     destroy() {
@@ -1836,6 +2219,12 @@ export class GameEngine {
         if (this.performanceDisplay) {
             this.performanceDisplay.destroy();
             this.performanceDisplay = null;
+        }
+
+        // Limpiar sistema fullscreen
+        if (this.fullscreenSystem) {
+            this.fullscreenSystem.destroy();
+            this.fullscreenSystem = null;
         }
 
         // Limpiar módulos en orden inverso

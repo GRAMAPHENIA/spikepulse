@@ -8,6 +8,7 @@
 @import url('./tokens/typography.css');
 @import url('./tokens/spacing.css');
 @import url('./tokens/animations.css');
+@import url('./themes/noir.css');
 @import url('./components/game-canvas.css');
 @import url('./components/ui-screens.css');
 @import url('./components/hud.css');

@@ -16,7 +16,7 @@ class SpikepulseApp {
         this.configManager = null;
         this.gameEngine = null;
         this.isInitialized = false;
-        
+
         console.log('[Spikepulse] Inicializando aplicación...');
     }
 
@@ -27,40 +27,40 @@ class SpikepulseApp {
         try {
             // Verificar soporte del navegador
             this.checkBrowserSupport();
-            
+
             // Inicializar sistema de configuración
             this.setupConfiguration();
-            
+
             // Configurar el canvas
             this.setupCanvas();
-            
+
             // Inicializar el motor del juego
             this.gameEngine = new GameEngine(this.configManager.export());
-            
+
             // Configurar listeners de eventos del juego
             this.setupGameEventListeners();
-            
+
             // Configurar listeners de eventos globales
             this.setupGlobalEventListeners();
-            
+
             // Configurar interfaz de usuario
             this.setupUI();
-            
+
             // Marcar como inicializado
             this.isInitialized = true;
-            
+
             console.log('[Spikepulse] Aplicación inicializada correctamente');
-            
+
             // Inicializar UI
             this.initializeUI();
-            
+
             // Iniciar el motor del juego
             console.log('[Spikepulse] Iniciando GameEngine...');
             this.gameEngine.start();
-            
+
             // Emitir evento de inicialización completa
             this.gameEngine.eventBus.emit('app:initialized');
-            
+
         } catch (error) {
             console.error('[Spikepulse] Error durante la inicialización:', error);
             this.showError(SPANISH_TEXT.LOADING_ERROR);
@@ -74,12 +74,12 @@ class SpikepulseApp {
     setupConfiguration() {
         // Obtener configuración base
         let baseConfig = getFullConfig();
-        
+
         // Aplicar overrides según el entorno
-        const isDevelopment = window.location.hostname === 'localhost' || 
-                             window.location.hostname === '127.0.0.1' ||
-                             window.location.search.includes('debug=true');
-        
+        const isDevelopment = window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1' ||
+            window.location.search.includes('debug=true');
+
         if (isDevelopment) {
             baseConfig = { ...baseConfig, ...DEV_CONFIG_OVERRIDES };
             console.log('[Spikepulse] Modo desarrollo detectado');
@@ -89,7 +89,7 @@ class SpikepulseApp {
 
         // Crear ConfigManager
         this.configManager = new ConfigManager(baseConfig);
-        
+
         // Registrar validadores
         Object.entries(CONFIG_VALIDATORS).forEach(([path, validator]) => {
             this.configManager.addValidator(path, validator);
@@ -117,14 +117,14 @@ class SpikepulseApp {
      */
     initializeUI() {
         console.log('[Spikepulse] Inicializando UI...');
-        
+
         // Asegurar que la pantalla de menú esté visible
         this.showMenuScreen();
-        
+
         // Asegurar que otras pantallas estén ocultas
         this.hideGameScreen();
         this.hideGameOverScreen();
-        
+
         console.log('[Spikepulse] UI inicializada');
     }
 
@@ -193,7 +193,7 @@ class SpikepulseApp {
         console.log('[Spikepulse] Mostrando pantalla de menú');
         const menuScreen = document.getElementById('startScreen');
         if (menuScreen) {
-            menuScreen.classList.remove('spikepulse-hidden');
+            menuScreen.classList.remove('hidden');
             console.log('[Spikepulse] Pantalla de menú mostrada');
         } else {
             console.error('[Spikepulse] Pantalla de menú no encontrada');
@@ -208,7 +208,7 @@ class SpikepulseApp {
         console.log('[Spikepulse] Ocultando pantalla de menú');
         const menuScreen = document.getElementById('startScreen');
         if (menuScreen) {
-            menuScreen.classList.add('spikepulse-hidden');
+            menuScreen.classList.add('hidden');
             console.log('[Spikepulse] Pantalla de menú ocultada');
         } else {
             console.error('[Spikepulse] Pantalla de menú no encontrada');
@@ -223,23 +223,23 @@ class SpikepulseApp {
         console.log('[Spikepulse] Mostrando pantalla de juego');
         const canvas = document.getElementById('gameCanvas');
         const hud = document.getElementById('gameHUD');
-        const pauseContainer = document.getElementById('pauseContainer');
+        const gameControlsContainer = document.getElementById('gameControlsContainer');
         const mobileControls = document.getElementById('mobileControls');
 
         if (canvas) {
-            canvas.classList.remove('spikepulse-hidden');
+            canvas.classList.remove('hidden');
             console.log('[Spikepulse] Canvas mostrado');
         }
         if (hud) {
-            hud.classList.remove('spikepulse-hidden');
+            hud.classList.remove('hidden');
             console.log('[Spikepulse] HUD mostrado');
         }
-        if (pauseContainer) {
-            pauseContainer.classList.remove('spikepulse-hidden');
-            console.log('[Spikepulse] Botón de pausa mostrado');
+        if (gameControlsContainer) {
+            gameControlsContainer.classList.remove('hidden');
+            console.log('[Spikepulse] Controles del juego mostrados');
         }
         if (mobileControls && window.innerWidth <= 768) {
-            mobileControls.classList.remove('spikepulse-hidden');
+            mobileControls.classList.remove('hidden');
             console.log('[Spikepulse] Controles móviles mostrados');
         }
     }
@@ -251,20 +251,20 @@ class SpikepulseApp {
     hideGameScreen() {
         const canvas = document.getElementById('gameCanvas');
         const hud = document.getElementById('gameHUD');
-        const pauseContainer = document.getElementById('pauseContainer');
+        const gameControlsContainer = document.getElementById('gameControlsContainer');
         const mobileControls = document.getElementById('mobileControls');
 
         if (canvas) {
-            canvas.classList.add('spikepulse-hidden');
+            canvas.classList.add('hidden');
         }
         if (hud) {
-            hud.classList.add('spikepulse-hidden');
+            hud.classList.add('hidden');
         }
-        if (pauseContainer) {
-            pauseContainer.classList.add('spikepulse-hidden');
+        if (gameControlsContainer) {
+            gameControlsContainer.classList.add('hidden');
         }
         if (mobileControls) {
-            mobileControls.classList.add('spikepulse-hidden');
+            mobileControls.classList.add('hidden');
         }
     }
 
@@ -298,7 +298,7 @@ class SpikepulseApp {
     showGameOverScreen() {
         const gameOverScreen = document.getElementById('gameOverScreen');
         if (gameOverScreen) {
-            gameOverScreen.classList.remove('spikepulse-hidden');
+            gameOverScreen.classList.remove('hidden');
         }
     }
 
@@ -309,7 +309,59 @@ class SpikepulseApp {
     hideGameOverScreen() {
         const gameOverScreen = document.getElementById('gameOverScreen');
         if (gameOverScreen) {
-            gameOverScreen.classList.add('spikepulse-hidden');
+            gameOverScreen.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Mostrar pantalla de récords
+     * @private
+     */
+    showHighScoresScreen() {
+        console.log('[Spikepulse] Mostrando pantalla de récords');
+        const highScoresScreen = document.getElementById('highScoresScreen');
+        if (highScoresScreen) {
+            highScoresScreen.classList.remove('hidden');
+            console.log('[Spikepulse] Pantalla de récords mostrada');
+        } else {
+            console.error('[Spikepulse] Pantalla de récords no encontrada');
+        }
+    }
+
+    /**
+     * Ocultar pantalla de récords
+     * @private
+     */
+    hideHighScoresScreen() {
+        const highScoresScreen = document.getElementById('highScoresScreen');
+        if (highScoresScreen) {
+            highScoresScreen.classList.add('hidden');
+        }
+    }
+
+    /**
+     * Mostrar pantalla de configuración
+     * @private
+     */
+    showSettingsScreen() {
+        console.log('[Spikepulse] Mostrando pantalla de configuración');
+        const settingsScreen = document.getElementById('settingsScreen');
+        if (settingsScreen) {
+            settingsScreen.classList.remove('hidden');
+            console.log('[Spikepulse] Pantalla de configuración mostrada');
+        } else {
+            console.error('[Spikepulse] Pantalla de configuración no encontrada');
+        }
+    }
+
+    /**
+     * Ocultar pantalla de configuración
+     * @private
+     */
+    hideSettingsScreen() {
+        const settingsScreen = document.getElementById('settingsScreen');
+        if (settingsScreen) {
+            settingsScreen.classList.add('hidden');
         }
     }
 
@@ -350,7 +402,7 @@ class SpikepulseApp {
         // Configurar dimensiones desde configuración
         const canvasWidth = this.configManager.get('canvas.width');
         const canvasHeight = this.configManager.get('canvas.height');
-        
+
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
 
@@ -379,20 +431,20 @@ class SpikepulseApp {
         const resizeCanvas = () => {
             const canvasWidth = this.configManager.get('canvas.width');
             const canvasHeight = this.configManager.get('canvas.height');
-            
+
             const containerWidth = Math.min(window.innerWidth - 40, canvasWidth);
             const containerHeight = Math.min(window.innerHeight - 100, canvasHeight);
-            
+
             // Mantener aspect ratio
             const aspectRatio = canvasWidth / canvasHeight;
             let newWidth = containerWidth;
             let newHeight = containerWidth / aspectRatio;
-            
+
             if (newHeight > containerHeight) {
                 newHeight = containerHeight;
                 newWidth = containerHeight * aspectRatio;
             }
-            
+
             canvas.style.width = newWidth + 'px';
             canvas.style.height = newHeight + 'px';
             canvas.style.display = 'block';
@@ -412,7 +464,7 @@ class SpikepulseApp {
      */
     announceStateChange(state) {
         let message = '';
-        
+
         switch (state) {
             case 'menu':
                 message = 'Menú principal';
@@ -427,7 +479,7 @@ class SpikepulseApp {
                 message = SPANISH_TEXT.GAME_OVER;
                 break;
         }
-        
+
         if (message) {
             this.announceToScreenReader(message);
         }
@@ -484,10 +536,10 @@ class SpikepulseApp {
     setupUI() {
         // Actualizar textos con la configuración de idioma
         this.updateUITexts();
-        
+
         // Configurar botones principales
         this.setupMainButtons();
-        
+
         // Configurar accesibilidad
         this.setupAccessibility();
 
@@ -538,11 +590,9 @@ class SpikepulseApp {
         if (startButton) {
             startButton.addEventListener('click', () => {
                 console.log('[Spikepulse] Botón inicio presionado');
-                // Cambiar directamente las pantallas por ahora
                 this.hideMenuScreen();
                 this.showGameScreen();
-                
-                // También intentar cambiar el estado del motor si está disponible
+
                 if (this.gameEngine) {
                     console.log('[Spikepulse] GameEngine disponible, cambiando a estado playing');
                     this.gameEngine.stateManager.changeState('playing');
@@ -554,16 +604,54 @@ class SpikepulseApp {
             console.error('[Spikepulse] Botón de inicio no encontrado');
         }
 
+        // Botón de récords
+        const highScoresButton = document.getElementById('highScoresBtn');
+        if (highScoresButton) {
+            highScoresButton.addEventListener('click', () => {
+                console.log('[Spikepulse] Botón récords presionado');
+                this.hideMenuScreen();
+                this.showHighScoresScreen();
+            });
+        }
+
+        // Botón de configuración
+        const settingsButton = document.getElementById('settingsBtn');
+        if (settingsButton) {
+            settingsButton.addEventListener('click', () => {
+                console.log('[Spikepulse] Botón configuración presionado');
+                this.hideMenuScreen();
+                this.showSettingsScreen();
+            });
+        }
+
+        // Botón volver al menú desde récords
+        const backToMenuButton = document.getElementById('backToMenuBtn');
+        if (backToMenuButton) {
+            backToMenuButton.addEventListener('click', () => {
+                console.log('[Spikepulse] Volver al menú desde récords');
+                this.hideHighScoresScreen();
+                this.showMenuScreen();
+            });
+        }
+
+        // Botón volver al menú desde configuración
+        const backToMenuFromSettingsButton = document.getElementById('backToMenuFromSettingsBtn');
+        if (backToMenuFromSettingsButton) {
+            backToMenuFromSettingsButton.addEventListener('click', () => {
+                console.log('[Spikepulse] Volver al menú desde configuración');
+                this.hideSettingsScreen();
+                this.showMenuScreen();
+            });
+        }
+
         // Botón de reinicio
         const restartButton = document.getElementById('restartBtn');
         if (restartButton) {
             restartButton.addEventListener('click', () => {
                 console.log('[Spikepulse] Botón reinicio presionado');
-                // Cambiar directamente las pantallas
                 this.hideGameOverScreen();
                 this.showGameScreen();
-                
-                // También intentar cambiar el estado del motor si está disponible
+
                 if (this.gameEngine) {
                     this.gameEngine.stateManager.changeState('playing');
                 }
@@ -575,8 +663,7 @@ class SpikepulseApp {
         if (pauseButton) {
             pauseButton.addEventListener('click', () => {
                 console.log('[Spikepulse] Botón pausa presionado');
-                
-                // Lógica simple de pausa por ahora
+
                 const pauseText = pauseButton.textContent;
                 if (pauseText === 'PAUSA') {
                     pauseButton.textContent = 'REANUDAR';
@@ -585,8 +672,7 @@ class SpikepulseApp {
                     pauseButton.textContent = 'PAUSA';
                     this.hidePauseOverlay();
                 }
-                
-                // También intentar cambiar el estado del motor si está disponible
+
                 if (this.gameEngine) {
                     const currentState = this.gameEngine.stateManager.getCurrentState();
                     if (currentState === 'playing') {
@@ -594,6 +680,34 @@ class SpikepulseApp {
                     } else if (currentState === 'paused') {
                         this.gameEngine.stateManager.changeState('playing');
                     }
+                }
+            });
+        }
+
+        // Botón de fullscreen
+        const fullscreenButton = document.getElementById('fullscreenBtn');
+        if (fullscreenButton) {
+            fullscreenButton.addEventListener('click', async () => {
+                console.log('[Spikepulse] Botón fullscreen presionado');
+
+                if (this.gameEngine) {
+                    const success = await this.gameEngine.toggleFullscreen();
+                    if (success) {
+                        const fullscreenState = this.gameEngine.getFullscreenState();
+                        if (fullscreenState && fullscreenState.fullscreenEnabled) {
+                            fullscreenButton.innerHTML = '<span class="spikepulse-control-btn__icon">⛶</span>';
+                            fullscreenButton.setAttribute('aria-label', 'Salir de pantalla completa (F11)');
+                            this.announceToScreenReader('Pantalla completa activada');
+                        } else {
+                            fullscreenButton.innerHTML = '<span class="spikepulse-control-btn__icon">⛶</span>';
+                            fullscreenButton.setAttribute('aria-label', 'Pantalla completa (F11)');
+                            this.announceToScreenReader('Pantalla completa desactivada');
+                        }
+                    } else {
+                        this.announceToScreenReader('No se pudo cambiar el modo de pantalla completa');
+                    }
+                } else {
+                    console.error('[Spikepulse] GameEngine no disponible para fullscreen');
                 }
             });
         }
@@ -610,7 +724,17 @@ class SpikepulseApp {
             if (e.code === 'Escape' && this.gameEngine) {
                 this.gameEngine.eventBus.emit('ui:toggle-pause');
             }
-            
+
+            // F11 para fullscreen
+            if (e.code === 'F11' && this.gameEngine) {
+                e.preventDefault();
+                this.gameEngine.toggleFullscreen().then(success => {
+                    if (success) {
+                        this.announceToScreenReader('Modo pantalla completa alternado');
+                    }
+                });
+            }
+
             // Enter para confirmar en menús
             if (e.code === 'Enter' || e.code === 'Space') {
                 const activeElement = document.activeElement;
@@ -643,7 +767,7 @@ class SpikepulseApp {
         this.gameEngine.eventBus.on('state:change', (data) => {
             const { to } = data;
             let message = '';
-            
+
             switch (to) {
                 case 'playing':
                     message = SPANISH_TEXT.GAME_STARTED;
@@ -655,7 +779,7 @@ class SpikepulseApp {
                     message = SPANISH_TEXT.GAME_OVER;
                     break;
             }
-            
+
             if (message) {
                 this.announceToScreenReader(message);
             }
@@ -674,9 +798,9 @@ class SpikepulseApp {
         announcement.setAttribute('aria-atomic', 'true');
         announcement.className = 'sr-only';
         announcement.textContent = message;
-        
+
         document.body.appendChild(announcement);
-        
+
         setTimeout(() => {
             if (document.body.contains(announcement)) {
                 document.body.removeChild(announcement);
@@ -710,16 +834,16 @@ class SpikepulseApp {
             box-shadow: var(--sp-shadow-xl);
         `;
         errorElement.textContent = message;
-        
+
         document.body.appendChild(errorElement);
-        
+
         // Remover después de 5 segundos
         setTimeout(() => {
             if (document.body.contains(errorElement)) {
                 document.body.removeChild(errorElement);
             }
         }, 5000);
-        
+
         // Anunciar error a lectores de pantalla
         this.announceToScreenReader(message, 'assertive');
     }
@@ -744,12 +868,12 @@ class SpikepulseApp {
             this.gameEngine.destroy();
             this.gameEngine = null;
         }
-        
+
         if (this.configManager) {
             this.configManager.destroy();
             this.configManager = null;
         }
-        
+
         this.isInitialized = false;
         console.log('[Spikepulse] Aplicación destruida');
     }
@@ -760,19 +884,19 @@ class SpikepulseApp {
  */
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('[Spikepulse] DOM cargado, inicializando aplicación...');
-    
+
     try {
         // Crear instancia de la aplicación
         window.spikepulseApp = new SpikepulseApp();
-        
+
         // Inicializar
         await window.spikepulseApp.init();
-        
+
         console.log('[Spikepulse] Aplicación lista para usar');
-        
+
     } catch (error) {
         console.error('[Spikepulse] Error fatal durante la inicialización:', error);
-        
+
         // Mostrar mensaje de error al usuario
         const errorMessage = document.createElement('div');
         errorMessage.textContent = SPANISH_TEXT.LOADING_ERROR;
