@@ -92,6 +92,9 @@
   - Implementar generador de obstáculos colgantes desde el techo
   - Crear tipos de obstáculos superiores (ceiling_spike, hanging_tech, stalactite)
   - Implementar lógica de posicionamiento desde la parte superior
+
+
+
   - Escribir tests unitarios para generación de obstáculos superiores
   - _Requirements: 3.1, 3.2_
 
