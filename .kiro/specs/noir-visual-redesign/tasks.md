@@ -98,7 +98,10 @@
   - Escribir tests unitarios para generación de obstáculos superiores
   - _Requirements: 3.1, 3.2_
 
-- [ ] 3.2 Desarrollar ObstacleCoordinator
+- [x] 3.2 Desarrollar ObstacleCoordinator
+
+
+
   - Crear coordinador para sincronización de obstáculos superiores e inferiores
   - Implementar lógica de espaciado mínimo y máximo entre obstáculos
   - Crear sistema de alineación y offset variable

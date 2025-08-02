@@ -361,7 +361,10 @@
                 minSpacing: 150,
                 maxSpacing: 300,
                 difficultyLevel: 0,
-                patternHistory: []
+                patternHistory: [],
+                gravityAwareMode: true,
+                lastGravityState: false,
+                gravityChangeCount: 0
             }
         };
 
@@ -514,6 +517,8 @@
             game.obstacleCoordinator.patternStreak = 0;
             game.obstacleCoordinator.difficultyLevel = 0;
             game.obstacleCoordinator.patternHistory = [];
+            game.obstacleCoordinator.lastGravityState = false;
+            game.obstacleCoordinator.gravityChangeCount = 0;
             
             // Resetear estado de colisión
             game.isColliding = false;
@@ -521,6 +526,7 @@
             game.gameOverSequence.timer = 0;
             game.gameOverSequence.fadeAlpha = 0;
             game.collisionEffect = null;
+            game.gravityEffect = null;
             
             // Crear obstáculos iniciales (suelo y techo)
             createObstacleSet(400);
@@ -741,17 +747,17 @@
                 // Fase inicial: patrones simples
                 availablePatterns = ['ground_only', 'ceiling_only'];
             } else if (difficulty < 0.4) {
-                // Fase temprana: introducir variedad
-                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple'];
+                // Fase temprana: introducir variedad y gravedad
+                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple', 'gravity_focused'];
             } else if (difficulty < 0.6) {
                 // Fase intermedia: patrones más complejos
-                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple', 'narrow_passage', 'staggered'];
+                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple', 'narrow_passage', 'staggered', 'gravity_focused'];
             } else if (difficulty < 0.8) {
-                // Fase avanzada: todos los patrones
-                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple', 'narrow_passage', 'staggered', 'zigzag', 'tunnel'];
+                // Fase avanzada: todos los patrones incluyendo desafíos de gravedad
+                availablePatterns = ['ground_only', 'ceiling_only', 'alternating_simple', 'narrow_passage', 'staggered', 'zigzag', 'tunnel', 'gravity_challenge'];
             } else {
                 // Fase experta: patrones complejos con mayor probabilidad
-                availablePatterns = ['narrow_passage', 'staggered', 'zigzag', 'tunnel', 'chaos', 'ground_only', 'ceiling_only'];
+                availablePatterns = ['narrow_passage', 'staggered', 'zigzag', 'tunnel', 'chaos', 'gravity_challenge', 'gravity_focused'];
             }
             
             // Evitar repetir el mismo patrón demasiadas veces
@@ -765,6 +771,12 @@
 
         function executeObstaclePattern(pattern, x) {
             const spacing = calculateDynamicSpacing();
+            const coordinator = game.obstacleCoordinator;
+            
+            // Adaptar patrón según gravedad si está habilitado
+            if (coordinator.gravityAwareMode) {
+                pattern = adaptPatternToGravity(pattern);
+            }
             
             switch (pattern) {
                 case 'ground_only':
@@ -773,6 +785,17 @@
                     
                 case 'ceiling_only':
                     createUpperObstacle(x);
+                    break;
+                    
+                case 'gravity_focused':
+                    // Patrón que favorece el lado opuesto a la gravedad actual
+                    if (game.player.gravityInverted) {
+                        createObstacle(x); // Más obstáculos del suelo cuando gravedad invertida
+                        if (Math.random() < 0.3) createUpperObstacle(x + spacing * 0.8);
+                    } else {
+                        createUpperObstacle(x); // Más obstáculos del techo cuando gravedad normal
+                        if (Math.random() < 0.3) createObstacle(x + spacing * 0.8);
+                    }
                     break;
                     
                 case 'alternating_simple':
@@ -789,6 +812,19 @@
                     // Pasillo estrecho con obstáculos arriba y abajo
                     createObstacle(x);
                     createUpperObstacle(x + 15);
+                    break;
+                    
+                case 'gravity_challenge':
+                    // Patrón que requiere cambio de gravedad
+                    if (game.player.gravityInverted) {
+                        createUpperObstacle(x);
+                        createObstacle(x + 60);
+                        createUpperObstacle(x + 120);
+                    } else {
+                        createObstacle(x);
+                        createUpperObstacle(x + 60);
+                        createObstacle(x + 120);
+                    }
                     break;
                     
                 case 'staggered':
@@ -827,6 +863,45 @@
                     }
                     break;
             }
+        }
+
+        // Adaptar patrón según el estado de gravedad
+        function adaptPatternToGravity(pattern) {
+            const coordinator = game.obstacleCoordinator;
+            const gravityInverted = game.player.gravityInverted;
+            
+            // Si el jugador ha cambiado la gravedad recientemente, crear desafíos apropiados
+            if (coordinator.gravityChangeCount > 0) {
+                
+                // Cada 3 cambios de gravedad, crear un desafío específico
+                if (coordinator.gravityChangeCount % 3 === 0 && Math.random() < 0.4) {
+                    return 'gravity_challenge';
+                }
+                
+                // Favorecer patrones que aprovechen la gravedad actual
+                if (Math.random() < 0.3) {
+                    return 'gravity_focused';
+                }
+            }
+            
+            // Adaptar patrones existentes según gravedad
+            switch (pattern) {
+                case 'ground_only':
+                    // Si gravedad invertida, ocasionalmente cambiar a ceiling_only
+                    if (gravityInverted && Math.random() < 0.4) {
+                        return 'ceiling_only';
+                    }
+                    break;
+                    
+                case 'ceiling_only':
+                    // Si gravedad normal, ocasionalmente cambiar a ground_only
+                    if (!gravityInverted && Math.random() < 0.4) {
+                        return 'ground_only';
+                    }
+                    break;
+            }
+            
+            return pattern; // Mantener patrón original si no hay adaptación
         }
 
         function calculateDynamicSpacing() {
@@ -1109,6 +1184,11 @@
                 renderCollisionEffect(ctx);
             }
             
+            // Renderizar efecto de cambio de gravedad
+            if (game.gravityEffect) {
+                renderGravityEffect(ctx);
+            }
+            
             // Renderizar hitboxes de debug (solo si está habilitado)
             if (game.config.showHitboxes) {
                 renderDebugHitboxes(ctx);
@@ -1142,10 +1222,51 @@
         }
 
         function toggleGravity() {
+            const wasInverted = game.player.gravityInverted;
             game.player.gravityInverted = !game.player.gravityInverted;
-            game.player.velY = 0; // Reset velocidad vertical
+            
+            // Transición suave de velocidad
+            game.player.velY = game.player.velY * -0.3; // Invertir y reducir velocidad
+            
+            // Actualizar contador de cambios de gravedad
+            game.obstacleCoordinator.gravityChangeCount++;
+            game.obstacleCoordinator.lastGravityState = game.player.gravityInverted;
+            
+            // Efecto visual de cambio de gravedad
+            showGravityChangeEffect();
+            
+            // Log para debug
+            console.log(`🔄 Gravedad cambiada: ${wasInverted ? '↑' : '↓'} → ${game.player.gravityInverted ? '↑' : '↓'}`);
+            console.log(`📊 Cambios de gravedad totales: ${game.obstacleCoordinator.gravityChangeCount}`);
             
             updateHUD();
+        }
+
+        // Efecto visual para cambio de gravedad
+        function showGravityChangeEffect() {
+            const player = game.player;
+            const effect = {
+                x: player.x + player.width/2,
+                y: player.y + player.height/2,
+                particles: [],
+                duration: 45
+            };
+            
+            // Crear partículas que se mueven según la nueva gravedad
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const speed = 3 + Math.random() * 2;
+                effect.particles.push({
+                    x: effect.x,
+                    y: effect.y,
+                    velX: Math.cos(angle) * speed,
+                    velY: Math.sin(angle) * speed * (game.player.gravityInverted ? -1 : 1),
+                    life: 45,
+                    size: 1 + Math.random() * 2
+                });
+            }
+            
+            game.gravityEffect = effect;
         }
 
         function updateHUD() {
@@ -1227,6 +1348,7 @@
             console.log('🎮 Estadísticas de la partida:');
             console.log('Distancia:', Math.floor(game.stats.distance) + 'm');
             console.log('Dificultad final:', (game.obstacleCoordinator.difficultyLevel * 100).toFixed(1) + '%');
+            console.log('Cambios de gravedad:', game.obstacleCoordinator.gravityChangeCount);
             console.log('Último patrón:', game.obstacleCoordinator.lastPattern);
             console.log('Historial de patrones:', game.obstacleCoordinator.patternHistory);
             console.log('🎬 Secuencia de game over completada');
@@ -1267,9 +1389,16 @@
                 coordinator.maxSpacing = Math.max(coordinator.maxSpacing - 0.2, 280);
             }
             
+            // Bonus por uso inteligente de gravedad
+            if (coordinator.gravityChangeCount > 0) {
+                const gravityBonus = Math.min(coordinator.gravityChangeCount * 2, 20);
+                coordinator.minSpacing = Math.max(coordinator.minSpacing - gravityBonus * 0.1, 100);
+                coordinator.maxSpacing = Math.max(coordinator.maxSpacing - gravityBonus * 0.1, 250);
+            }
+            
             // Mantener límites razonables
-            coordinator.minSpacing = Math.max(120, Math.min(180, coordinator.minSpacing));
-            coordinator.maxSpacing = Math.max(280, Math.min(350, coordinator.maxSpacing));
+            coordinator.minSpacing = Math.max(100, Math.min(180, coordinator.minSpacing));
+            coordinator.maxSpacing = Math.max(250, Math.min(350, coordinator.maxSpacing));
         }
 
         // Renderizar efecto de colisión mejorado
@@ -1305,6 +1434,40 @@
             effect.duration--;
             if (effect.duration <= 0) {
                 game.collisionEffect = null;
+            }
+        }
+
+        // Renderizar efecto de cambio de gravedad
+        function renderGravityEffect(ctx) {
+            const effect = game.gravityEffect;
+            if (!effect) return;
+            
+            // Actualizar y renderizar partículas
+            effect.particles.forEach(particle => {
+                // Actualizar posición
+                particle.x += particle.velX;
+                particle.y += particle.velY;
+                particle.velX *= 0.98; // Fricción ligera
+                particle.velY *= 0.98;
+                particle.life--;
+                
+                // Renderizar partícula con color según gravedad
+                if (particle.life > 0) {
+                    const alpha = particle.life / 45;
+                    const size = particle.size * alpha;
+                    
+                    // Color diferente según gravedad
+                    const color = game.player.gravityInverted ? '200, 200, 255' : '255, 200, 200';
+                    
+                    ctx.fillStyle = `rgba(${color}, ${alpha})`;
+                    ctx.fillRect(particle.x - size/2, particle.y - size/2, size, size);
+                }
+            });
+            
+            // Remover efecto cuando termine
+            effect.duration--;
+            if (effect.duration <= 0) {
+                game.gravityEffect = null;
             }
         }
 
