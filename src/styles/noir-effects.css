@@ -1,0 +1,233 @@
+/**
+ * Efectos CSS avanzados para el tema noir de Spikepulse
+ * Complementa el NoirThemeManager con efectos visuales adicionales
+ */
+
+/* Efectos de base noir */
+.spikepulse-noir-theme {
+    position: relative;
+    font-family: 'Courier New', monospace;
+}
+
+/* Viñeta cinematográfica más sutil */
+.spikepulse-noir-theme::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.7;
+}
+
+/* Efectos mejorados para gameplay */
+.spikepulse-noir-enhanced {
+    filter: contrast(120%) brightness(95%) saturate(0%);
+    transition: filter 0.5s ease;
+}
+
+.spikepulse-noir-enhanced::before {
+    opacity: 0.9;
+}
+
+/* Efectos dramáticos para game over */
+.spikepulse-noir-dramatic {
+    animation: dramaticNoirEffect 3s ease-out;
+}
+
+@keyframes dramaticNoirEffect {
+    0% { 
+        filter: contrast(100%) brightness(100%) saturate(0%);
+        transform: scale(1);
+    }
+    30% { 
+        filter: contrast(200%) brightness(60%) saturate(0%);
+        transform: scale(1.01);
+    }
+    60% { 
+        filter: contrast(160%) brightness(80%) saturate(0%);
+        transform: scale(0.99);
+    }
+    100% { 
+        filter: contrast(120%) brightness(95%) saturate(0%);
+        transform: scale(1);
+    }
+}
+
+/* Canvas con efectos noir */
+.spikepulse-noir-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: contrast(110%) brightness(98%);
+    transition: all 0.3s ease;
+}
+
+.spikepulse-noir-canvas:hover {
+    filter: contrast(115%) brightness(100%);
+}
+
+/* Botones con efectos noir cinematográficos */
+.spikepulse-noir-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.spikepulse-noir-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.spikepulse-noir-button:hover::before {
+    left: 100%;
+}
+
+/* Pantallas con efectos noir mejorados */
+.spikepulse-noir-screen {
+    backdrop-filter: blur(5px);
+    position: relative;
+}
+
+.spikepulse-noir-screen::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.02) 50%, transparent 52%);
+    pointer-events: none;
+}
+
+/* HUD con efectos noir */
+.spikepulse-noir-hud {
+    backdrop-filter: blur(8px);
+    position: relative;
+}
+
+.spikepulse-noir-hud .hud-item {
+    transition: all 0.3s ease;
+}
+
+.spikepulse-noir-hud .hud-item:hover {
+    transform: scale(1.05);
+}
+
+/* Animaciones noir */
+.noir-pulse {
+    animation: noirPulse 2s infinite ease-in-out;
+}
+
+@keyframes noirPulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.9; 
+        transform: scale(1.02);
+    }
+}
+
+.noir-glow {
+    animation: noirGlow 3s infinite ease-in-out;
+}
+
+@keyframes noirGlow {
+    0%, 100% { 
+        box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+    50% { 
+        box-shadow: 0 0 25px rgba(255,255,255,0.4);
+    }
+}
+
+/* Efectos de texto noir */
+.noir-text-dramatic {
+    animation: textDramaticPulse 4s infinite ease-in-out;
+}
+
+@keyframes textDramaticPulse {
+    0%, 100% { 
+        text-shadow: 
+            0 0 5px rgba(255,255,255,0.6),
+            0 0 10px rgba(255,255,255,0.4),
+            0 0 15px rgba(255,255,255,0.2);
+    }
+    50% { 
+        text-shadow: 
+            0 0 10px rgba(255,255,255,0.9),
+            0 0 20px rgba(255,255,255,0.6),
+            0 0 30px rgba(255,255,255,0.4);
+    }
+}
+
+/* Efectos de transición noir */
+.noir-fade-in {
+    animation: noirFadeIn 1.5s ease-out;
+}
+
+@keyframes noirFadeIn {
+    0% { 
+        opacity: 0; 
+        transform: scale(0.95) translateY(20px);
+        filter: blur(3px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* Efectos de recuperación */
+.spikepulse-noir-recovery {
+    filter: contrast(100%) brightness(100%) saturate(0%);
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+.spikepulse-noir-recovery * {
+    border-color: #808080 !important;
+    background-color: transparent !important;
+    color: #ffffff !important;
+}
+
+/* Efectos responsivos */
+@media (max-width: 768px) {
+    .spikepulse-noir-theme::before {
+        background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.4) 85%);
+    }
+    
+    .spikepulse-noir-hud {
+        backdrop-filter: blur(5px);
+    }
+}
+
+/* Efectos para reducir movimiento */
+@media (prefers-reduced-motion: reduce) {
+    .noir-pulse,
+    .noir-glow,
+    .noir-text-dramatic,
+    .noir-fade-in {
+        animation: none;
+    }
+    
+    .spikepulse-noir-button::before {
+        transition: none;
+    }
+    
+    .spikepulse-noir-dramatic {
+        animation: none;
+        filter: contrast(120%) brightness(95%) saturate(0%);
+    }
+}
