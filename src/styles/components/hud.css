@@ -1,0 +1,374 @@
+/**
+ * Estilos para el HUD (Heads-Up Display) del juego
+ */
+
+/* HUD principal */
+.sp-hud {
+    position: fixed;
+    top: var(--sp-spacing-lg);
+    left: var(--sp-spacing-lg);
+    right: var(--sp-spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: var(--sp-z-hud);
+    pointer-events: none; /* Permitir clics a través del HUD */
+}
+
+/* Estadísticas del HUD */
+.hud-stats {
+    display: flex;
+    gap: var(--sp-spacing-lg);
+    background: rgba(0, 0, 0, 0.8);
+    padding: var(--sp-spacing-md);
+    border-radius: 8px;
+    border: 1px solid var(--sp-noir-steel);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Item individual de estadística */
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-spacing-xs);
+    min-width: 60px;
+}
+
+.stat-label {
+    font-family: var(--sp-font-secondary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--sp-noir-silver);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+}
+
+.stat-value {
+    font-family: var(--sp-font-primary);
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--sp-text);
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    min-height: 1.2em; /* Evitar saltos de layout */
+}
+
+/* Colores específicos para diferentes estadísticas */
+.stat-item:nth-child(1) .stat-value {
+    /* Distancia - Dorado */
+    color: var(--sp-primary);
+    text-shadow: var(--sp-glow-primary);
+}
+
+.stat-item:nth-child(2) .stat-value {
+    /* Saltos - Blanco */
+    color: var(--sp-text);
+}
+
+.stat-item:nth-child(3) .stat-value {
+    /* Dash - Púrpura */
+    color: var(--sp-accent);
+    text-shadow: var(--sp-glow-accent);
+}
+
+.stat-item:nth-child(4) .stat-value {
+    /* Gravedad - Rojo */
+    color: var(--sp-secondary);
+    text-shadow: var(--sp-glow-secondary);
+}
+
+/* Controles del HUD */
+.hud-controls {
+    display: flex;
+    gap: var(--sp-spacing-sm);
+    pointer-events: auto; /* Permitir interacción con controles */
+}
+
+/* Estados especiales de las estadísticas */
+.stat-value--warning {
+    color: #ff9800 !important;
+    text-shadow: 0 0 15px rgba(255, 152, 0, 0.5) !important;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.stat-value--danger {
+    color: var(--sp-secondary) !important;
+    text-shadow: var(--sp-glow-secondary) !important;
+    animation: pulse 0.5s ease-in-out infinite;
+}
+
+.stat-value--success {
+    color: #4CAF50 !important;
+    text-shadow: 0 0 15px rgba(76, 175, 80, 0.5) !important;
+}
+
+/* Animaciones para cambios de valor */
+.stat-value--updated {
+    animation: statUpdate 0.3s ease-out;
+}
+
+@keyframes statUpdate {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+        text-shadow: 0 0 20px currentColor;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Indicadores especiales */
+.stat-indicator {
+    position: relative;
+}
+
+.stat-indicator::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sp-primary);
+    box-shadow: 0 0 10px var(--sp-primary);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.stat-indicator--available::after {
+    background: #4CAF50;
+    box-shadow: 0 0 10px #4CAF50;
+}
+
+.stat-indicator--cooldown::after {
+    background: var(--sp-secondary);
+    box-shadow: 0 0 10px var(--sp-secondary);
+    animation: pulse 0.5s ease-in-out infinite;
+}
+
+.stat-indicator--disabled::after {
+    background: var(--sp-noir-steel);
+    box-shadow: none;
+    animation: none;
+}
+
+/* HUD compacto para pantallas pequeñas */
+.sp-hud--compact .hud-stats {
+    gap: var(--sp-spacing-md);
+    padding: var(--sp-spacing-sm);
+}
+
+.sp-hud--compact .stat-item {
+    min-width: 50px;
+}
+
+.sp-hud--compact .stat-label {
+    font-size: 0.6rem;
+}
+
+.sp-hud--compact .stat-value {
+    font-size: 0.9rem;
+}
+
+/* HUD minimalista */
+.sp-hud--minimal .hud-stats {
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    backdrop-filter: blur(5px);
+}
+
+.sp-hud--minimal .stat-label {
+    display: none;
+}
+
+.sp-hud--minimal .stat-item {
+    min-width: 40px;
+}
+
+/* Notificaciones del HUD */
+.hud-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: var(--sp-text);
+    padding: var(--sp-spacing-lg) var(--sp-spacing-xl);
+    border-radius: 8px;
+    border: 2px solid var(--sp-primary);
+    font-family: var(--sp-font-primary);
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    z-index: calc(var(--sp-z-hud) + 10);
+    animation: notificationSlide 0.5s ease-out;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.8),
+        var(--sp-glow-primary);
+}
+
+@keyframes notificationSlide {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.hud-notification--success {
+    border-color: #4CAF50;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(76, 175, 80, 0.5);
+}
+
+.hud-notification--warning {
+    border-color: #ff9800;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(255, 152, 0, 0.5);
+}
+
+.hud-notification--danger {
+    border-color: var(--sp-secondary);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.8),
+        var(--sp-glow-secondary);
+}
+
+/* Barra de progreso en el HUD */
+.hud-progress {
+    position: fixed;
+    bottom: var(--sp-spacing-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--sp-noir-steel);
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: var(--sp-z-hud);
+}
+
+.hud-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sp-primary), var(--sp-accent));
+    border-radius: 3px;
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .sp-hud {
+        top: var(--sp-spacing-md);
+        left: var(--sp-spacing-md);
+        right: var(--sp-spacing-md);
+    }
+    
+    .hud-stats {
+        gap: var(--sp-spacing-md);
+        padding: var(--sp-spacing-sm);
+    }
+    
+    .stat-item {
+        min-width: 50px;
+    }
+    
+    .stat-label {
+        font-size: 0.6rem;
+    }
+    
+    .stat-value {
+        font-size: 0.9rem;
+    }
+    
+    .hud-notification {
+        font-size: 1rem;
+        padding: var(--sp-spacing-md) var(--sp-spacing-lg);
+        max-width: 80vw;
+    }
+    
+    .hud-progress {
+        width: 250px;
+        bottom: var(--sp-spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .hud-stats {
+        gap: var(--sp-spacing-sm);
+        padding: var(--sp-spacing-xs) var(--sp-spacing-sm);
+    }
+    
+    .stat-item {
+        min-width: 40px;
+    }
+    
+    .stat-label {
+        font-size: 0.55rem;
+    }
+    
+    .stat-value {
+        font-size: 0.8rem;
+    }
+    
+    .hud-notification {
+        font-size: 0.9rem;
+        padding: var(--sp-spacing-sm) var(--sp-spacing-md);
+    }
+    
+    .hud-progress {
+        width: 200px;
+    }
+}
+
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    .stat-value--updated,
+    .hud-notification {
+        animation: none;
+    }
+    
+    .stat-indicator::after {
+        animation: none;
+    }
+    
+    .hud-progress-fill {
+        transition: none;
+    }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+    .hud-stats {
+        background: #000000;
+        border-color: #ffffff;
+    }
+    
+    .stat-label {
+        color: #ffffff;
+    }
+    
+    .stat-value {
+        color: #ffffff;
+        text-shadow: none;
+    }
+    
+    .hud-notification {
+        background: #000000;
+        color: #ffffff;
+        border-color: #ffffff;
+        box-shadow: none;
+    }
+}

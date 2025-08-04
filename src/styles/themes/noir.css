@@ -1,0 +1,391 @@
+/**
+ * Tema Noir para Spikepulse
+ * Estética cinematográfica noir con efectos visuales mejorados
+ */
+
+/* Variables específicas del tema noir */
+:root {
+    /* Paleta noir extendida */
+    --noir-void: #000000;
+    --noir-abyss: #0a0a0a;
+    --noir-shadow: #1a1a1a;
+    --noir-charcoal: #2a2a2a;
+    --noir-steel: #404040;
+    --noir-silver: #808080;
+    --noir-platinum: #c0c0c0;
+    --noir-pearl: #e0e0e0;
+    --noir-white: #ffffff;
+    
+    /* Acentos cinematográficos */
+    --noir-gold: #ffd700;
+    --noir-amber: #ffb000;
+    --noir-crimson: #dc143c;
+    --noir-blood: #8b0000;
+    --noir-neon: #00ffff;
+    --noir-electric: #9f7aea;
+    
+    /* Efectos de iluminación */
+    --noir-glow-soft: 0 0 10px;
+    --noir-glow-medium: 0 0 20px;
+    --noir-glow-strong: 0 0 30px;
+    --noir-glow-intense: 0 0 40px;
+    
+    /* Sombras cinematográficas */
+    --noir-shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --noir-shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.5);
+    --noir-shadow-strong: 0 8px 30px rgba(0, 0, 0, 0.7);
+    --noir-shadow-dramatic: 0 12px 40px rgba(0, 0, 0, 0.9);
+}
+
+/* Aplicar tema noir al body */
+body.noir-theme {
+    background: 
+        radial-gradient(ellipse at 20% 30%, var(--noir-shadow) 0%, var(--noir-abyss) 40%, var(--noir-void) 100%),
+        linear-gradient(135deg, var(--noir-void) 0%, var(--noir-shadow) 20%, var(--noir-charcoal) 40%, var(--noir-shadow) 60%, var(--noir-void) 100%),
+        radial-gradient(circle at 80% 70%, rgba(255, 215, 0, 0.03) 0%, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* Patrón de fondo noir mejorado */
+body.noir-theme::before {
+    background:
+        /* Grid principal */
+        linear-gradient(90deg, transparent 98%, rgba(255, 255, 255, 0.02) 100%),
+        linear-gradient(0deg, transparent 98%, rgba(255, 255, 255, 0.02) 100%),
+        /* Puntos de luz */
+        radial-gradient(circle at 25% 25%, rgba(255, 215, 0, 0.05) 1px, transparent 2px),
+        radial-gradient(circle at 75% 75%, rgba(255, 215, 0, 0.03) 1px, transparent 2px),
+        /* Líneas de perspectiva */
+        linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.01) 50%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, rgba(255, 255, 255, 0.01) 50%, transparent 51%);
+    background-size: 
+        60px 60px,
+        60px 60px,
+        120px 120px,
+        180px 180px,
+        200px 200px,
+        200px 200px;
+    animation: noirGridFloat 25s linear infinite;
+}
+
+@keyframes noirGridFloat {
+    0% { 
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% { 
+        transform: translate(-60px, -60px) rotate(0.5deg);
+        opacity: 0.6;
+    }
+}
+
+/* Efectos de iluminación noir */
+.noir-glow {
+    position: relative;
+}
+
+.noir-glow::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+    z-index: -1;
+    border-radius: inherit;
+    animation: noirPulse 3s ease-in-out infinite;
+}
+
+@keyframes noirPulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.05);
+    }
+}
+
+/* Elementos con estética noir */
+.noir-element {
+    background: linear-gradient(145deg, 
+        rgba(26, 26, 26, 0.9) 0%, 
+        rgba(10, 10, 10, 0.95) 50%, 
+        rgba(0, 0, 0, 1) 100%);
+    border: 1px solid var(--noir-steel);
+    box-shadow: 
+        var(--noir-shadow-medium),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+/* Texto con efectos noir */
+.noir-text {
+    color: var(--noir-white);
+    text-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.noir-text--gold {
+    color: var(--noir-gold);
+    text-shadow: 
+        var(--noir-glow-soft) var(--noir-gold),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.noir-text--crimson {
+    color: var(--noir-crimson);
+    text-shadow: 
+        var(--noir-glow-soft) var(--noir-crimson),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.noir-text--electric {
+    color: var(--noir-electric);
+    text-shadow: 
+        var(--noir-glow-soft) var(--noir-electric),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Botones con estética noir */
+.sp-btn.noir-style {
+    background: linear-gradient(145deg,
+        rgba(64, 64, 64, 0.4) 0%,
+        rgba(26, 26, 26, 0.8) 50%,
+        rgba(0, 0, 0, 0.95) 100%);
+    border: 2px solid var(--noir-silver);
+    color: var(--noir-white);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        var(--noir-shadow-medium),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sp-btn.noir-style::before {
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.15), 
+        transparent);
+}
+
+.sp-btn.noir-style:hover {
+    background: linear-gradient(145deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(240, 240, 240, 0.95) 50%,
+        rgba(220, 220, 220, 1) 100%);
+    color: var(--noir-void);
+    border-color: var(--noir-white);
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+        var(--noir-shadow-strong),
+        0 0 20px rgba(255, 255, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Canvas con marco noir */
+.spikepulse-canvas.noir-style {
+    border: 3px solid var(--noir-steel);
+    box-shadow: 
+        var(--noir-shadow-dramatic),
+        inset 0 0 20px rgba(255, 255, 255, 0.05),
+        0 0 30px rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+    position: relative;
+}
+
+.spikepulse-canvas.noir-style::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, 
+        var(--noir-steel) 0%, 
+        var(--noir-silver) 25%, 
+        var(--noir-steel) 50%, 
+        var(--noir-silver) 75%, 
+        var(--noir-steel) 100%);
+    z-index: -1;
+    border-radius: 8px;
+    animation: noirBorderShimmer 4s linear infinite;
+}
+
+@keyframes noirBorderShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+
+/* HUD con estética noir */
+.sp-hud.noir-style .hud-stats {
+    background: linear-gradient(145deg,
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(26, 26, 26, 0.8) 50%,
+        rgba(0, 0, 0, 0.95) 100%);
+    border: 2px solid var(--noir-steel);
+    box-shadow: 
+        var(--noir-shadow-strong),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+}
+
+/* Pantallas con overlay noir */
+.sp-screen.noir-style {
+    background: 
+        radial-gradient(ellipse at center, 
+            rgba(26, 26, 26, 0.95) 0%, 
+            rgba(10, 10, 10, 0.98) 70%),
+        linear-gradient(135deg, 
+            rgba(0, 0, 0, 0.9) 0%, 
+            rgba(26, 26, 26, 0.95) 50%, 
+            rgba(0, 0, 0, 0.98) 100%);
+    backdrop-filter: blur(15px);
+}
+
+/* Efectos de partículas noir */
+.noir-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.noir-particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--noir-gold);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: noirParticleFloat 8s linear infinite;
+    box-shadow: 0 0 4px var(--noir-gold);
+}
+
+@keyframes noirParticleFloat {
+    0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.6;
+    }
+    90% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-10vh) translateX(100px);
+        opacity: 0;
+    }
+}
+
+/* Efectos de luz cinematográfica */
+.noir-spotlight {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 50%, 
+        rgba(255, 215, 0, 0.03) 0%, 
+        rgba(255, 215, 0, 0.01) 30%, 
+        transparent 60%);
+    pointer-events: none;
+    z-index: 2;
+    animation: noirSpotlightMove 20s ease-in-out infinite;
+}
+
+@keyframes noirSpotlightMove {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(10%, 5%) rotate(1deg);
+    }
+    50% {
+        transform: translate(-5%, 10%) rotate(-0.5deg);
+    }
+    75% {
+        transform: translate(5%, -5%) rotate(0.5deg);
+    }
+}
+
+/* Transiciones noir */
+.noir-transition {
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.noir-transition-slow {
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Responsive adjustments para tema noir */
+@media (max-width: 768px) {
+    body.noir-theme::before {
+        background-size: 
+            40px 40px,
+            40px 40px,
+            80px 80px,
+            120px 120px,
+            150px 150px,
+            150px 150px;
+    }
+    
+    .noir-spotlight {
+        animation-duration: 15s;
+    }
+}
+
+@media (max-width: 480px) {
+    .spikepulse-canvas.noir-style {
+        border-width: 2px;
+    }
+    
+    .spikepulse-canvas.noir-style::before {
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+    }
+}
+
+/* Preferencias de usuario para tema noir */
+@media (prefers-reduced-motion: reduce) {
+    body.noir-theme::before,
+    .noir-glow::after,
+    .noir-particle,
+    .noir-spotlight {
+        animation: none;
+    }
+    
+    .spikepulse-canvas.noir-style::before {
+        animation: none;
+        background: var(--noir-steel);
+    }
+}
+
+@media (prefers-contrast: high) {
+    :root {
+        --noir-white: #ffffff;
+        --noir-void: #000000;
+        --noir-gold: #ffff00;
+        --noir-crimson: #ff0000;
+        --noir-electric: #00ffff;
+    }
+    
+    .noir-element {
+        border-color: var(--noir-white);
+        background: var(--noir-void);
+    }
+}

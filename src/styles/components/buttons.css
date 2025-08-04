@@ -1,0 +1,349 @@
+/**
+ * Estilos para botones de Spikepulse
+ */
+
+/* Botón base */
+.sp-btn {
+    font-family: var(--sp-font-primary);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--sp-transition-normal);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-spacing-sm);
+    min-height: 44px; /* Accesibilidad táctil */
+    padding: var(--sp-spacing-md) var(--sp-spacing-xl);
+    font-size: 1rem;
+    width: 250px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+/* Efecto de brillo en hover */
+.sp-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.sp-btn:hover::before {
+    left: 100%;
+}
+
+/* Estados del botón */
+.sp-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+}
+
+.sp-btn:active {
+    transform: translateY(-1px) scale(1.01);
+}
+
+.sp-btn:focus {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+.sp-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.sp-btn:disabled:hover {
+    transform: none;
+}
+
+/* Botón primario */
+.sp-btn--primary {
+    background: linear-gradient(145deg,
+        rgba(255, 215, 0, 0.9) 0%,
+        rgba(255, 193, 7, 0.95) 50%,
+        rgba(255, 171, 0, 1) 100%);
+    color: var(--sp-background);
+    border: 2px solid var(--sp-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.7),
+        0 0 15px rgba(255, 215, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.sp-btn--primary:hover {
+    background: linear-gradient(145deg,
+        rgba(255, 215, 0, 1) 0%,
+        rgba(255, 193, 7, 1) 50%,
+        rgba(255, 171, 0, 1) 100%);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.8),
+        var(--sp-glow-primary),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Botón secundario */
+.sp-btn--secondary {
+    background: linear-gradient(145deg,
+        rgba(64, 64, 64, 0.3) 0%,
+        rgba(26, 26, 26, 0.8) 50%,
+        rgba(0, 0, 0, 0.9) 100%);
+    color: var(--sp-text);
+    border: 2px solid var(--sp-noir-silver);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.sp-btn--secondary:hover {
+    background: linear-gradient(145deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(240, 240, 240, 0.95) 50%,
+        rgba(220, 220, 220, 1) 100%);
+    color: var(--sp-background);
+    border-color: var(--sp-text);
+    text-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+        0 6px 25px rgba(0, 0, 0, 0.8),
+        0 0 20px rgba(255, 255, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Botón de peligro */
+.sp-btn--danger {
+    background: linear-gradient(145deg,
+        rgba(255, 107, 107, 0.9) 0%,
+        rgba(255, 82, 82, 0.95) 50%,
+        rgba(255, 61, 61, 1) 100%);
+    color: var(--sp-text);
+    border: 2px solid var(--sp-secondary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.sp-btn--danger:hover {
+    background: linear-gradient(145deg,
+        rgba(255, 107, 107, 1) 0%,
+        rgba(255, 82, 82, 1) 50%,
+        rgba(255, 61, 61, 1) 100%);
+    box-shadow: var(--sp-glow-secondary);
+}
+
+/* Botones de control pequeños */
+.sp-control-btn {
+    font-family: var(--sp-font-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--sp-noir-silver);
+    border: 1px solid var(--sp-noir-steel);
+    border-radius: 6px;
+    padding: var(--sp-spacing-sm) var(--sp-spacing-md);
+    cursor: pointer;
+    transition: all var(--sp-transition-fast);
+    min-width: 60px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-spacing-xs);
+    backdrop-filter: blur(5px);
+}
+
+.sp-control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--sp-text);
+    border-color: var(--sp-noir-silver);
+    transform: translateY(-1px);
+}
+
+.sp-control-btn:active {
+    transform: translateY(0);
+}
+
+.sp-control-btn .btn-icon {
+    font-size: 1rem;
+}
+
+.sp-control-btn .btn-text {
+    font-size: 0.75rem;
+}
+
+/* Botones de tamaño pequeño */
+.sp-btn--small {
+    padding: var(--sp-spacing-sm) var(--sp-spacing-lg);
+    font-size: 0.9rem;
+    width: 180px;
+    min-height: 40px;
+}
+
+/* Botones de tamaño grande */
+.sp-btn--large {
+    padding: var(--sp-spacing-lg) var(--sp-spacing-xxl);
+    font-size: 1.2rem;
+    width: 300px;
+    min-height: 52px;
+}
+
+/* Botón con icono */
+.sp-btn--icon {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-spacing-sm);
+}
+
+.sp-btn--icon .btn-icon {
+    font-size: 1.2em;
+}
+
+/* Grupo de botones */
+.sp-btn-group {
+    display: flex;
+    gap: var(--sp-spacing-md);
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.sp-btn-group--vertical {
+    flex-direction: column;
+}
+
+.sp-btn-group--horizontal {
+    flex-direction: row;
+}
+
+/* Estados especiales */
+.sp-btn--loading {
+    position: relative;
+    color: transparent;
+}
+
+.sp-btn--loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.sp-btn--success {
+    background: linear-gradient(145deg, #4CAF50, #45a049);
+    border-color: #4CAF50;
+}
+
+.sp-btn--warning {
+    background: linear-gradient(145deg, #ff9800, #f57c00);
+    border-color: #ff9800;
+}
+
+/* Animaciones específicas de botones */
+@keyframes buttonPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.sp-btn--pulse {
+    animation: buttonPulse 2s ease-in-out infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .sp-btn {
+        width: 220px;
+        font-size: 0.9rem;
+        padding: var(--sp-spacing-sm) var(--sp-spacing-lg);
+    }
+    
+    .sp-btn--small {
+        width: 160px;
+        font-size: 0.8rem;
+    }
+    
+    .sp-btn--large {
+        width: 260px;
+        font-size: 1.1rem;
+    }
+    
+    .sp-btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .sp-btn-group .sp-btn {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sp-btn {
+        width: 200px;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+    }
+    
+    .sp-control-btn {
+        font-size: 0.7rem;
+        padding: var(--sp-spacing-xs) var(--sp-spacing-sm);
+        min-width: 50px;
+        min-height: 32px;
+    }
+}
+
+/* Accesibilidad mejorada */
+@media (prefers-reduced-motion: reduce) {
+    .sp-btn,
+    .sp-control-btn {
+        transition: none;
+    }
+    
+    .sp-btn::before {
+        transition: none;
+    }
+    
+    .sp-btn--pulse {
+        animation: none;
+    }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+    .sp-btn--primary {
+        background: #ffff00;
+        color: #000000;
+        border-color: #000000;
+    }
+    
+    .sp-btn--secondary {
+        background: #ffffff;
+        color: #000000;
+        border-color: #000000;
+    }
+    
+    .sp-btn--danger {
+        background: #ff0000;
+        color: #ffffff;
+        border-color: #ffffff;
+    }
+}

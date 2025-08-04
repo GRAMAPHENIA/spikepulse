@@ -1,0 +1,279 @@
+/**
+ * Estilos principales de Spikepulse
+ */
+
+/* Variables CSS globales */
+:root {
+    /* Colores principales */
+    --sp-primary: #FFD700;
+    --sp-secondary: #FF6B6B;
+    --sp-accent: #9F7AEA;
+    --sp-text: #FFFFFF;
+    --sp-background: #000000;
+    --sp-overlay: rgba(0, 0, 0, 0.8);
+    
+    /* Colores noir */
+    --sp-noir-deep-black: #0a0a0a;
+    --sp-noir-charcoal: #1a1a1a;
+    --sp-noir-steel: #2a2a2a;
+    --sp-noir-silver: #c0c0c0;
+    --sp-noir-white: #ffffff;
+    
+    /* Tipografía */
+    --sp-font-primary: 'Orbitron', monospace;
+    --sp-font-secondary: 'Rajdhani', sans-serif;
+    
+    /* Espaciado */
+    --sp-spacing-xs: 0.25rem;
+    --sp-spacing-sm: 0.5rem;
+    --sp-spacing-md: 1rem;
+    --sp-spacing-lg: 1.5rem;
+    --sp-spacing-xl: 2rem;
+    --sp-spacing-xxl: 3rem;
+    
+    /* Animaciones */
+    --sp-transition-fast: 0.15s ease-out;
+    --sp-transition-normal: 0.3s ease-out;
+    --sp-transition-slow: 0.5s ease-out;
+    
+    /* Efectos */
+    --sp-glow-primary: 0 0 20px rgba(255, 215, 0, 0.5);
+    --sp-glow-secondary: 0 0 20px rgba(255, 107, 107, 0.5);
+    --sp-glow-accent: 0 0 20px rgba(159, 122, 234, 0.5);
+    
+    /* Z-index layers */
+    --sp-z-background: 0;
+    --sp-z-content: 10;
+    --sp-z-hud: 100;
+    --sp-z-overlay: 200;
+    --sp-z-modal: 300;
+}
+
+/* Reset básico */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Configuración base del documento */
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--sp-font-secondary);
+    background: 
+        radial-gradient(ellipse at top, var(--sp-noir-charcoal) 0%, var(--sp-noir-deep-black) 50%, var(--sp-background) 100%),
+        linear-gradient(135deg, var(--sp-background) 0%, var(--sp-noir-charcoal) 25%, var(--sp-noir-steel) 50%, var(--sp-noir-charcoal) 75%, var(--sp-background) 100%);
+    color: var(--sp-text);
+    overflow: hidden;
+    user-select: none;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Fondo con patrón cinematográfico */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, transparent 98%, rgba(255, 255, 255, 0.05) 100%),
+        linear-gradient(0deg, transparent 98%, rgba(255, 255, 255, 0.05) 100%);
+    background-size: 80px 80px, 120px 120px, 60px 60px, 60px 60px;
+    opacity: 0.6;
+    z-index: var(--sp-z-background);
+    animation: gridFloat 20s linear infinite;
+}
+
+@keyframes gridFloat {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-60px, -60px); }
+}
+
+/* Aplicación principal */
+.spikepulse-app {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Canvas del juego */
+.spikepulse-canvas {
+    display: block;
+    border: 2px solid var(--sp-noir-steel);
+    background: var(--sp-background);
+    box-shadow: 
+        0 0 30px rgba(0, 0, 0, 0.8),
+        inset 0 0 20px rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+/* Utilidades de accesibilidad */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.visually-hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Estados de focus para accesibilidad */
+*:focus {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+*:focus-visible {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+/* Animaciones de entrada */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: var(--sp-glow-primary);
+    }
+    50% {
+        box-shadow: 
+            var(--sp-glow-primary),
+            0 0 40px rgba(255, 215, 0, 0.3);
+    }
+}
+
+/* Clases de utilidad para animaciones */
+.sp-fade-in {
+    animation: fadeIn var(--sp-transition-normal) ease-out;
+}
+
+.sp-slide-in {
+    animation: slideIn var(--sp-transition-normal) ease-out;
+}
+
+.sp-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.sp-glow {
+    animation: glow 3s ease-in-out infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    :root {
+        --sp-spacing-md: 0.75rem;
+        --sp-spacing-lg: 1rem;
+        --sp-spacing-xl: 1.5rem;
+        --sp-spacing-xxl: 2rem;
+    }
+    
+    html {
+        font-size: 14px;
+    }
+    
+    .spikepulse-canvas {
+        max-width: 100vw;
+        max-height: 60vh;
+        width: auto;
+        height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 12px;
+    }
+    
+    .spikepulse-canvas {
+        max-height: 50vh;
+    }
+}
+
+/* Preferencias de usuario */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    body::before {
+        animation: none;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    /* Mantener tema oscuro para la estética del juego */
+    /* Pero podríamos ajustar algunos contrastes si es necesario */
+}
+
+@media (prefers-contrast: high) {
+    :root {
+        --sp-text: #ffffff;
+        --sp-background: #000000;
+        --sp-primary: #ffff00;
+        --sp-secondary: #ff0000;
+    }
+}

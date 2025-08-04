@@ -1,0 +1,111 @@
+/**
+ * Estilos para la pantalla de configuración
+ */
+
+/* Formulario de configuración */
+.settings-form {
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto var(--sp-spacing-xl) auto;
+}
+
+/* Grupos de configuración */
+.settings-group {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--sp-noir-steel);
+    border-radius: 8px;
+    padding: var(--sp-spacing-lg);
+    margin-bottom: var(--sp-spacing-lg);
+}
+
+.settings-group legend {
+    font-family: var(--sp-font-primary);
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--sp-primary);
+    padding: 0 var(--sp-spacing-sm);
+    text-shadow: var(--sp-glow-primary);
+}
+
+/* Items de configuración */
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-spacing-md);
+    padding: var(--sp-spacing-md) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: background-color var(--sp-transition-fast);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+/* Checkboxes personalizados */
+.setting-item input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--sp-noir-silver);
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all var(--sp-transition-fast);
+    flex-shrink: 0;
+}
+
+.setting-item input[type="checkbox"]:checked {
+    background: var(--sp-primary);
+    border-color: var(--sp-primary);
+    box-shadow: var(--sp-glow-primary);
+}
+
+.setting-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--sp-background);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.setting-item input[type="checkbox"]:focus {
+    outline: 2px solid var(--sp-primary);
+    outline-offset: 2px;
+}
+
+/* Labels de configuración */
+.setting-label {
+    font-family: var(--sp-font-secondary);
+    font-size: 1rem;
+    color: var(--sp-text);
+    cursor: pointer;
+    flex-grow: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .settings-form {
+        max-width: 100%;
+        padding: 0 var(--sp-spacing-md);
+    }
+    
+    .settings-group {
+        padding: var(--sp-spacing-md);
+    }
+    
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--sp-spacing-sm);
+    }
+}

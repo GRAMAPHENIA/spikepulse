@@ -6,11 +6,23 @@
   "main": "src/main.js",
   "scripts": {
     "start": "node src/main.js",
+    "dev": "python -m http.server 8000",
+    "serve": "python -m http.server 8000",
+    "dev:watch": "python -m http.server 8000 & echo 'Servidor iniciado en http://localhost:8000'",
     "test": "node tests/runTests.js",
+    "test:unit": "node tests/unit/runUnitTests.js",
+    "test:integration": "node tests/integration/runIntegrationTests.js",
+    "test:modules": "node tests/modules/runModuleTests.js",
+    "test:watch": "node tests/runTests.js --watch",
+    "test:coverage": "node tests/runTests.js --coverage",
     "test:noir": "node tests/runTests.js NoirThemeManager",
     "test:palette": "node tests/runTests.js NoirPalette",
-    "dev": "python -m http.server 8000",
-    "serve": "python -m http.server 8000"
+    "build": "echo 'Build process - to be implemented'",
+    "build:prod": "echo 'Production build - to be implemented'",
+    "lint": "echo 'Linting - to be implemented'",
+    "format": "echo 'Code formatting - to be implemented'",
+    "docs": "echo 'Documentation generation - to be implemented'",
+    "clean": "echo 'Cleaning build artifacts - to be implemented'"
   },
   "keywords": [
     "game",
