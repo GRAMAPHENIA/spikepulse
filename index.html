@@ -6,254 +6,710 @@
     <title>Spikepulse - Domina la Gravedad</title>
     <meta name="description" content="Spikepulse: Un emocionante juego de plataformas donde controlas un cubo a través de obstáculos peligrosos usando mecánicas avanzadas como salto doble, dash y gravedad invertida.">
     <meta name="keywords" content="juego, plataformas, español, spikepulse, geometry dash, salto, gravedad">
+    <meta name="author" content="Spikepulse Team">
     
     <!-- Preload de fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Estilos principales -->
-    <link rel="stylesheet" href="src/styles/main.css">
-    <link rel="stylesheet" href="src/styles/components/screens.css">
-    <link rel="stylesheet" href="src/styles/components/hud.css">
-    <link rel="stylesheet" href="src/styles/components/buttons.css">
-    <link rel="stylesheet" href="src/styles/components/settings.css">
-    <link rel="stylesheet" href="src/styles/themes/noir.css">
-</head>
-<body class="spikepulse-app">
-    <!-- Pantalla de carga -->
-    <div id="loading-screen" class="sp-screen sp-screen--loading" role="status" aria-label="Cargando juego">
-        <div class="loading-content">
-            <h1 class="loading-title">Spikepulse</h1>
-            <div class="loading-spinner" aria-hidden="true"></div>
-            <p class="loading-text">Cargando...</p>
-        </div>
-    </div>
-
-    <!-- Pantalla de menú principal -->
-    <div id="menu-screen" class="sp-screen sp-screen--menu hidden" role="main">
-        <header class="menu-header">
-            <h1 class="game-title">Spikepulse</h1>
-            <p class="game-subtitle">Domina la Gravedad</p>
-        </header>
-        
-        <nav class="menu-nav" role="navigation" aria-label="Menú principal">
-            <button id="start-game-btn" class="sp-btn sp-btn--primary" aria-describedby="start-game-help">
-                Comenzar Aventura
-            </button>
-            <button id="continue-game-btn" class="sp-btn sp-btn--secondary hidden" aria-describedby="continue-game-help">
-                Continuar
-            </button>
-            <button id="records-btn" class="sp-btn sp-btn--secondary">
-                Récords
-            </button>
-            <button id="settings-btn" class="sp-btn sp-btn--secondary">
-                Configuración
-            </button>
-        </nav>
-        
-        <!-- Textos de ayuda para accesibilidad -->
-        <div id="start-game-help" class="sr-only">
-            Iniciar una nueva partida de Spikepulse
-        </div>
-        <div id="continue-game-help" class="sr-only">
-            Continuar la partida guardada
-        </div>
-    </div>
-
-    <!-- Pantalla de juego -->
-    <div id="playing-screen" class="sp-screen sp-screen--playing hidden">
-        <main class="game-main" role="main" aria-label="Área de juego principal">
-            <canvas id="game-canvas" 
-                    class="spikepulse-canvas"
-                    width="1200" 
-                    height="600"
-                    aria-label="Canvas del juego Spikepulse"
-                    role="img">
-                Tu navegador no soporta canvas. Por favor actualiza tu navegador para jugar Spikepulse.
-            </canvas>
-        </main>
-        
-        <!-- HUD del juego -->
-        <aside class="sp-hud" role="complementary" aria-label="Estadísticas del juego">
-            <div class="hud-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Distancia</span>
-                    <span class="stat-value" id="distance-display" aria-live="polite">0m</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Saltos</span>
-                    <span class="stat-value" id="jumps-display" aria-live="polite">2</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Dash</span>
-                    <span class="stat-value" id="dash-display" aria-live="polite">Disponible</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Gravedad</span>
-                    <span class="stat-value" id="gravity-display" aria-live="polite">Normal</span>
-                </div>
-            </div>
-            
-            <div class="hud-controls">
-                <button id="pause-btn" class="sp-control-btn" aria-label="Pausar juego (Escape)">
-                    <span class="btn-icon" aria-hidden="true">⏸</span>
-                    <span class="btn-text">Pausa</span>
-                </button>
-            </div>
-        </aside>
-    </div>
-
-    <!-- Pantalla de pausa -->
-    <div id="paused-screen" class="sp-screen sp-screen--paused hidden" role="dialog" aria-labelledby="pause-title">
-        <div class="pause-content">
-            <h2 id="pause-title" class="pause-title">Pausado</h2>
-            <nav class="pause-nav" role="navigation">
-                <button id="resume-btn" class="sp-btn sp-btn--primary">
-                    Reanudar
-                </button>
-                <button id="restart-btn" class="sp-btn sp-btn--secondary">
-                    Reiniciar
-                </button>
-                <button id="menu-btn" class="sp-btn sp-btn--secondary">
-                    Volver al Menú
-                </button>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Pantalla de game over -->
-    <div id="gameover-screen" class="sp-screen sp-screen--gameover hidden" role="dialog" aria-labelledby="gameover-title">
-        <div class="gameover-content">
-            <h2 id="gameover-title" class="gameover-title">¡Juego Terminado!</h2>
-            <div class="final-stats">
-                <p class="final-distance">
-                    Distancia: <span id="final-distance-value">0</span>m
-                </p>
-                <p id="new-record-message" class="new-record hidden">
-                    ¡Nuevo Récord!
-                </p>
-            </div>
-            <nav class="gameover-nav" role="navigation">
-                <button id="play-again-btn" class="sp-btn sp-btn--primary">
-                    Intentar de Nuevo
-                </button>
-                <button id="gameover-menu-btn" class="sp-btn sp-btn--secondary">
-                    Volver al Menú
-                </button>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Pantalla de récords -->
-    <div id="records-screen" class="sp-screen sp-screen--records hidden" role="main" aria-labelledby="records-title">
-        <div class="records-content">
-            <h2 id="records-title" class="records-title">Récords</h2>
-            <div class="records-stats">
-                <div class="record-item">
-                    <span class="record-label">Mejor Distancia</span>
-                    <span class="record-value" id="best-distance-record">0m</span>
-                </div>
-                <div class="record-item">
-                    <span class="record-label">Partidas Jugadas</span>
-                    <span class="record-value" id="games-played-record">0</span>
-                </div>
-                <div class="record-item">
-                    <span class="record-label">Tiempo Total</span>
-                    <span class="record-value" id="total-time-record">0min</span>
-                </div>
-            </div>
-            <nav class="records-nav" role="navigation">
-                <button id="records-back-btn" class="sp-btn sp-btn--secondary">
-                    Volver
-                </button>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Pantalla de configuración -->
-    <div id="settings-screen" class="sp-screen sp-screen--settings hidden" role="main" aria-labelledby="settings-title">
-        <div class="settings-content">
-            <h2 id="settings-title" class="settings-title">Configuración</h2>
-            <form class="settings-form" role="form">
-                <fieldset class="settings-group">
-                    <legend>Gráficos</legend>
-                    <label class="setting-item">
-                        <input type="checkbox" id="show-fps-setting" name="showFPS">
-                        <span class="setting-label">Mostrar FPS</span>
-                    </label>
-                    <label class="setting-item">
-                        <input type="checkbox" id="enable-effects-setting" name="enableEffects" checked>
-                        <span class="setting-label">Efectos Visuales</span>
-                    </label>
-                    <label class="setting-item">
-                        <input type="checkbox" id="enable-particles-setting" name="enableParticles" checked>
-                        <span class="setting-label">Partículas</span>
-                    </label>
-                </fieldset>
-                
-                <fieldset class="settings-group">
-                    <legend>Audio</legend>
-                    <label class="setting-item">
-                        <input type="checkbox" id="enable-sound-setting" name="enableSound" checked>
-                        <span class="setting-label">Efectos de Sonido</span>
-                    </label>
-                    <label class="setting-item">
-                        <input type="checkbox" id="enable-music-setting" name="enableMusic" checked>
-                        <span class="setting-label">Música</span>
-                    </label>
-                </fieldset>
-                
-                <fieldset class="settings-group">
-                    <legend>Accesibilidad</legend>
-                    <label class="setting-item">
-                        <input type="checkbox" id="high-contrast-setting" name="highContrast">
-                        <span class="setting-label">Alto Contraste</span>
-                    </label>
-                    <label class="setting-item">
-                        <input type="checkbox" id="reduced-motion-setting" name="reducedMotion">
-                        <span class="setting-label">Reducir Animaciones</span>
-                    </label>
-                </fieldset>
-            </form>
-            <nav class="settings-nav" role="navigation">
-                <button id="settings-back-btn" class="sp-btn sp-btn--secondary">
-                    Volver
-                </button>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Instrucciones de controles -->
-    <div id="controls-help" class="controls-help hidden" role="complementary" aria-label="Instrucciones de controles">
-        <div class="controls-content">
-            <h3>Controles</h3>
-            <ul class="controls-list">
-                <li><kbd>Espacio</kbd> o <kbd>Clic</kbd> - Saltar</li>
-                <li><kbd>Shift</kbd> - Dash</li>
-                <li><kbd>Ctrl</kbd> - Cambiar Gravedad</li>
-                <li><kbd>Escape</kbd> - Pausar</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- Región para anuncios de accesibilidad -->
-    <div id="accessibility-announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-
-    <!-- Scripts del juego -->
-    <script type="module" src="src/main.js"></script>
+    <!-- Estilos -->
+    <link rel="stylesheet" href="src/styles/ui.css">
     
-    <!-- Script de fallback para navegadores sin soporte ES6 modules -->
-    <script nomodule>
-        document.body.innerHTML = `
-            <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; color: #fff; font-family: Arial, sans-serif; text-align: center;">
-                <div>
-                    <h1>Navegador No Compatible</h1>
-                    <p>Tu navegador no soporta las características necesarias para ejecutar Spikepulse.</p>
-                    <p>Por favor actualiza tu navegador o usa uno más moderno como Chrome, Firefox, Safari o Edge.</p>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    
+    <!-- Meta tags para redes sociales -->
+    <meta property="og:title" content="Spikepulse - Domina la Gravedad">
+    <meta property="og:description" content="Un emocionante juego de plataformas con mecánicas avanzadas de gravedad">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/og-image.png">
+    
+    <!-- PWA Meta tags -->
+    <meta name="theme-color" content="#FFD700">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Spikepulse">
+</head>
+<body>
+    <!-- Contenedor principal del juego -->
+    <main class="game-main" role="main" aria-label="Juego Spikepulse">
+        <!-- Canvas del juego -->
+        <canvas id="game-canvas" 
+                class="spikepulse-canvas" 
+                width="1200" 
+                height="600"
+                aria-label="Canvas del juego Spikepulse"
+                role="img">
+            <p>Tu navegador no soporta canvas. Por favor actualiza tu navegador para jugar Spikepulse.</p>
+        </canvas>
+        
+        <!-- Mensaje de carga inicial -->
+        <div id="loading-screen" class="loading-screen" aria-live="polite">
+            <div class="loading-content">
+                <h1 class="loading-title">Spikepulse</h1>
+                <div class="loading-spinner" aria-label="Cargando juego"></div>
+                <p class="loading-text">Preparando aventura...</p>
+                <div class="loading-progress">
+                    <div class="loading-progress-bar" id="loading-progress-bar"></div>
                 </div>
             </div>
-        `;
+        </div>
+    </main>
+    
+    <!-- Controles táctiles para móviles -->
+    <div class="mobile-controls" id="mobile-controls" aria-label="Controles táctiles">
+        <button class="mobile-btn mobile-btn-jump" 
+                id="mobile-jump-btn"
+                aria-label="Saltar"
+                type="button">
+            <span class="mobile-btn-icon">⬆</span>
+            <span class="mobile-btn-text">Saltar</span>
+        </button>
+        
+        <button class="mobile-btn mobile-btn-dash" 
+                id="mobile-dash-btn"
+                aria-label="Dash"
+                type="button">
+            <span class="mobile-btn-icon">⚡</span>
+            <span class="mobile-btn-text">Dash</span>
+        </button>
+        
+        <button class="mobile-btn mobile-btn-gravity" 
+                id="mobile-gravity-btn"
+                aria-label="Cambiar gravedad"
+                type="button">
+            <span class="mobile-btn-icon">🔄</span>
+            <span class="mobile-btn-text">Gravedad</span>
+        </button>
+    </div>
+    
+    <!-- Información de accesibilidad -->
+    <div class="sr-only" id="game-instructions">
+        <h2>Instrucciones del juego</h2>
+        <p>Usa la barra espaciadora o toca la pantalla para saltar.</p>
+        <p>Usa Shift para hacer dash.</p>
+        <p>Usa Ctrl para cambiar la gravedad.</p>
+        <p>Usa las flechas o A/D para moverte.</p>
+        <p>Presiona Escape para pausar el juego.</p>
+    </div>
+    
+    <!-- Información del juego para lectores de pantalla -->
+    <div class="sr-only" id="game-status" aria-live="polite" aria-atomic="true">
+        Estado del juego: Cargando
+    </div>
+    
+    <!-- Menú principal simplificado -->
+    <div id="main-menu" style="
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 0, 0, 0.95) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 999999 !important;
+        font-family: 'Orbitron', sans-serif !important;
+        color: white !important;
+        pointer-events: auto !important;
+    ">
+        <h1 style="
+            font-size: 4rem !important;
+            color: #FFD700 !important;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5) !important;
+            margin-bottom: 2rem !important;
+            text-align: center !important;
+        ">Spikepulse</h1>
+        
+        <p style="
+            font-size: 1.5rem !important;
+            color: #CCCCCC !important;
+            margin-bottom: 3rem !important;
+            text-align: center !important;
+        ">¡Domina la gravedad y evita los obstáculos!</p>
+        
+        <button onclick="startGameNow()" style="
+            padding: 1rem 2rem !important;
+            font-size: 1.5rem !important;
+            font-family: 'Orbitron', sans-serif !important;
+            font-weight: bold !important;
+            background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+            color: #000 !important;
+            border: none !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3) !important;
+        ">Comenzar Aventura</button>
+        
+        <p style="
+            margin-top: 2rem !important;
+            font-size: 0.9rem !important;
+            color: #888 !important;
+        ">Presiona F12 para abrir la consola y ver logs</p>
+    </div>
+    
+    <script>
+        function startGameNow() {
+            console.log('🚀 Iniciando juego desde botón HTML...');
+            const menu = document.getElementById('main-menu');
+            if (menu) {
+                menu.style.display = 'none';
+            }
+            
+            // Intentar iniciar el juego si está disponible
+            if (window.spikepulse && window.spikepulse.startGame) {
+                window.spikepulse.startGame();
+            } else {
+                console.log('⚠️ Motor del juego no disponible aún, esperando...');
+                
+                // Esperar a que el motor esté disponible
+                let attempts = 0;
+                const maxAttempts = 50; // 5 segundos máximo
+                
+                const waitForEngine = setInterval(() => {
+                    attempts++;
+                    
+                    if (window.spikepulse && window.spikepulse.startGame) {
+                        clearInterval(waitForEngine);
+                        console.log('✅ Motor encontrado, iniciando juego...');
+                        window.spikepulse.startGame();
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(waitForEngine);
+                        console.error('❌ Timeout esperando el motor del juego');
+                        
+                        // Mostrar mensaje de error
+                        const canvas = document.getElementById('game-canvas');
+                        if (canvas) {
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = '#0F0F0F';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            
+                            ctx.fillStyle = '#FF6B6B';
+                            ctx.font = '36px Orbitron';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('Error al cargar el juego', canvas.width / 2, canvas.height / 2);
+                            
+                            ctx.fillStyle = '#CCCCCC';
+                            ctx.font = '18px Rajdhani';
+                            ctx.fillText('Por favor recarga la página', canvas.width / 2, canvas.height / 2 + 50);
+                        }
+                    }
+                }, 100);
+            }
+        }
     </script>
+    
+    <!-- Scripts del juego -->
+    <script type="module">
+        // Importar y configurar el juego
+        import { GameEngine } from './src/core/GameEngine.js';
+        import { getAutoConfig } from './src/config/GameConfig.js';
+        
+        // Configuración automática del juego
+        const gameConfig = getAutoConfig();
+        
+        // Variables globales
+        let gameEngine = null;
+        let loadingProgress = 0;
+        
+        // Función de inicialización
+        async function initGame() {
+            try {
+                console.log('🎮 Iniciando Spikepulse...');
+                
+                // Actualizar progreso de carga
+                updateLoadingProgress(10, 'Inicializando motor...');
+                
+                // Crear motor del juego
+                gameEngine = new GameEngine(gameConfig);
+                
+                updateLoadingProgress(30, 'Cargando sistemas...');
+                
+                // Inicializar motor
+                await gameEngine.init();
+                
+                updateLoadingProgress(70, 'Configurando interfaz...');
+                
+                // Configurar controles móviles
+                setupMobileControls();
+                
+                updateLoadingProgress(90, 'Finalizando...');
+                
+                // Ocultar pantalla de carga
+                hideLoadingScreen();
+                
+                updateLoadingProgress(100, '¡Listo para jugar!');
+                
+                console.log('✅ Spikepulse iniciado correctamente');
+                
+                // Exponer motor globalmente para debugging
+                window.spikepulse = gameEngine;
+                
+                // Ocultar menú HTML inicial después de que el GameEngine esté listo
+                setTimeout(() => {
+                    const htmlMenu = document.getElementById('main-menu');
+                    if (htmlMenu) {
+                        htmlMenu.style.display = 'none';
+                        console.log('📋 Menú HTML inicial ocultado - GameEngine listo');
+                    }
+                }, 500);
+                
+                // Actualizar estado para lectores de pantalla
+                updateGameStatus('Menú principal');
+                
+            } catch (error) {
+                console.error('❌ Error iniciando Spikepulse:', error);
+                showErrorMessage('Error al cargar el juego. Por favor recarga la página.');
+            }
+        }
+        
+        // Función para actualizar progreso de carga
+        function updateLoadingProgress(progress, text) {
+            const progressBar = document.getElementById('loading-progress-bar');
+            const loadingText = document.querySelector('.loading-text');
+            
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+            
+            if (loadingText) {
+                loadingText.textContent = text;
+            }
+            
+            loadingProgress = progress;
+        }
+        
+        // Función para ocultar pantalla de carga
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+            }
+        }
+        
+        // Función para mostrar mensaje de error
+        function showErrorMessage(message) {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.innerHTML = `
+                    <div class="loading-content">
+                        <h1 class="loading-title" style="color: #FF6B6B;">Error</h1>
+                        <p class="loading-text">${message}</p>
+                        <button onclick="location.reload()" class="btn btn-primary">
+                            Recargar Página
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Función para configurar controles móviles
+        function setupMobileControls() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const mobileControls = document.getElementById('mobile-controls');
+            
+            if (isMobile && mobileControls) {
+                mobileControls.style.display = 'flex';
+                
+                // Configurar botones
+                const jumpBtn = document.getElementById('mobile-jump-btn');
+                const dashBtn = document.getElementById('mobile-dash-btn');
+                const gravityBtn = document.getElementById('mobile-gravity-btn');
+                
+                if (jumpBtn) {
+                    jumpBtn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        gameEngine?.eventBus.emit('input:jump', { source: 'touch' });
+                    });
+                }
+                
+                if (dashBtn) {
+                    dashBtn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        gameEngine?.eventBus.emit('input:dash', { source: 'touch' });
+                    });
+                }
+                
+                if (gravityBtn) {
+                    gravityBtn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        gameEngine?.eventBus.emit('input:gravity', { source: 'touch' });
+                    });
+                }
+            }
+        }
+        
+        // Función para actualizar estado del juego para accesibilidad
+        function updateGameStatus(status) {
+            const gameStatus = document.getElementById('game-status');
+            if (gameStatus) {
+                gameStatus.textContent = `Estado del juego: ${status}`;
+            }
+        }
+        
+        // Event listeners para cambios de estado del juego
+        document.addEventListener('DOMContentLoaded', () => {
+            // Escuchar eventos del motor cuando esté disponible
+            setTimeout(() => {
+                if (gameEngine) {
+                    gameEngine.eventBus.on('game:state-changed', (data) => {
+                        const stateNames = {
+                            'menu': 'Menú principal',
+                            'playing': 'Jugando',
+                            'paused': 'Pausado',
+                            'game-over': 'Juego terminado',
+                            'loading': 'Cargando'
+                        };
+                        updateGameStatus(stateNames[data.state] || data.state);
+                    });
+                }
+            }, 1000);
+        });
+        
+        // Manejo de errores globales
+        window.addEventListener('error', (event) => {
+            console.error('Error global:', event.error);
+            if (!gameEngine) {
+                showErrorMessage('Error crítico al cargar el juego.');
+            }
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Promise rejection:', event.reason);
+            event.preventDefault();
+        });
+        
+        // Configurar botón temporal
+        function setupTempButton() {
+            const tempStartBtn = document.getElementById('temp-start-btn');
+            const tempMenu = document.getElementById('temp-menu');
+            
+            if (tempStartBtn) {
+                tempStartBtn.addEventListener('click', () => {
+                    console.log('🚀 Botón temporal presionado');
+                    
+                    // Ocultar menú temporal
+                    if (tempMenu) {
+                        tempMenu.style.display = 'none';
+                    }
+                    
+                    // Iniciar juego si está disponible
+                    if (gameEngine) {
+                        gameEngine.startGame();
+                    }
+                });
+                
+                // Efectos hover
+                tempStartBtn.addEventListener('mouseenter', () => {
+                    tempStartBtn.style.transform = 'translateY(-2px)';
+                    tempStartBtn.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.5)';
+                });
+                
+                tempStartBtn.addEventListener('mouseleave', () => {
+                    tempStartBtn.style.transform = 'translateY(0)';
+                    tempStartBtn.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)';
+                });
+            }
+        }
+        
+        // Inicializar juego cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setupTempButton();
+                initGame();
+            });
+        } else {
+            setupTempButton();
+            initGame();
+        }
+        
+        // Manejo de visibilidad de página (pausar cuando no está visible)
+        document.addEventListener('visibilitychange', () => {
+            if (gameEngine && gameEngine.getState() === 'playing') {
+                if (document.hidden) {
+                    gameEngine.pauseGame();
+                }
+            }
+        });
+        
+        // Prevenir zoom en dispositivos móviles
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+    
+    <!-- Estilos adicionales para la página -->
+    <style>
+        /* Estilos base */
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0F0F0F;
+            font-family: 'Orbitron', 'Rajdhani', sans-serif;
+            color: #FFFFFF;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        .game-main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #0F0F0F 100%);
+        }
+        
+        .spikepulse-canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+        
+        /* Pantalla de carga */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0F0F0F 0%, #1a1a1a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease-out;
+        }
+        
+        .loading-content {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        
+        .loading-title {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 215, 0, 0.3);
+            border-top: 4px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            color: #CCCCCC;
+            margin-bottom: 2rem;
+        }
+        
+        .loading-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #9F7AEA);
+            border-radius: 4px;
+            transition: width 0.3s ease-out;
+            width: 0%;
+        }
+        
+        /* Controles móviles */
+        .mobile-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 15px;
+            z-index: 1000;
+        }
+        
+        .mobile-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            color: #FFD700;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            touch-action: manipulation;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        
+        .mobile-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        
+        .mobile-btn-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        .mobile-btn-text {
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        /* Animaciones */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Accesibilidad */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .loading-title {
+                font-size: 2rem;
+            }
+            
+            .spikepulse-canvas {
+                border-radius: 0;
+                border: none;
+                width: 100vw;
+                height: 100vh;
+            }
+            
+            .mobile-controls {
+                display: flex;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .loading-content {
+                padding: 1rem;
+            }
+            
+            .loading-title {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+            }
+            
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* Prevenir selección y zoom */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Prevenir scroll en móviles */
+        body {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Estilos para la UI del juego */
+        .spikepulse-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .screen {
+            pointer-events: auto;
+        }
+        
+        /* Animación pulse para el título */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+    </style>
 </body>
 </html>

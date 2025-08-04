@@ -1,426 +1,367 @@
 /**
- * Gestor de estados del juego Spikepulse
+ * Gestor de estados para Spikepulse
  * @module StateManager
  */
 
 export class StateManager {
     /**
      * Crea una nueva instancia del gestor de estados
-     * @param {EventBus} eventBus - Bus de eventos para comunicación
+     * @param {Object} config - Configuración de estados
+     * @param {EventBus} eventBus - Bus de eventos
      */
-    constructor(eventBus) {
+    constructor(config, eventBus) {
+        this.config = config;
         this.eventBus = eventBus;
-        this.currentState = 'menu';
-        this.previousState = null;
-        this.gameState = this.createInitialGameState();
-        this.stateHistory = [];
-        this.maxHistorySize = 10;
+        this.isInitialized = false;
         
-        this.setupEventListeners();
+        // Estados del juego
+        this.currentState = null;
+        this.previousState = null;
+        this.stateHistory = [];
+        
+        // Configuración de estados
+        this.states = new Map();
+        this.transitions = config.transitions || {};
+        this.initialState = config.initial || 'menu';
+        
+        // Estadísticas
+        this.stats = {
+            stateChanges: 0,
+            timeInState: 0,
+            stateStartTime: 0
+        };
+        
         console.log('🎯 StateManager creado');
     }
     
     /**
-     * Crea el estado inicial del juego
-     * @returns {Object} Estado inicial del juego
+     * Inicializa el gestor de estados
      */
-    createInitialGameState() {
-        return {
-            // Estado del jugador
-            player: {
-                position: { x: 100, y: 300 },
-                velocity: { x: 0, y: 0 },
-                onGround: false,
-                jumpsLeft: 2,
-                dashAvailable: true,
-                gravityInverted: false,
-                isAlive: true
-            },
+    async init() {
+        try {
+            console.log('🔧 Inicializando StateManager...');
             
-            // Estado del mundo
-            world: {
-                camera: { x: 0, y: 0 },
-                obstacles: [],
-                coins: [],
-                scrollOffset: 0,
-                difficulty: 1.0
-            },
+            // Registrar estados por defecto
+            this.registerDefaultStates();
             
-            // Estadísticas del juego
-            stats: {
-                distance: 0,
-                jumps: 0,
-                dashes: 0,
-                coins: 0,
-                startTime: 0,
-                playTime: 0,
-                bestDistance: this.loadBestDistance()
-            },
+            // Configurar event listeners
+            this.setupEventListeners();
             
-            // Estado de la interfaz
-            ui: {
-                currentScreen: 'menu',
-                hudVisible: false,
-                showDebug: false,
-                isPaused: false
-            },
+            this.isInitialized = true;
+            console.log('✅ StateManager inicializado');
             
-            // Configuración del juego
-            settings: {
-                difficulty: 'normal',
-                soundEnabled: true,
-                musicEnabled: true,
-                showFPS: false,
-                language: 'es'
-            }
-        };
+        } catch (error) {
+            console.error('❌ Error inicializando StateManager:', error);
+            throw error;
+        }
     }
     
     /**
-     * Configura los event listeners
+     * Registra estados por defecto
+     */
+    registerDefaultStates() {
+        const defaultStates = [
+            {
+                name: 'menu',
+                onEnter: () => console.log('📋 Entrando al menú'),
+                onExit: () => console.log('📋 Saliendo del menú')
+            },
+            {
+                name: 'playing',
+                onEnter: () => console.log('🎮 Iniciando juego'),
+                onExit: () => console.log('🎮 Pausando/terminando juego')
+            },
+            {
+                name: 'paused',
+                onEnter: () => console.log('⏸️ Juego pausado'),
+                onExit: () => console.log('▶️ Reanudando juego')
+            },
+            {
+                name: 'game-over',
+                onEnter: () => console.log('💀 Game Over'),
+                onExit: () => console.log('🔄 Saliendo de Game Over')
+            },
+            {
+                name: 'loading',
+                onEnter: () => console.log('⏳ Cargando...'),
+                onExit: () => console.log('✅ Carga completada')
+            }
+        ];
+        
+        defaultStates.forEach(state => {
+            this.registerState(state.name, state);
+        });
+    }
+    
+    /**
+     * Configura event listeners
      */
     setupEventListeners() {
-        // Escuchar eventos de cambio de estado
-        this.eventBus.on('ui:change-state', this.handleStateChangeRequest.bind(this));
-        this.eventBus.on('game:player-died', this.handlePlayerDeath.bind(this));
-        this.eventBus.on('game:restart', this.handleRestart.bind(this));
-        this.eventBus.on('game:pause', this.handlePause.bind(this));
-        this.eventBus.on('game:resume', this.handleResume.bind(this));
+        // Eventos de cambio de estado
+        this.eventBus.on('state:set', this.setState.bind(this));
+        this.eventBus.on('state:back', this.goBack.bind(this));
         
-        console.log('👂 StateManager event listeners configurados');
+        console.log('👂 Event listeners del StateManager configurados');
     }
     
     /**
-     * Cambia el estado del juego
+     * Registra un nuevo estado
+     * @param {string} name - Nombre del estado
+     * @param {Object} stateConfig - Configuración del estado
+     */
+    registerState(name, stateConfig = {}) {
+        const state = {
+            name,
+            onEnter: stateConfig.onEnter || (() => {}),
+            onExit: stateConfig.onExit || (() => {}),
+            onUpdate: stateConfig.onUpdate || (() => {}),
+            data: stateConfig.data || {},
+            ...stateConfig
+        };
+        
+        this.states.set(name, state);
+        console.log(`🎯 Estado registrado: ${name}`);
+    }
+    
+    /**
+     * Establece un nuevo estado
      * @param {string} newState - Nuevo estado
-     * @param {Object} data - Datos adicionales para el cambio de estado
+     * @param {Object} data - Datos adicionales
      * @returns {boolean} True si el cambio fue exitoso
      */
-    changeState(newState, data = {}) {
-        const validTransitions = this.getValidTransitions();
-        
-        if (!validTransitions[this.currentState]?.includes(newState)) {
-            console.warn(`❌ Transición de estado inválida: ${this.currentState} -> ${newState}`);
+    setState(newState, data = {}) {
+        // Verificar si el estado existe
+        if (!this.states.has(newState)) {
+            console.warn(`⚠️ Estado no encontrado: ${newState}`);
             return false;
         }
         
+        // Verificar si la transición es válida
+        if (this.currentState && !this.isValidTransition(this.currentState, newState)) {
+            console.warn(`⚠️ Transición inválida: ${this.currentState} -> ${newState}`);
+            return false;
+        }
+        
+        // Salir del estado actual
+        if (this.currentState) {
+            const currentStateObj = this.states.get(this.currentState);
+            if (currentStateObj && currentStateObj.onExit) {
+                currentStateObj.onExit(data);
+            }
+            
+            // Actualizar tiempo en estado
+            this.stats.timeInState += Date.now() - this.stats.stateStartTime;
+        }
+        
         // Guardar estado anterior
-        this.addToHistory(this.currentState, { ...this.gameState });
-        
-        const oldState = this.currentState;
         this.previousState = this.currentState;
-        this.currentState = newState;
         
-        // Ejecutar lógica específica del estado
-        this.executeStateTransition(oldState, newState, data);
+        // Añadir al historial
+        if (this.currentState) {
+            this.stateHistory.push({
+                state: this.currentState,
+                timestamp: Date.now(),
+                duration: Date.now() - this.stats.stateStartTime
+            });
+            
+            // Limitar historial
+            if (this.stateHistory.length > 50) {
+                this.stateHistory.shift();
+            }
+        }
+        
+        // Cambiar al nuevo estado
+        this.currentState = newState;
+        this.stats.stateChanges++;
+        this.stats.stateStartTime = Date.now();
+        
+        // Entrar al nuevo estado
+        const newStateObj = this.states.get(newState);
+        if (newStateObj && newStateObj.onEnter) {
+            newStateObj.onEnter(data);
+        }
+        
+        console.log(`🎯 Estado cambiado: ${this.previousState || 'null'} -> ${newState}`);
         
         // Emitir evento de cambio de estado
-        this.eventBus.emit('state:changed', {
-            from: oldState,
-            to: newState,
-            data,
-            gameState: this.gameState
+        this.eventBus.emit('game:state-changed', {
+            state: newState,
+            previousState: this.previousState,
+            data
         });
         
-        console.log(`🔄 Estado cambiado: ${oldState} -> ${newState}`);
         return true;
     }
     
     /**
-     * Obtiene las transiciones válidas para cada estado
-     * @returns {Object} Mapa de transiciones válidas
+     * Verifica si una transición es válida
+     * @param {string} fromState - Estado origen
+     * @param {string} toState - Estado destino
+     * @returns {boolean} True si es válida
      */
-    getValidTransitions() {
+    isValidTransition(fromState, toState) {
+        if (!this.transitions[fromState]) {
+            return true; // Si no hay restricciones, permitir
+        }
+        
+        return this.transitions[fromState].includes(toState);
+    }
+    
+    /**
+     * Vuelve al estado anterior
+     * @returns {boolean} True si fue exitoso
+     */
+    goBack() {
+        if (!this.previousState) {
+            console.warn('⚠️ No hay estado anterior');
+            return false;
+        }
+        
+        return this.setState(this.previousState);
+    }
+    
+    /**
+     * Obtiene el estado actual
+     * @returns {string} Estado actual
+     */
+    getState() {
+        return this.currentState;
+    }
+    
+    /**
+     * Obtiene el estado anterior
+     * @returns {string} Estado anterior
+     */
+    getPreviousState() {
+        return this.previousState;
+    }
+    
+    /**
+     * Verifica si está en un estado específico
+     * @param {string} state - Estado a verificar
+     * @returns {boolean} True si está en ese estado
+     */
+    isInState(state) {
+        return this.currentState === state;
+    }
+    
+    /**
+     * Obtiene información de un estado
+     * @param {string} stateName - Nombre del estado
+     * @returns {Object|null} Información del estado
+     */
+    getStateInfo(stateName) {
+        return this.states.get(stateName) || null;
+    }
+    
+    /**
+     * Obtiene todos los estados registrados
+     * @returns {Array} Lista de estados
+     */
+    getRegisteredStates() {
+        return Array.from(this.states.keys());
+    }
+    
+    /**
+     * Obtiene el historial de estados
+     * @param {number} limit - Límite de entradas
+     * @returns {Array} Historial de estados
+     */
+    getStateHistory(limit = 10) {
+        return this.stateHistory.slice(-limit);
+    }
+    
+    /**
+     * Actualiza el estado actual
+     * @param {number} deltaTime - Delta time
+     */
+    update(deltaTime) {
+        if (!this.currentState) return;
+        
+        const currentStateObj = this.states.get(this.currentState);
+        if (currentStateObj && currentStateObj.onUpdate) {
+            currentStateObj.onUpdate(deltaTime);
+        }
+    }
+    
+    /**
+     * Obtiene estadísticas del gestor
+     * @returns {Object} Estadísticas
+     */
+    getStats() {
         return {
-            'menu': ['playing', 'settings', 'records'],
-            'playing': ['paused', 'gameOver', 'menu'],
-            'paused': ['playing', 'menu'],
-            'gameOver': ['playing', 'menu', 'records'],
-            'settings': ['menu'],
-            'records': ['menu']
+            ...this.stats,
+            currentState: this.currentState,
+            previousState: this.previousState,
+            statesRegistered: this.states.size,
+            historySize: this.stateHistory.length,
+            currentStateTime: this.currentState ? Date.now() - this.stats.stateStartTime : 0
         };
     }
     
     /**
-     * Ejecuta la lógica específica de transición de estado
-     * @param {string} fromState - Estado anterior
-     * @param {string} toState - Nuevo estado
-     * @param {Object} data - Datos de la transición
+     * Obtiene información de debug
+     * @returns {Object} Información de debug
      */
-    executeStateTransition(fromState, toState, data) {
-        switch (toState) {
-            case 'playing':
-                this.enterPlayingState(fromState, data);
-                break;
-                
-            case 'paused':
-                this.enterPausedState(fromState, data);
-                break;
-                
-            case 'gameOver':
-                this.enterGameOverState(fromState, data);
-                break;
-                
-            case 'menu':
-                this.enterMenuState(fromState, data);
-                break;
-                
-            case 'settings':
-                this.enterSettingsState(fromState, data);
-                break;
-                
-            case 'records':
-                this.enterRecordsState(fromState, data);
-                break;
-        }
-    }
-    
-    /**
-     * Lógica para entrar al estado de juego
-     * @param {string} fromState - Estado anterior
-     * @param {Object} data - Datos de la transición
-     */
-    enterPlayingState(fromState, data) {
-        if (fromState === 'menu' || fromState === 'gameOver') {
-            // Nuevo juego
-            this.resetGameState();
-            this.gameState.stats.startTime = Date.now();
-        } else if (fromState === 'paused') {
-            // Reanudar juego
-            this.gameState.ui.isPaused = false;
-        }
-        
-        this.gameState.ui.currentScreen = 'playing';
-        this.gameState.ui.hudVisible = true;
-    }
-    
-    /**
-     * Lógica para entrar al estado de pausa
-     * @param {string} fromState - Estado anterior
-     * @param {Object} data - Datos de la transición
-     */
-    enterPausedState(fromState, data) {
-        this.gameState.ui.isPaused = true;
-        this.gameState.ui.currentScreen = 'paused';
-    }
-    
-    /**
-     * Lógica para entrar al estado de game over
-     * @param {string} fromState - Estado anterior
-     * @param {Object} data - Datos de la transición
-     */
-    enterGameOverState(fromState, data) {
-        this.gameState.player.isAlive = false;
-        this.gameState.ui.currentScreen = 'gameOver';
-        this.gameState.ui.hudVisible = false;
-        
-        // Calcular tiempo de juego
-        if (this.gameState.stats.startTime > 0) {
-            this.gameState.stats.playTime = Date.now() - this.gameState.stats.startTime;
-        }
-        
-        // Verificar si es un nuevo récord
-        if (this.gameState.stats.distance > this.gameState.stats.bestDistance) {
-            this.gameState.stats.bestDistance = this.gameState.stats.distance;
-            this.saveBestDistance(this.gameState.stats.bestDistance);
-            
-            this.eventBus.emit('game:new-record', {
-                distance: this.gameState.stats.distance,
-                previousBest: this.gameState.stats.bestDistance
-            });
-        }
-    }
-    
-    /**
-     * Lógica para entrar al estado de menú
-     * @param {string} fromState - Estado anterior
-     * @param {Object} data - Datos de la transición
-     */
-    enterMenuState(fromState, data) {
-        this.gameState.ui.currentScreen = 'menu';
-        this.gameState.ui.hudVisible = false;
-        this.gameState.ui.isPaused = false;
-    }
-    
-    /**
-     * Lógica para entrar al estado de configuración
-     * @param {string} fromState - Estado anterior
-     * @param {Object} data - Datos de la transición
-     */
-    enterSettingsState(fromState, data) {
-        this.gameState.ui.currentScreen = 'settings';
-    }
-    
-    /**
-     * Lógica para entrar al estado de récords
-     * @param {string} fromState - Estado anterior
-     * @param {Object} data - Datos de la transición
-     */
-    enterRecordsState(fromState, data) {
-        this.gameState.ui.currentScreen = 'records';
-    }
-    
-    /**
-     * Resetea el estado del juego a valores iniciales
-     */
-    resetGameState() {
-        const newState = this.createInitialGameState();
-        
-        // Mantener configuraciones y mejor distancia
-        newState.stats.bestDistance = this.gameState.stats.bestDistance;
-        newState.settings = { ...this.gameState.settings };
-        
-        this.gameState = newState;
-        
-        console.log('🔄 Estado del juego reseteado');
-    }
-    
-    /**
-     * Actualiza las estadísticas del juego
-     * @param {Object} updates - Actualizaciones a aplicar
-     */
-    updateStats(updates) {
-        Object.assign(this.gameState.stats, updates);
-        
-        this.eventBus.emit('stats:updated', {
-            stats: this.gameState.stats,
-            updates
-        });
-    }
-    
-    /**
-     * Actualiza el estado del jugador
-     * @param {Object} updates - Actualizaciones a aplicar
-     */
-    updatePlayerState(updates) {
-        Object.assign(this.gameState.player, updates);
-        
-        this.eventBus.emit('player:state-updated', {
-            player: this.gameState.player,
-            updates
-        });
-    }
-    
-    /**
-     * Actualiza el estado del mundo
-     * @param {Object} updates - Actualizaciones a aplicar
-     */
-    updateWorldState(updates) {
-        Object.assign(this.gameState.world, updates);
-        
-        this.eventBus.emit('world:state-updated', {
-            world: this.gameState.world,
-            updates
-        });
-    }
-    
-    /**
-     * Maneja solicitudes de cambio de estado
-     * @param {Object} data - Datos de la solicitud
-     */
-    handleStateChangeRequest(data) {
-        const { state, ...additionalData } = data;
-        this.changeState(state, additionalData);
-    }
-    
-    /**
-     * Maneja la muerte del jugador
-     * @param {Object} data - Datos del evento
-     */
-    handlePlayerDeath(data) {
-        this.changeState('gameOver', data);
-    }
-    
-    /**
-     * Maneja el reinicio del juego
-     * @param {Object} data - Datos del evento
-     */
-    handleRestart(data) {
-        this.changeState('playing', data);
-    }
-    
-    /**
-     * Maneja la pausa del juego
-     * @param {Object} data - Datos del evento
-     */
-    handlePause(data) {
-        if (this.currentState === 'playing') {
-            this.changeState('paused', data);
-        }
-    }
-    
-    /**
-     * Maneja la reanudación del juego
-     * @param {Object} data - Datos del evento
-     */
-    handleResume(data) {
-        if (this.currentState === 'paused') {
-            this.changeState('playing', data);
-        }
-    }
-    
-    /**
-     * Añade un estado al historial
-     * @param {string} state - Estado a añadir
-     * @param {Object} gameState - Estado del juego
-     */
-    addToHistory(state, gameState) {
-        this.stateHistory.push({
-            state,
-            gameState: JSON.parse(JSON.stringify(gameState)),
-            timestamp: Date.now()
-        });
-        
-        // Mantener tamaño máximo del historial
-        if (this.stateHistory.length > this.maxHistorySize) {
-            this.stateHistory.shift();
-        }
-    }
-    
-    /**
-     * Carga la mejor distancia desde localStorage
-     * @returns {number} Mejor distancia guardada
-     */
-    loadBestDistance() {
-        try {
-            const saved = localStorage.getItem('spikepulse_best_distance');
-            return saved ? parseFloat(saved) : 0;
-        } catch (error) {
-            console.warn('⚠️ No se pudo cargar la mejor distancia:', error);
-            return 0;
-        }
-    }
-    
-    /**
-     * Guarda la mejor distancia en localStorage
-     * @param {number} distance - Distancia a guardar
-     */
-    saveBestDistance(distance) {
-        try {
-            localStorage.setItem('spikepulse_best_distance', distance.toString());
-        } catch (error) {
-            console.warn('⚠️ No se pudo guardar la mejor distancia:', error);
-        }
-    }
-    
-    /**
-     * Obtiene el estado actual del juego
-     * @returns {Object} Estado actual del juego
-     */
-    getGameState() {
-        return { ...this.gameState };
-    }
-    
-    /**
-     * Obtiene información del estado actual
-     * @returns {Object} Información del estado
-     */
-    getStateInfo() {
+    getDebugInfo() {
         return {
-            current: this.currentState,
-            previous: this.previousState,
-            validTransitions: this.getValidTransitions()[this.currentState] || [],
-            gameState: this.getGameState()
+            isInitialized: this.isInitialized,
+            currentState: this.currentState,
+            previousState: this.previousState,
+            registeredStates: this.getRegisteredStates(),
+            transitions: this.transitions,
+            stats: this.getStats(),
+            recentHistory: this.getStateHistory(5)
         };
+    }
+    
+    /**
+     * Resetea el gestor de estados
+     */
+    reset() {
+        console.log('🔄 Reseteando StateManager...');
+        
+        // Resetear al estado inicial
+        this.setState(this.initialState);
+        
+        // Limpiar historial
+        this.stateHistory.length = 0;
+        
+        // Resetear estadísticas
+        this.stats.stateChanges = 0;
+        this.stats.timeInState = 0;
+        this.stats.stateStartTime = Date.now();
+        
+        console.log('✅ StateManager reseteado');
+    }
+    
+    /**
+     * Destruye el gestor de estados
+     */
+    destroy() {
+        console.log('🧹 Destruyendo StateManager...');
+        
+        // Salir del estado actual
+        if (this.currentState) {
+            const currentStateObj = this.states.get(this.currentState);
+            if (currentStateObj && currentStateObj.onExit) {
+                currentStateObj.onExit();
+            }
+        }
+        
+        // Remover event listeners
+        this.eventBus.off('*', this);
+        
+        // Limpiar mapas
+        this.states.clear();
+        this.stateHistory.length = 0;
+        
+        // Limpiar referencias
+        this.currentState = null;
+        this.previousState = null;
+        
+        this.isInitialized = false;
+        
+        console.log('✅ StateManager destruido');
     }
 }

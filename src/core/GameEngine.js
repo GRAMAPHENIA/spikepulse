@@ -5,70 +5,77 @@
 
 import { EventBus } from './EventBus.js';
 import { StateManager } from './StateManager.js';
+import { GameState } from './GameState.js';
+import { createInputSystem } from '../modules/input/index.js';
+import { createRenderingSystem } from '../modules/renderer/index.js';
+import { createUISystem } from '../modules/ui/index.js';
+import { createDebugSystem } from '../modules/debug/index.js';
 
 export class GameEngine {
     /**
      * Crea una nueva instancia del motor de juego
      * @param {Object} config - Configuración del juego
      */
-    constructor(config) {
+    constructor(config = {}) {
         this.config = config;
-        this.eventBus = new EventBus();
-        this.stateManager = new StateManager(this.eventBus);
-        this.modules = new Map();
-        
-        // Estado del game loop
+        this.isInitialized = false;
         this.isRunning = false;
-        this.isPaused = false;
-        this.lastFrameTime = 0;
+        
+        // Núcleo del motor
+        this.eventBus = new EventBus();
+        this.stateManager = new StateManager(config.states || {}, this.eventBus);
+        this.gameState = new GameState(this.eventBus, config);
+        
+        // Sistemas del juego
+        this.systems = {
+            input: null,
+            rendering: null,
+            ui: null,
+            debug: null
+        };
+        
+        // Game loop
+        this.lastTime = 0;
         this.deltaTime = 0;
-        this.accumulatedTime = 0;
+        this.fps = 60;
         this.frameCount = 0;
-        this.targetFPS = config.canvas?.targetFPS || 60;
-        this.frameTime = 1000 / this.targetFPS;
+        this.animationFrameId = null;
         
-        // Canvas y renderizado
-        this.canvas = null;
-        this.ctx = null;
-        this.canvasContainer = null;
-        
-        // Performance monitoring
-        this.performance = {
-            fps: 0,
-            frameTime: 0,
-            updateTime: 0,
-            renderTime: 0,
-            lastFPSUpdate: 0,
-            frameHistory: []
+        // Datos del juego
+        this.gameData = {
+            distance: 0,
+            score: 0,
+            lives: 3,
+            coins: 0,
+            time: 0,
+            level: 1
         };
         
-        // Sistema de capas de renderizado
-        this.renderLayers = new Map();
-        this.layerOrder = [];
-        
-        // Sistema de prioridades de módulos
-        this.modulePriorities = new Map();
-        this.updateOrder = [];
-        
-        // Manejo de errores
-        this.errorRecovery = {
-            maxErrors: 10,
-            errorCount: 0,
-            lastError: null,
-            recoveryAttempts: 0
+        // Estado del jugador
+        this.player = {
+            position: { x: 150, y: 300 },
+            velocity: { x: 0, y: 0 },
+            onGround: true,
+            jumpsLeft: 2,
+            maxJumps: 2,
+            dashAvailable: true,
+            dashCooldown: 0,
+            gravityInverted: false,
+            isAlive: true,
+            size: 30
         };
         
-        // Hooks del ciclo de vida
-        this.lifecycleHooks = {
-            beforeUpdate: [],
-            afterUpdate: [],
-            beforeRender: [],
-            afterRender: [],
-            onError: [],
-            onStateChange: []
+        // Configuración de física
+        this.physics = {
+            gravity: 0.5,
+            jumpForce: -12,
+            dashForce: 8,
+            dashDuration: 200,
+            groundY: 450, // Posición del suelo
+            ceilingY: 150 // Posición del techo
         };
         
-        console.log('🎮 GameEngine creado con configuración avanzada');
+        console.log('🎮 GameEngine creado');
     }
     
     /**
@@ -78,516 +85,408 @@ export class GameEngine {
         try {
             console.log('🔧 Inicializando GameEngine...');
             
-            // Configurar canvas y renderizado
-            await this.setupCanvas();
-            await this.setupRenderLayers();
+            // Inicializar núcleo
+            await this.stateManager.init();
+            await this.gameState.init();
             
-            // Inicializar sistemas del núcleo
-            await this.initializeCoreModules();
-            
-            // Inicializar módulos del juego
-            await this.initializeGameModules();
+            // Crear y inicializar sistemas
+            await this.initializeSystems();
             
             // Configurar event listeners
             this.setupEventListeners();
             
-            // Configurar hooks del ciclo de vida
-            this.setupLifecycleHooks();
+            // Configurar UI básica
+            this.setupBasicUI();
             
-            // Configurar sistema de performance
-            this.setupPerformanceMonitoring();
+            // Establecer estado inicial (sin iniciar game loop aún)
+            this.stateManager.setState('menu');
             
-            // Cambiar al estado inicial
-            this.stateManager.changeState('menu');
+            this.isInitialized = true;
+            console.log('✅ GameEngine inicializado');
             
-            // Iniciar game loop
-            this.start();
-            
-            console.log('✅ GameEngine inicializado correctamente');
-            
-            // Emitir evento de inicialización completa
-            this.eventBus.emit('engine:initialized', {
-                modules: Array.from(this.modules.keys()),
-                config: this.config,
-                performance: this.performance
+            // Emitir evento de inicialización
+            this.eventBus.emit('game:initialized', {
+                systems: Object.keys(this.systems),
+                config: this.config
             });
             
         } catch (error) {
-            console.error('❌ Error al inicializar GameEngine:', error);
-            await this.handleInitializationError(error);
+            console.error('❌ Error inicializando GameEngine:', error);
             throw error;
         }
     }
     
     /**
-     * Configura el canvas del juego
+     * Inicializa todos los sistemas del juego
      */
-    async setupCanvas() {
-        this.canvas = document.getElementById('game-canvas');
-        if (!this.canvas) {
-            // Crear canvas si no existe
-            this.canvas = document.createElement('canvas');
-            this.canvas.id = 'game-canvas';
-            this.canvas.className = 'spikepulse-canvas';
-            document.body.appendChild(this.canvas);
-        }
+    async initializeSystems() {
+        console.log('🔧 Inicializando sistemas del juego...');
         
-        this.canvas.width = this.config.canvas.width;
-        this.canvas.height = this.config.canvas.height;
-        this.canvas.setAttribute('aria-label', 'Canvas del juego Spikepulse');
+        // Sistema de input
+        this.systems.input = createInputSystem(this.config, this.eventBus);
+        await this.systems.input.init();
         
-        this.ctx = this.canvas.getContext('2d');
-        if (!this.ctx) {
-            throw new Error('No se pudo obtener el contexto 2D del canvas');
-        }
+        // Sistema de renderizado
+        this.systems.rendering = createRenderingSystem(this.config, this.eventBus);
+        await this.systems.rendering.init();
         
-        console.log('🖼️ Canvas configurado:', this.canvas.width, 'x', this.canvas.height);
+        // Sistema de UI
+        this.systems.ui = createUISystem(this.config, this.eventBus);
+        await this.systems.ui.init();
+        
+        // Sistema de debug
+        this.systems.debug = createDebugSystem(this.config, this.eventBus);
+        await this.systems.debug.init();
+        
+        // Establecer referencias cruzadas
+        this.systems.debug.setGameReferences(
+            this,
+            this.systems.rendering.canvasRenderer.canvas,
+            this.systems.rendering.canvasRenderer.ctx
+        );
+        
+        console.log('✅ Todos los sistemas inicializados');
     }
     
     /**
-     * Configura las capas de renderizado
-     */
-    async setupRenderLayers() {
-        const layers = this.config.renderer?.layers || {
-            background: 0,
-            world: 1,
-            obstacles: 2,
-            player: 3,
-            effects: 4,
-            ui: 5
-        };
-        
-        // Configurar capas ordenadas por z-index
-        this.layerOrder = Object.entries(layers)
-            .sort(([,a], [,b]) => a - b)
-            .map(([name]) => name);
-        
-        // Inicializar mapas de capas
-        for (const layerName of this.layerOrder) {
-            this.renderLayers.set(layerName, []);
-        }
-        
-        console.log('🎨 Capas de renderizado configuradas:', this.layerOrder);
-    }
-    
-    /**
-     * Inicializa módulos del núcleo del sistema
-     */
-    async initializeCoreModules() {
-        console.log('🔧 Inicializando módulos del núcleo...');
-        
-        try {
-            // Importar configuraciones
-            const { getUIConfig, getPhysicsConfig } = await import('../config/index.js');
-            
-            // Inicializar UIManager
-            const { UIManager } = await import('../modules/ui/UIManager.js');
-            const uiConfig = await getUIConfig();
-            const uiManager = new UIManager(uiConfig, this.eventBus);
-            this.registerModule('ui', uiManager, 100); // Alta prioridad
-            
-            console.log('✅ Módulos del núcleo inicializados');
-        } catch (error) {
-            console.warn('⚠️ Error inicializando módulos del núcleo:', error);
-            await this.initializeFallbackModules();
-        }
-    }
-    
-    /**
-     * Inicializa módulos del juego
-     */
-    async initializeGameModules() {
-        console.log('🎮 Inicializando módulos del juego...');
-        
-        const moduleConfigs = [
-            { name: 'input', path: '../modules/input/InputManager.js', priority: 90 },
-            { name: 'player', path: '../modules/player/Player.js', priority: 80 },
-            { name: 'world', path: '../modules/world/World.js', priority: 70 },
-            { name: 'renderer', path: '../modules/renderer/CanvasRenderer.js', priority: 60 }
-        ];
-        
-        for (const moduleConfig of moduleConfigs) {
-            try {
-                await this.loadModule(moduleConfig);
-            } catch (error) {
-                console.warn(`⚠️ No se pudo cargar módulo ${moduleConfig.name}:`, error.message);
-                // Continuar con otros módulos
-            }
-        }
-        
-        // Actualizar orden de actualización basado en prioridades
-        this.updateModuleOrder();
-        
-        console.log('✅ Módulos del juego inicializados');
-    }
-    
-    /**
-     * Carga un módulo específico
-     */
-    async loadModule(moduleConfig) {
-        try {
-            const moduleClass = await import(moduleConfig.path);
-            const ModuleClass = moduleClass.default || moduleClass[Object.keys(moduleClass)[0]];
-            
-            if (ModuleClass) {
-                const moduleInstance = new ModuleClass(this.config, this.eventBus);
-                this.registerModule(moduleConfig.name, moduleInstance, moduleConfig.priority);
-                console.log(`📦 Módulo ${moduleConfig.name} cargado`);
-            }
-        } catch (error) {
-            // El módulo no existe aún, esto es normal durante el desarrollo
-            console.log(`📦 Módulo ${moduleConfig.name} no disponible (será implementado en tareas futuras)`);
-        }
-    }
-    
-    /**
-     * Inicializa módulos de fallback básicos
-     */
-    async initializeFallbackModules() {
-        try {
-            const { UIManager } = await import('../modules/ui/UIManager.js');
-            const basicUIConfig = { theme: 'noir', language: 'es' };
-            const uiManager = new UIManager(basicUIConfig, this.eventBus);
-            this.registerModule('ui', uiManager, 100);
-            console.log('✅ UIManager básico inicializado como fallback');
-        } catch (fallbackError) {
-            console.error('❌ Error inicializando módulos de fallback:', fallbackError);
-        }
-    }
-    
-    /**
-     * Configura los event listeners principales
+     * Configura event listeners del motor
      */
     setupEventListeners() {
-        // Listener para cambios de estado
-        this.eventBus.on('state:changed', this.handleStateChange.bind(this));
+        // Eventos de control del juego
+        this.eventBus.on('game:start', this.startGame.bind(this));
+        this.eventBus.on('game:pause', this.pauseGame.bind(this));
+        this.eventBus.on('game:resume', this.resumeGame.bind(this));
+        this.eventBus.on('game:restart', this.restartGame.bind(this));
+        this.eventBus.on('game:stop', this.stopGame.bind(this));
+        this.eventBus.on('game:reset', this.resetGame.bind(this));
         
-        // Listener para errores
-        this.eventBus.on('error:*', this.handleError.bind(this));
+        // Eventos de estado
+        this.eventBus.on('game:toggle-pause', this.togglePause.bind(this));
+        this.eventBus.on('game:game-over', this.handleGameOver.bind(this));
+        this.eventBus.on('game:state-changed', this.handleStateChange.bind(this));
         
-        // Listener para redimensionado de ventana
-        window.addEventListener('resize', this.handleResize.bind(this));
+        // Eventos de GameState
+        this.eventBus.on('gamestate:changed', this.handleGameStateChange.bind(this));
+        this.eventBus.on('gamestate:save-error', this.handleSaveError.bind(this));
+        this.eventBus.on('gamestate:load-error', this.handleLoadError.bind(this));
         
-        // Listener para visibilidad de página
-        document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+        // Eventos de input del jugador
+        this.eventBus.on('input:jump', this.handlePlayerJump.bind(this));
+        this.eventBus.on('input:dash', this.handlePlayerDash.bind(this));
+        this.eventBus.on('input:gravity', this.handlePlayerGravity.bind(this));
+        this.eventBus.on('input:pause', this.handleGamePause.bind(this));
         
-        console.log('👂 Event listeners configurados');
+        console.log('👂 Event listeners del motor configurados');
     }
     
     /**
-     * Inicia el game loop
+     * Configura la UI básica del juego
      */
-    start() {
-        if (this.isRunning) return;
+    setupBasicUI() {
+        // Crear el sistema de UI básico directamente en el DOM
+        this.createBasicUI();
         
-        this.isRunning = true;
-        this.lastFrameTime = performance.now();
-        this.gameLoop(this.lastFrameTime);
-        
-        console.log('▶️ Game loop iniciado');
+        console.log('🎨 UI básica configurada');
     }
     
     /**
-     * Detiene el game loop
+     * Crea la UI básica del juego
      */
-    stop() {
-        this.isRunning = false;
-        console.log('⏹️ Game loop detenido');
-    }
-    
-    /**
-     * Game loop principal con timing preciso
-     * @param {number} currentTime - Tiempo actual
-     */
-    gameLoop(currentTime) {
-        if (!this.isRunning) return;
-        
-        // Calcular delta time con límites
-        const rawDelta = currentTime - this.lastFrameTime;
-        this.deltaTime = Math.min(rawDelta, 1000 / 20); // Cap a 20 FPS mínimo
-        this.lastFrameTime = currentTime;
-        
-        // Acumular tiempo para fixed timestep
-        this.accumulatedTime += this.deltaTime;
-        
-        try {
-            // Ejecutar hooks pre-update
-            this.executeHooks('beforeUpdate', { deltaTime: this.deltaTime });
-            
-            // Fixed timestep updates para física consistente
-            while (this.accumulatedTime >= this.frameTime) {
-                if (!this.isPaused && this.shouldUpdate()) {
-                    this.fixedUpdate(this.frameTime);
-                }
-                this.accumulatedTime -= this.frameTime;
-            }
-            
-            // Variable timestep update para interpolación
-            if (!this.isPaused && this.shouldUpdate()) {
-                const interpolation = this.accumulatedTime / this.frameTime;
-                this.variableUpdate(this.deltaTime, interpolation);
-            }
-            
-            // Ejecutar hooks post-update
-            this.executeHooks('afterUpdate', { deltaTime: this.deltaTime });
-            
-            // Ejecutar hooks pre-render
-            this.executeHooks('beforeRender', { deltaTime: this.deltaTime });
-            
-            // Renderizar siempre (incluso en pausa para UI)
-            this.render(this.deltaTime);
-            
-            // Ejecutar hooks post-render
-            this.executeHooks('afterRender', { deltaTime: this.deltaTime });
-            
-            // Actualizar estadísticas de performance
-            this.updatePerformanceStats(currentTime);
-            
-            // Reset error count en frames exitosos
-            this.errorRecovery.errorCount = Math.max(0, this.errorRecovery.errorCount - 0.1);
-            
-        } catch (error) {
-            this.handleGameLoopError(error, currentTime);
+    createBasicUI() {
+        // Crear contenedor de UI si no existe
+        let uiContainer = document.getElementById('spikepulse-ui');
+        if (!uiContainer) {
+            uiContainer = document.createElement('div');
+            uiContainer.id = 'spikepulse-ui';
+            uiContainer.className = 'spikepulse-ui';
+            document.body.appendChild(uiContainer);
         }
         
-        // Continuar el loop
-        this.frameCount++;
-        requestAnimationFrame(this.gameLoop.bind(this));
-    }
-    
-    /**
-     * Determina si el juego debe actualizarse
-     */
-    shouldUpdate() {
-        const activeStates = ['playing', 'paused'];
-        return activeStates.includes(this.stateManager.currentState) || 
-               this.config.debug?.enabled;
-    }
-    
-    /**
-     * Update con timestep fijo para física consistente
-     * @param {number} fixedDelta - Delta time fijo
-     */
-    fixedUpdate(fixedDelta) {
-        const updateStart = performance.now();
+        // Crear pantalla de menú
+        const menuScreen = document.createElement('div');
+        menuScreen.id = 'menu-screen';
+        menuScreen.className = 'screen screen-menu';
+        menuScreen.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+        `;
         
-        // Actualizar módulos con timestep fijo
-        for (const moduleName of this.updateOrder) {
-            const module = this.modules.get(moduleName);
-            if (module && module.fixedUpdate && typeof module.fixedUpdate === 'function') {
-                try {
-                    module.fixedUpdate(fixedDelta);
-                } catch (error) {
-                    console.error(`❌ Error en fixedUpdate del módulo ${moduleName}:`, error);
-                    this.handleModuleError(moduleName, error, 'fixedUpdate');
-                }
-            }
+        // Título del juego
+        const title = document.createElement('h1');
+        title.textContent = 'Spikepulse';
+        title.style.cssText = `
+            font-size: 4rem;
+            color: #FFD700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        `;
+        
+        // Subtítulo
+        const subtitle = document.createElement('p');
+        subtitle.textContent = '¡Domina la gravedad y evita los obstáculos!';
+        subtitle.style.cssText = `
+            font-size: 1.5rem;
+            color: #CCCCCC;
+            margin-bottom: 3rem;
+            text-align: center;
+        `;
+        
+        // Botón de inicio
+        const startButton = document.createElement('button');
+        startButton.textContent = 'Comenzar Aventura';
+        startButton.style.cssText = `
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        `;
+        
+        // Efectos hover del botón
+        startButton.addEventListener('mouseenter', () => {
+            startButton.style.transform = 'translateY(-2px)';
+            startButton.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.5)';
+        });
+        
+        startButton.addEventListener('mouseleave', () => {
+            startButton.style.transform = 'translateY(0)';
+            startButton.style.boxShadow = '0 4px 15px rgba(255, 215, 0, 0.3)';
+        });
+        
+        // Event listener del botón
+        startButton.addEventListener('click', () => {
+            console.log('🚀 Botón "Comenzar Aventura" presionado desde GameEngine');
+            this.startGame();
+        });
+        
+        // Ensamblar menú
+        menuScreen.appendChild(title);
+        menuScreen.appendChild(subtitle);
+        menuScreen.appendChild(startButton);
+        uiContainer.appendChild(menuScreen);
+        
+        // Guardar referencia
+        this.menuScreen = menuScreen;
+        
+        // Mostrar menú inicialmente
+        this.showMenu();
+        
+        console.log('🎮 Menú principal creado y mostrado');
+    }
+    
+    /**
+     * Inicia el juego
+     */
+    startGame() {
+        console.log('🚀 Iniciando juego...');
+        
+        // Ocultar menú del HTML primero
+        const htmlMenu = document.getElementById('main-menu');
+        if (htmlMenu) {
+            htmlMenu.style.display = 'none';
+            console.log('📋 Menú HTML ocultado');
         }
         
-        // Emitir evento de fixed update
-        this.eventBus.emit('game:fixed-update', { deltaTime: fixedDelta });
+        // Cambiar estado a jugando
+        this.stateManager.setState('playing');
         
-        this.performance.updateTime = performance.now() - updateStart;
+        // Resetear datos del juego
+        this.resetGameData();
+        
+        // Iniciar game loop si no está corriendo
+        if (!this.isRunning) {
+            this.startGameLoop();
+        }
+        
+        // Emitir evento
+        this.eventBus.emit('game:started', {
+            timestamp: Date.now()
+        });
+        
+        console.log('✅ Juego iniciado');
+        
+        // Ocultar menú del GameEngine también
+        this.hideMenu();
     }
     
     /**
-     * Update con timestep variable para interpolación
-     * @param {number} deltaTime - Delta time variable
-     * @param {number} interpolation - Factor de interpolación
+     * Muestra el menú principal
      */
-    variableUpdate(deltaTime, interpolation) {
-        // Actualizar módulos con timestep variable
-        for (const moduleName of this.updateOrder) {
-            const module = this.modules.get(moduleName);
-            if (module && module.update && typeof module.update === 'function') {
-                try {
-                    module.update(deltaTime, interpolation);
-                } catch (error) {
-                    console.error(`❌ Error actualizando módulo ${moduleName}:`, error);
-                    this.handleModuleError(moduleName, error, 'update');
-                }
-            }
+    showMenu() {
+        if (this.menuScreen) {
+            this.menuScreen.style.display = 'flex';
+            this.menuScreen.style.visibility = 'visible';
+            this.menuScreen.style.opacity = '1';
+            console.log('📋 Menú principal mostrado');
+        } else {
+            console.warn('⚠️ menuScreen no existe');
         }
+    }
+    
+    /**
+     * Oculta el menú principal
+     */
+    hideMenu() {
+        if (this.menuScreen) {
+            this.menuScreen.style.display = 'none';
+            console.log('📋 Menú principal ocultado');
+        }
+    }
+    
+    /**
+     * Pausa el juego
+     */
+    pauseGame() {
+        if (this.stateManager.getState() !== 'playing') return;
         
-        // Emitir evento de actualización
-        this.eventBus.emit('game:update', { 
-            deltaTime, 
-            interpolation,
-            frameCount: this.frameCount 
+        console.log('⏸️ Pausando juego...');
+        
+        this.stateManager.setState('paused');
+        
+        // Emitir evento
+        this.eventBus.emit('game:paused', {
+            timestamp: Date.now()
         });
     }
     
     /**
-     * Actualiza la lógica del juego
-     * @param {number} deltaTime - Tiempo transcurrido desde la última actualización
+     * Reanuda el juego
      */
-    update(deltaTime) {
-        // Actualizar módulos
-        for (const [name, module] of this.modules) {
-            if (module.update && typeof module.update === 'function') {
-                try {
-                    module.update(deltaTime);
-                } catch (error) {
-                    console.error(`❌ Error actualizando módulo ${name}:`, error);
-                }
-            }
-        }
+    resumeGame() {
+        if (this.stateManager.getState() !== 'paused') return;
         
-        // Emitir evento de actualización
-        this.eventBus.emit('game:update', { deltaTime });
-    }
-    
-    /**
-     * Renderiza el juego con sistema de capas
-     * @param {number} deltaTime - Delta time para interpolación
-     */
-    render(deltaTime) {
-        if (!this.ctx) return;
+        console.log('▶️ Reanudando juego...');
         
-        const renderStart = performance.now();
+        this.stateManager.setState('playing');
         
-        // Limpiar canvas
-        this.clearCanvas();
-        
-        // Limpiar capas de renderizado
-        this.clearRenderLayers();
-        
-        // Recopilar objetos de renderizado por capas
-        this.collectRenderObjects();
-        
-        // Renderizar por capas ordenadas
-        this.renderLayers();
-        
-        // Renderizar debug si está habilitado
-        if (this.config.debug?.enabled) {
-            this.renderDebugInfo();
-        }
-        
-        // Emitir evento de renderizado
-        this.eventBus.emit('game:render', { 
-            ctx: this.ctx, 
-            deltaTime,
-            layers: this.renderLayers 
+        // Emitir evento
+        this.eventBus.emit('game:resumed', {
+            timestamp: Date.now()
         });
+    }
+    
+    /**
+     * Reinicia el juego
+     */
+    restartGame() {
+        console.log('🔄 Reiniciando juego...');
         
-        this.performance.renderTime = performance.now() - renderStart;
+        // Resetear datos
+        this.resetGameData();
+        
+        // Resetear sistemas
+        this.resetSystems();
+        
+        // Iniciar de nuevo
+        this.startGame();
+        
+        // Emitir evento
+        this.eventBus.emit('game:restarted', {
+            timestamp: Date.now()
+        });
     }
     
     /**
-     * Limpia el canvas
+     * Detiene el juego
      */
-    clearCanvas() {
-        this.ctx.fillStyle = this.config.canvas.backgroundColor || '#0F0F0F';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    stopGame() {
+        console.log('⏹️ Deteniendo juego...');
+        
+        this.stateManager.setState('menu');
+        
+        // Mostrar menú del HTML
+        const htmlMenu = document.getElementById('main-menu');
+        if (htmlMenu) {
+            htmlMenu.style.display = 'flex';
+            console.log('📋 Menú HTML mostrado');
+        }
+        
+        // Mostrar menú del GameEngine también
+        this.showMenu();
+        
+        // Emitir evento
+        this.eventBus.emit('game:stopped', {
+            timestamp: Date.now()
+        });
     }
     
     /**
-     * Limpia las capas de renderizado
+     * Resetea el juego completamente
      */
-    clearRenderLayers() {
-        for (const layer of this.renderLayers.values()) {
-            layer.length = 0;
+    resetGame() {
+        console.log('🔄 Reseteando juego completamente...');
+        
+        // Detener game loop
+        this.stopGameLoop();
+        
+        // Resetear datos
+        this.resetGameData();
+        
+        // Resetear sistemas
+        this.resetSystems();
+        
+        // Volver al menú
+        this.stateManager.setState('menu');
+        
+        // Mostrar menú
+        this.showMenu();
+        
+        // Emitir evento
+        this.eventBus.emit('game:reset', {
+            timestamp: Date.now()
+        });
+    }
+    
+    /**
+     * Alterna pausa/resume
+     */
+    togglePause() {
+        const currentState = this.stateManager.getState();
+        
+        if (currentState === 'playing') {
+            this.pauseGame();
+        } else if (currentState === 'paused') {
+            this.resumeGame();
         }
     }
     
     /**
-     * Recopila objetos de renderizado de todos los módulos
+     * Maneja game over
+     * @param {Object} data - Datos del game over
      */
-    collectRenderObjects() {
-        for (const [name, module] of this.modules) {
-            if (module.getRenderObjects && typeof module.getRenderObjects === 'function') {
-                try {
-                    const renderObjects = module.getRenderObjects();
-                    this.addRenderObjectsToLayers(renderObjects);
-                } catch (error) {
-                    console.error(`❌ Error obteniendo objetos de renderizado del módulo ${name}:`, error);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Añade objetos de renderizado a las capas apropiadas
-     * @param {Array} renderObjects - Objetos de renderizado
-     */
-    addRenderObjectsToLayers(renderObjects) {
-        for (const obj of renderObjects) {
-            const layerName = obj.layer || 'world';
-            const layer = this.renderLayers.get(layerName);
-            if (layer) {
-                layer.push(obj);
-            }
-        }
-    }
-    
-    /**
-     * Renderiza todas las capas en orden
-     */
-    renderLayers() {
-        for (const layerName of this.layerOrder) {
-            const layer = this.renderLayers.get(layerName);
-            if (layer && layer.length > 0) {
-                this.renderLayer(layerName, layer);
-            }
-        }
-    }
-    
-    /**
-     * Renderiza una capa específica
-     * @param {string} layerName - Nombre de la capa
-     * @param {Array} objects - Objetos a renderizar
-     */
-    renderLayer(layerName, objects) {
-        this.ctx.save();
+    handleGameOver(data) {
+        console.log('💀 Game Over');
         
-        // Ordenar objetos por z-index dentro de la capa
-        objects.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+        this.stateManager.setState('game-over');
         
-        // Renderizar cada objeto
-        for (const obj of objects) {
-            try {
-                if (obj.render && typeof obj.render === 'function') {
-                    obj.render(this.ctx);
-                } else if (obj.draw && typeof obj.draw === 'function') {
-                    obj.draw(this.ctx);
-                }
-            } catch (error) {
-                console.error(`❌ Error renderizando objeto en capa ${layerName}:`, error);
-            }
+        // Actualizar datos finales
+        if (data) {
+            this.gameData = { ...this.gameData, ...data };
         }
         
-        this.ctx.restore();
-    }
-    
-    /**
-     * Renderiza información de debug
-     */
-    renderDebugInfo() {
-        if (!this.config.debug?.showFPS && !this.config.debug?.showPerformance) return;
-        
-        this.ctx.save();
-        this.ctx.fillStyle = '#00FF00';
-        this.ctx.font = '14px monospace';
-        this.ctx.textAlign = 'left';
-        
-        let y = 20;
-        const lineHeight = 16;
-        
-        if (this.config.debug.showFPS) {
-            this.ctx.fillText(`FPS: ${this.performance.fps}`, 10, y);
-            y += lineHeight;
-        }
-        
-        if (this.config.debug.showPerformance) {
-            this.ctx.fillText(`Update: ${this.performance.updateTime.toFixed(2)}ms`, 10, y);
-            y += lineHeight;
-            this.ctx.fillText(`Render: ${this.performance.renderTime.toFixed(2)}ms`, 10, y);
-            y += lineHeight;
-            this.ctx.fillText(`Modules: ${this.modules.size}`, 10, y);
-            y += lineHeight;
-        }
-        
-        this.ctx.restore();
+        // Emitir evento
+        this.eventBus.emit('game:over', {
+            ...this.gameData,
+            timestamp: Date.now()
+        });
     }
     
     /**
@@ -595,465 +494,502 @@ export class GameEngine {
      * @param {Object} data - Datos del cambio de estado
      */
     handleStateChange(data) {
-        console.log(`🔄 Estado cambiado: ${data.from} -> ${data.to}`);
+        console.log(`🎯 Estado cambiado a: ${data.state}`);
         
-        // Notificar a módulos sobre el cambio de estado
-        for (const [name, module] of this.modules) {
-            if (module.onStateChange && typeof module.onStateChange === 'function') {
-                try {
-                    module.onStateChange(data);
-                } catch (error) {
-                    console.error(`❌ Error en cambio de estado del módulo ${name}:`, error);
-                }
-            }
+        switch (data.state) {
+            case 'menu':
+                this.showMenu();
+                break;
+            case 'playing':
+                this.hideMenu();
+                break;
+            case 'paused':
+                // El menú permanece oculto durante la pausa
+                break;
+            case 'game-over':
+                // Podrías mostrar una pantalla de game over aquí
+                break;
         }
     }
     
     /**
-     * Maneja errores del juego
-     * @param {Object} errorData - Datos del error
+     * Resetea los datos del juego
      */
-    handleError(errorData) {
-        console.error('🚨 Error del juego:', errorData);
+    resetGameData() {
+        // Resetear estado centralizado
+        this.gameState.resetState(true); // Mantener configuraciones
         
-        // Implementar recuperación de errores en futuras tareas
-        // Por ahora solo loggeamos
-    }
-    
-    /**
-     * Maneja el redimensionado de ventana
-     */
-    handleResize() {
-        if (!this.canvas) return;
-        
-        // Mantener proporción del canvas
-        const container = this.canvas.parentElement;
-        if (container) {
-            const containerRect = container.getBoundingClientRect();
-            const aspectRatio = this.config.canvas.width / this.config.canvas.height;
-            
-            let newWidth = containerRect.width;
-            let newHeight = newWidth / aspectRatio;
-            
-            if (newHeight > containerRect.height) {
-                newHeight = containerRect.height;
-                newWidth = newHeight * aspectRatio;
-            }
-            
-            this.canvas.style.width = newWidth + 'px';
-            this.canvas.style.height = newHeight + 'px';
-        }
-        
-        this.eventBus.emit('game:resize', {
-            width: this.canvas.width,
-            height: this.canvas.height
-        });
-    }
-    
-    /**
-     * Maneja cambios de visibilidad de la página
-     */
-    handleVisibilityChange() {
-        if (document.hidden) {
-            // Pausar el juego cuando la página no es visible
-            if (this.stateManager.currentState === 'playing') {
-                this.stateManager.changeState('paused');
-            }
-        }
-    }
-    
-    /**
-     * Configura hooks del ciclo de vida
-     */
-    setupLifecycleHooks() {
-        // Hook para manejo de errores
-        this.addLifecycleHook('onError', (error) => {
-            console.error('🚨 Error capturado por hook:', error);
-        });
-        
-        // Hook para cambios de estado
-        this.addLifecycleHook('onStateChange', (data) => {
-            console.log(`🔄 Hook de cambio de estado: ${data.from} -> ${data.to}`);
-        });
-        
-        console.log('🪝 Hooks del ciclo de vida configurados');
-    }
-    
-    /**
-     * Configura monitoreo de performance
-     */
-    setupPerformanceMonitoring() {
-        this.performance.lastFPSUpdate = performance.now();
-        console.log('📊 Monitoreo de performance configurado');
-    }
-    
-    /**
-     * Actualiza estadísticas de performance
-     * @param {number} currentTime - Tiempo actual
-     */
-    updatePerformanceStats(currentTime) {
-        // Actualizar FPS cada segundo
-        if (currentTime - this.performance.lastFPSUpdate >= 1000) {
-            this.performance.fps = Math.round(this.frameCount * 1000 / (currentTime - this.performance.lastFPSUpdate));
-            this.frameCount = 0;
-            this.performance.lastFPSUpdate = currentTime;
-            
-            // Mantener historial de frames
-            this.performance.frameHistory.push(this.performance.fps);
-            if (this.performance.frameHistory.length > 60) {
-                this.performance.frameHistory.shift();
-            }
-        }
-        
-        this.performance.frameTime = this.deltaTime;
-    }
-    
-    /**
-     * Ejecuta hooks del ciclo de vida
-     * @param {string} hookName - Nombre del hook
-     * @param {*} data - Datos para el hook
-     */
-    executeHooks(hookName, data) {
-        const hooks = this.lifecycleHooks[hookName];
-        if (hooks && hooks.length > 0) {
-            for (const hook of hooks) {
-                try {
-                    hook(data);
-                } catch (error) {
-                    console.error(`❌ Error ejecutando hook ${hookName}:`, error);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Añade un hook del ciclo de vida
-     * @param {string} hookName - Nombre del hook
-     * @param {Function} callback - Función callback
-     */
-    addLifecycleHook(hookName, callback) {
-        if (!this.lifecycleHooks[hookName]) {
-            this.lifecycleHooks[hookName] = [];
-        }
-        this.lifecycleHooks[hookName].push(callback);
-    }
-    
-    /**
-     * Maneja errores del game loop
-     * @param {Error} error - Error ocurrido
-     * @param {number} currentTime - Tiempo actual
-     */
-    handleGameLoopError(error, currentTime) {
-        this.errorRecovery.errorCount++;
-        this.errorRecovery.lastError = error;
-        
-        console.error('❌ Error en game loop:', error);
-        
-        // Ejecutar hooks de error
-        this.executeHooks('onError', { error, context: 'gameLoop', time: currentTime });
-        
-        // Si hay demasiados errores, intentar recuperación
-        if (this.errorRecovery.errorCount > this.errorRecovery.maxErrors) {
-            this.attemptErrorRecovery();
-        }
-    }
-    
-    /**
-     * Maneja errores de módulos específicos
-     * @param {string} moduleName - Nombre del módulo
-     * @param {Error} error - Error ocurrido
-     * @param {string} context - Contexto del error
-     */
-    handleModuleError(moduleName, error, context) {
-        console.error(`❌ Error en módulo ${moduleName} (${context}):`, error);
-        
-        // Ejecutar hooks de error
-        this.executeHooks('onError', { error, module: moduleName, context });
-        
-        // Intentar reinicializar el módulo si es crítico
-        if (this.isModuleCritical(moduleName)) {
-            this.attemptModuleRecovery(moduleName);
-        }
-    }
-    
-    /**
-     * Maneja errores de inicialización
-     * @param {Error} error - Error de inicialización
-     */
-    async handleInitializationError(error) {
-        console.error('❌ Error de inicialización:', error);
-        
-        // Intentar inicialización con configuración mínima
-        try {
-            console.log('🔄 Intentando inicialización de emergencia...');
-            await this.emergencyInitialization();
-        } catch (emergencyError) {
-            console.error('❌ Fallo la inicialización de emergencia:', emergencyError);
-        }
-    }
-    
-    /**
-     * Intenta recuperación de errores
-     */
-    attemptErrorRecovery() {
-        this.errorRecovery.recoveryAttempts++;
-        
-        console.log(`🔄 Intentando recuperación de errores (intento ${this.errorRecovery.recoveryAttempts})...`);
-        
-        if (this.errorRecovery.recoveryAttempts > 3) {
-            console.error('❌ Demasiados intentos de recuperación, deteniendo el juego');
-            this.stop();
-            return;
-        }
-        
-        // Reinicializar módulos no críticos
-        this.reinitializeNonCriticalModules();
-        
-        // Reset contador de errores
-        this.errorRecovery.errorCount = 0;
-    }
-    
-    /**
-     * Determina si un módulo es crítico
-     * @param {string} moduleName - Nombre del módulo
-     * @returns {boolean} True si es crítico
-     */
-    isModuleCritical(moduleName) {
-        const criticalModules = ['ui', 'state', 'input'];
-        return criticalModules.includes(moduleName);
-    }
-    
-    /**
-     * Intenta recuperar un módulo específico
-     * @param {string} moduleName - Nombre del módulo
-     */
-    async attemptModuleRecovery(moduleName) {
-        console.log(`🔄 Intentando recuperar módulo ${moduleName}...`);
-        
-        try {
-            const module = this.modules.get(moduleName);
-            if (module && module.reset && typeof module.reset === 'function') {
-                module.reset();
-                console.log(`✅ Módulo ${moduleName} recuperado`);
-            }
-        } catch (error) {
-            console.error(`❌ Error recuperando módulo ${moduleName}:`, error);
-        }
-    }
-    
-    /**
-     * Reinicializa módulos no críticos
-     */
-    async reinitializeNonCriticalModules() {
-        const nonCriticalModules = Array.from(this.modules.keys())
-            .filter(name => !this.isModuleCritical(name));
-        
-        for (const moduleName of nonCriticalModules) {
-            try {
-                await this.attemptModuleRecovery(moduleName);
-            } catch (error) {
-                console.warn(`⚠️ No se pudo recuperar módulo ${moduleName}:`, error);
-            }
-        }
-    }
-    
-    /**
-     * Inicialización de emergencia con configuración mínima
-     */
-    async emergencyInitialization() {
-        // Configuración mínima de emergencia
-        this.config = {
-            canvas: { width: 800, height: 400, backgroundColor: '#000000', targetFPS: 30 },
-            debug: { enabled: true, showFPS: true }
+        // Resetear gameData legacy para compatibilidad
+        this.gameData = {
+            distance: 0,
+            score: 0,
+            lives: 3,
+            coins: 0,
+            time: 0,
+            level: 1
         };
         
-        // Reintentar inicialización básica
-        await this.setupCanvas();
-        await this.initializeFallbackModules();
-        this.setupEventListeners();
+        // Resetear jugador
+        this.player = {
+            position: { x: 150, y: 300 },
+            velocity: { x: 0, y: 0 },
+            onGround: true,
+            jumpsLeft: 2,
+            maxJumps: 2,
+            dashAvailable: true,
+            dashCooldown: 0,
+            gravityInverted: false,
+            isAlive: true,
+            size: 30
+        };
         
-        console.log('🚑 Inicialización de emergencia completada');
+        console.log('🔄 Jugador reseteado');
+        
+        // Actualizar UI
+        this.eventBus.emit('game:data-updated', this.gameData);
     }
     
     /**
-     * Actualiza el orden de módulos basado en prioridades
+     * Maneja cambios en el estado del juego
+     * @param {Object} data - Datos del cambio
      */
-    updateModuleOrder() {
-        this.updateOrder = Array.from(this.modules.keys())
-            .sort((a, b) => {
-                const priorityA = this.modulePriorities.get(a) || 50;
-                const priorityB = this.modulePriorities.get(b) || 50;
-                return priorityB - priorityA; // Mayor prioridad primero
+    handleGameStateChange(data) {
+        const { path, newValue, oldValue } = data;
+        
+        // Log para debugging
+        console.log(`🔄 Estado cambiado: ${path} = ${JSON.stringify(newValue)}`);
+        
+        // Manejar cambios específicos
+        switch (path) {
+            case 'stats.distance':
+                // Actualizar gameData legacy
+                this.gameData.distance = newValue;
+                break;
+                
+            case 'stats.score':
+                this.gameData.score = newValue;
+                break;
+                
+            case 'stats.coins':
+                this.gameData.coins = newValue;
+                break;
+                
+            case 'player.isAlive':
+                if (!newValue && oldValue) {
+                    // El jugador murió
+                    this.handleGameOver({ reason: 'death' });
+                }
+                break;
+        }
+    }
+    
+    /**
+     * Maneja errores de guardado
+     * @param {Object} data - Datos del error
+     */
+    handleSaveError(data) {
+        console.error('💾❌ Error guardando estado:', data.error);
+        
+        // Mostrar notificación al usuario (si hay sistema de UI)
+        this.eventBus.emit('ui:show-notification', {
+            type: 'error',
+            message: 'Error al guardar el progreso',
+            duration: 3000
+        });
+    }
+    
+    /**
+     * Maneja errores de carga
+     * @param {Object} data - Datos del error
+     */
+    handleLoadError(data) {
+        console.error('📂❌ Error cargando estado:', data.error);
+        
+        // Mostrar notificación al usuario
+        this.eventBus.emit('ui:show-notification', {
+            type: 'warning',
+            message: 'No se pudo cargar el progreso anterior',
+            duration: 3000
+        });
+    }
+    
+    /**
+     * Maneja el salto del jugador
+     * @param {Object} data - Datos del input
+     */
+    handlePlayerJump(data) {
+        if (this.stateManager.getState() !== 'playing') return;
+        
+        console.log('🦘 Jugador intenta saltar');
+        
+        if (this.player.jumpsLeft > 0) {
+            this.player.velocity.y = this.physics.jumpForce * (this.player.gravityInverted ? -1 : 1);
+            this.player.jumpsLeft--;
+            this.player.onGround = false;
+            
+            console.log(`🦘 Salto ejecutado, saltos restantes: ${this.player.jumpsLeft}`);
+            
+            // Actualizar estadísticas
+            this.gameState.set('stats.jumps', this.gameState.get('stats.jumps') + 1);
+            
+            // Emitir evento
+            this.eventBus.emit('player:jumped', {
+                position: { ...this.player.position },
+                jumpsLeft: this.player.jumpsLeft
             });
-        
-        console.log('📋 Orden de actualización de módulos:', this.updateOrder);
-    }
-    
-    /**
-     * Registra un módulo en el motor
-     * @param {string} name - Nombre del módulo
-     * @param {Object} module - Instancia del módulo
-     * @param {number} priority - Prioridad de actualización (mayor = primero)
-     */
-    registerModule(name, module, priority = 50) {
-        this.modules.set(name, module);
-        this.modulePriorities.set(name, priority);
-        this.updateModuleOrder();
-        
-        console.log(`📦 Módulo registrado: ${name} (prioridad: ${priority})`);
-        
-        // Emitir evento de registro de módulo
-        this.eventBus.emit('engine:module-registered', { name, module, priority });
-    }
-    
-    /**
-     * Pausa el game loop
-     */
-    pause() {
-        if (!this.isPaused) {
-            this.isPaused = true;
-            console.log('⏸️ Game loop pausado');
-            this.eventBus.emit('engine:paused');
-        }
-    }
-    
-    /**
-     * Reanuda el game loop
-     */
-    resume() {
-        if (this.isPaused) {
-            this.isPaused = false;
-            console.log('▶️ Game loop reanudado');
-            this.eventBus.emit('engine:resumed');
-        }
-    }
-    
-    /**
-     * Alterna entre pausa y reanudación
-     */
-    togglePause() {
-        if (this.isPaused) {
-            this.resume();
         } else {
-            this.pause();
+            console.log('🚫 No hay saltos disponibles');
         }
     }
     
     /**
-     * Obtiene un módulo registrado
-     * @param {string} name - Nombre del módulo
-     * @returns {Object|null} Instancia del módulo o null
+     * Maneja el dash del jugador
+     * @param {Object} data - Datos del input
      */
-    getModule(name) {
-        return this.modules.get(name) || null;
+    handlePlayerDash(data) {
+        if (this.stateManager.getState() !== 'playing') return;
+        
+        console.log('⚡ Jugador intenta dash');
+        
+        if (this.player.dashAvailable) {
+            this.player.velocity.x = this.physics.dashForce;
+            this.player.dashAvailable = false;
+            this.player.dashCooldown = this.physics.dashDuration;
+            
+            console.log('⚡ Dash ejecutado');
+            
+            // Actualizar estadísticas
+            this.gameState.set('stats.dashes', this.gameState.get('stats.dashes') + 1);
+            
+            // Emitir evento
+            this.eventBus.emit('player:dashed', {
+                position: { ...this.player.position }
+            });
+        } else {
+            console.log('🚫 Dash no disponible');
+        }
     }
     
     /**
-     * Verifica si un módulo está registrado
-     * @param {string} name - Nombre del módulo
-     * @returns {boolean} True si está registrado
+     * Maneja el cambio de gravedad
+     * @param {Object} data - Datos del input
      */
-    hasModule(name) {
-        return this.modules.has(name);
+    handlePlayerGravity(data) {
+        if (this.stateManager.getState() !== 'playing') return;
+        
+        console.log('🔄 Jugador cambia gravedad');
+        
+        this.player.gravityInverted = !this.player.gravityInverted;
+        
+        console.log(`🔄 Gravedad ${this.player.gravityInverted ? 'invertida' : 'normal'}`);
+        
+        // Emitir evento
+        this.eventBus.emit('player:gravity-changed', {
+            inverted: this.player.gravityInverted
+        });
     }
     
     /**
-     * Desregistra un módulo
-     * @param {string} name - Nombre del módulo
-     * @returns {boolean} True si se desregistró exitosamente
+     * Maneja la pausa del juego
+     * @param {Object} data - Datos del input
      */
-    unregisterModule(name) {
-        const module = this.modules.get(name);
-        if (module) {
-            // Destruir el módulo si tiene método destroy
-            if (module.destroy && typeof module.destroy === 'function') {
-                try {
-                    module.destroy();
-                } catch (error) {
-                    console.error(`❌ Error destruyendo módulo ${name}:`, error);
-                }
+    handleGamePause(data) {
+        console.log('⏸️ Jugador presiona pausa');
+        this.togglePause();
+    }
+    
+    /**
+     * Resetea todos los sistemas
+     */
+    resetSystems() {
+        Object.values(this.systems).forEach(system => {
+            if (system && system.reset) {
+                system.reset();
+            }
+        });
+    }
+    
+    /**
+     * Inicia el game loop
+     */
+    startGameLoop() {
+        if (this.isRunning) return;
+        
+        this.isRunning = true;
+        this.lastTime = performance.now();
+        
+        const gameLoop = (currentTime) => {
+            if (!this.isRunning) return;
+            
+            // Calcular delta time
+            this.deltaTime = (currentTime - this.lastTime) / 1000;
+            this.lastTime = currentTime;
+            
+            // Limitar delta time para evitar saltos grandes
+            this.deltaTime = Math.min(this.deltaTime, 1/30); // Max 30fps
+            
+            // Actualizar FPS
+            this.frameCount++;
+            if (this.frameCount % 60 === 0) {
+                this.fps = 1 / this.deltaTime;
             }
             
-            this.modules.delete(name);
-            this.modulePriorities.delete(name);
-            this.updateModuleOrder();
+            // Actualizar juego
+            this.update(this.deltaTime);
             
-            console.log(`📦 Módulo desregistrado: ${name}`);
-            this.eventBus.emit('engine:module-unregistered', { name });
-            return true;
-        }
-        return false;
+            // Renderizar juego
+            this.render(this.deltaTime);
+            
+            // Continuar loop
+            this.animationFrameId = requestAnimationFrame(gameLoop);
+        };
+        
+        this.animationFrameId = requestAnimationFrame(gameLoop);
+        console.log('▶️ Game loop iniciado');
     }
     
     /**
-     * Obtiene información del estado del motor
-     * @returns {Object} Estado del motor
+     * Detiene el game loop
      */
-    getEngineStatus() {
+    stopGameLoop() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+        
+        this.isRunning = false;
+        console.log('⏹️ Game loop detenido');
+    }
+    
+    /**
+     * Actualiza el juego
+     * @param {number} deltaTime - Delta time
+     */
+    update(deltaTime) {
+        const currentState = this.stateManager.getState();
+        
+        // Solo actualizar si está jugando
+        if (currentState !== 'playing') return;
+        
+        // Actualizar tiempo de juego
+        this.gameData.time += deltaTime;
+        
+        // Actualizar sistemas
+        if (this.systems.input) {
+            this.systems.input.update(deltaTime);
+        }
+        
+        if (this.systems.rendering) {
+            this.systems.rendering.update(deltaTime);
+        }
+        
+        if (this.systems.ui) {
+            this.systems.ui.update(deltaTime);
+        }
+        
+        if (this.systems.debug) {
+            this.systems.debug.update(deltaTime);
+        }
+        
+        // Actualizar datos del juego (simulado por ahora)
+        this.updateGameLogic(deltaTime);
+        
+        // Emitir evento de actualización
+        this.eventBus.emit('game:update-complete', {
+            deltaTime,
+            gameData: this.gameData
+        });
+    }
+    
+    /**
+     * Actualiza la lógica del juego
+     * @param {number} deltaTime - Delta time
+     */
+    updateGameLogic(deltaTime) {
+        // Actualizar física del jugador
+        this.updatePlayerPhysics(deltaTime);
+        
+        // Obtener estado actual del juego
+        const currentStats = this.gameState.get('stats');
+        
+        // Actualizar distancia y puntuación
+        const newDistance = currentStats.distance + (100 * deltaTime); // 100 unidades por segundo
+        const newScore = Math.floor(newDistance);
+        
+        // Actualizar estado centralizado
+        this.gameState.set('stats.distance', newDistance);
+        this.gameState.set('stats.score', newScore);
+        
+        // Mantener compatibilidad con gameData legacy
+        this.gameData.distance = newDistance;
+        this.gameData.score = newScore;
+        this.gameData.time += deltaTime;
+        
+        // Emitir eventos específicos
+        this.eventBus.emit('game:distance-changed', { distance: newDistance });
+        this.eventBus.emit('game:score-changed', { score: newScore });
+        
+        // Actualizar UI con nuevos datos
+        this.eventBus.emit('game:data-updated', this.gameData);
+        
+        // Emitir estado del jugador para el renderizado
+        this.eventBus.emit('player:state-updated', {
+            player: { ...this.player },
+            gameData: { ...this.gameData }
+        });
+    }
+    
+    /**
+     * Actualiza la física del jugador
+     * @param {number} deltaTime - Delta time
+     */
+    updatePlayerPhysics(deltaTime) {
+        // Aplicar gravedad
+        const gravityDirection = this.player.gravityInverted ? -1 : 1;
+        this.player.velocity.y += this.physics.gravity * gravityDirection * deltaTime * 60; // 60fps base
+        
+        // Aplicar velocidad a la posición
+        this.player.position.x += this.player.velocity.x * deltaTime * 60;
+        this.player.position.y += this.player.velocity.y * deltaTime * 60;
+        
+        // Fricción en X
+        this.player.velocity.x *= 0.95;
+        
+        // Verificar colisiones con el suelo y techo
+        this.checkGroundCollision();
+        
+        // Actualizar cooldowns
+        this.updatePlayerCooldowns(deltaTime);
+        
+        // Mantener al jugador en pantalla (X)
+        if (this.player.position.x < this.player.size / 2) {
+            this.player.position.x = this.player.size / 2;
+            this.player.velocity.x = 0;
+        }
+        
+        if (this.player.position.x > 1200 - this.player.size / 2) {
+            this.player.position.x = 1200 - this.player.size / 2;
+            this.player.velocity.x = 0;
+        }
+    }
+    
+    /**
+     * Verifica colisiones con el suelo y techo
+     */
+    checkGroundCollision() {
+        const halfSize = this.player.size / 2;
+        
+        if (!this.player.gravityInverted) {
+            // Gravedad normal - verificar suelo
+            if (this.player.position.y + halfSize >= this.physics.groundY) {
+                this.player.position.y = this.physics.groundY - halfSize;
+                this.player.velocity.y = 0;
+                this.player.onGround = true;
+                this.player.jumpsLeft = this.player.maxJumps; // Resetear saltos
+                this.player.dashAvailable = true; // Resetear dash
+            } else {
+                this.player.onGround = false;
+            }
+        } else {
+            // Gravedad invertida - verificar techo
+            if (this.player.position.y - halfSize <= this.physics.ceilingY) {
+                this.player.position.y = this.physics.ceilingY + halfSize;
+                this.player.velocity.y = 0;
+                this.player.onGround = true;
+                this.player.jumpsLeft = this.player.maxJumps; // Resetear saltos
+                this.player.dashAvailable = true; // Resetear dash
+            } else {
+                this.player.onGround = false;
+            }
+        }
+    }
+    
+    /**
+     * Actualiza los cooldowns del jugador
+     * @param {number} deltaTime - Delta time
+     */
+    updatePlayerCooldowns(deltaTime) {
+        // Cooldown del dash
+        if (this.player.dashCooldown > 0) {
+            this.player.dashCooldown -= deltaTime * 1000; // Convertir a ms
+            
+            if (this.player.dashCooldown <= 0) {
+                this.player.dashCooldown = 0;
+                if (this.player.onGround) {
+                    this.player.dashAvailable = true;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Renderiza el juego
+     * @param {number} deltaTime - Delta time
+     */
+    render(deltaTime) {
+        // Renderizar sistemas
+        if (this.systems.rendering) {
+            this.systems.rendering.render(deltaTime);
+        }
+        
+        // Renderizar debug overlays
+        if (this.systems.debug && this.systems.rendering) {
+            this.systems.debug.renderDebugOverlays(
+                this.systems.rendering.canvasRenderer.ctx,
+                {} // Por ahora objetos vacíos
+            );
+        }
+        
+        // Registrar frame para debug
+        if (this.systems.debug) {
+            this.systems.debug.recordFrame({
+                fps: this.fps,
+                deltaTime: deltaTime * 1000,
+                timestamp: Date.now()
+            });
+        }
+        
+        // Emitir evento de renderizado
+        this.eventBus.emit('game:render-complete', {
+            deltaTime,
+            fps: this.fps
+        });
+    }
+    
+    /**
+     * Obtiene el estado actual del juego
+     * @returns {string} Estado actual
+     */
+    getState() {
+        return this.stateManager.getState();
+    }
+    
+    /**
+     * Obtiene los datos actuales del juego
+     * @returns {Object} Datos del juego
+     */
+    getGameData() {
+        return { ...this.gameData };
+    }
+    
+    /**
+     * Obtiene estadísticas del motor
+     * @returns {Object} Estadísticas
+     */
+    getStats() {
         return {
+            isInitialized: this.isInitialized,
             isRunning: this.isRunning,
-            isPaused: this.isPaused,
-            currentState: this.stateManager.currentState,
+            currentState: this.stateManager.getState(),
+            fps: this.fps,
             frameCount: this.frameCount,
-            performance: { ...this.performance },
-            modules: Array.from(this.modules.keys()),
-            errorRecovery: { ...this.errorRecovery },
-            config: this.config
+            deltaTime: this.deltaTime,
+            gameData: this.gameData,
+            systems: Object.keys(this.systems).reduce((acc, key) => {
+                acc[key] = this.systems[key] !== null;
+                return acc;
+            }, {})
         };
-    }
-    
-    /**
-     * Obtiene estadísticas de performance
-     * @returns {Object} Estadísticas de performance
-     */
-    getPerformanceStats() {
-        return {
-            fps: this.performance.fps,
-            frameTime: this.performance.frameTime,
-            updateTime: this.performance.updateTime,
-            renderTime: this.performance.renderTime,
-            frameHistory: [...this.performance.frameHistory],
-            averageFPS: this.performance.frameHistory.length > 0 
-                ? Math.round(this.performance.frameHistory.reduce((a, b) => a + b, 0) / this.performance.frameHistory.length)
-                : 0
-        };
-    }
-    
-    /**
-     * Establece la configuración del motor
-     * @param {Object} newConfig - Nueva configuración
-     */
-    setConfig(newConfig) {
-        this.config = { ...this.config, ...newConfig };
-        
-        // Actualizar FPS objetivo si cambió
-        if (newConfig.canvas?.targetFPS) {
-            this.targetFPS = newConfig.canvas.targetFPS;
-            this.frameTime = 1000 / this.targetFPS;
-        }
-        
-        console.log('⚙️ Configuración del motor actualizada');
-        this.eventBus.emit('engine:config-updated', { config: this.config });
-    }
-    
-    /**
-     * Reinicia el motor completamente
-     */
-    async restart() {
-        console.log('🔄 Reiniciando GameEngine...');
-        
-        // Detener el motor
-        this.stop();
-        
-        // Limpiar módulos
-        for (const [name, module] of this.modules) {
-            this.unregisterModule(name);
-        }
-        
-        // Reinicializar
-        await this.init();
-        
-        console.log('✅ GameEngine reiniciado');
     }
     
     /**
@@ -1062,55 +998,49 @@ export class GameEngine {
      */
     getDebugInfo() {
         return {
-            engine: this.getEngineStatus(),
-            performance: this.getPerformanceStats(),
-            modules: Object.fromEntries(
-                Array.from(this.modules.entries()).map(([name, module]) => [
-                    name, 
-                    {
-                        priority: this.modulePriorities.get(name),
-                        hasUpdate: typeof module.update === 'function',
-                        hasRender: typeof module.render === 'function',
-                        hasFixedUpdate: typeof module.fixedUpdate === 'function'
-                    }
-                ])
-            ),
-            renderLayers: Object.fromEntries(
-                Array.from(this.renderLayers.entries()).map(([name, objects]) => [
-                    name,
-                    objects.length
-                ])
-            ),
-            eventBus: {
-                listenerCount: this.eventBus.getListenerCount ? this.eventBus.getListenerCount() : 'N/A'
-            }
+            engine: this.getStats(),
+            systems: Object.keys(this.systems).reduce((acc, key) => {
+                if (this.systems[key] && this.systems[key].getDebugInfo) {
+                    acc[key] = this.systems[key].getDebugInfo();
+                }
+                return acc;
+            }, {}),
+            stateManager: this.stateManager.getDebugInfo(),
+            gameState: this.gameState.getDebugInfo()
         };
     }
     
     /**
-     * Limpia recursos y detiene el motor
+     * Destruye el motor de juego
      */
     destroy() {
         console.log('🧹 Destruyendo GameEngine...');
         
-        this.stop();
+        // Detener game loop
+        this.stopGameLoop();
         
-        // Destruir módulos
-        for (const [name, module] of this.modules) {
-            if (module.destroy && typeof module.destroy === 'function') {
-                try {
-                    module.destroy();
-                } catch (error) {
-                    console.error(`❌ Error destruyendo módulo ${name}:`, error);
-                }
+        // Destruir sistemas
+        Object.values(this.systems).forEach(system => {
+            if (system && system.destroy) {
+                system.destroy();
             }
+        });
+        
+        // Destruir núcleo
+        if (this.stateManager) {
+            this.stateManager.destroy();
         }
         
-        this.modules.clear();
+        if (this.gameState) {
+            this.gameState.destroy();
+        }
         
-        // Limpiar event listeners
-        window.removeEventListener('resize', this.handleResize.bind(this));
-        document.removeEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+        // Limpiar referencias
+        this.systems = {};
+        this.eventBus = null;
+        this.stateManager = null;
+        
+        this.isInitialized = false;
         
         console.log('✅ GameEngine destruido');
     }
